@@ -4,7 +4,6 @@ using Namotion.Reflection;
 
 using System.Text.Json;
 
-
 namespace FartingUnicorn;
 
 public class Mapper
