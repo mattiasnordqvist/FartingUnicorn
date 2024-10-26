@@ -12,9 +12,13 @@ public class Mapper
     public record RequiredPropertyMissingError(string propertyName) : ErrorBase($"{propertyName} is required");
     public record RequiredValueMissingError(string propertyName) : ErrorBase($"{propertyName} must have a value");
     public record ValueHasWrongTypeError(string propertyName, string expectedType, string actualType) : ErrorBase($"Value of {propertyName} has the wrong type. Expected {expectedType}, got {actualType}");
-    public static Result<T> Map<T>(JsonElement json)
+    public static Result<T> Map<T>(JsonElement json, string[] path = null)
         where T : new()
     {
+        if(path is null)
+        {
+            path = Array.Empty<string>();
+        }
         // Rewrite this with source generator to avoid type generics and reflection
 
         Result<Unit> validationResult = UnitResult.Ok;
@@ -107,26 +111,58 @@ public class Mapper
                         }
                         else
                         {
-                            var mapMethod = typeof(Mapper).GetMethod("Map", BindingFlags.Public | BindingFlags.Static);
-                            var genericMapMethod = mapMethod.MakeGenericMethod(property.PropertyType);
-                            var result = genericMapMethod.Invoke(null, [jsonProperty]);
-                            var resultSuccessProperty = result.GetType().GetProperty("Success");
+                            var newPath = path.Append(property.Name).ToArray();
 
-                            if ((bool)resultSuccessProperty.GetValue(result))
+                            if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(Option<>))
                             {
-                                var valueProperty = result.GetType().GetProperty("Value");
-                                property.SetValue(obj, valueProperty.GetValue(result));
-                            }
-                            else
-                            {
-                                var errorProperty = result.GetType().GetProperty("Errors");
-                                var errors = (IReadOnlyList<IError>)errorProperty.GetValue(result);
-                                var newErrorsResult = UnitResult.Ok;
-                                foreach (var error in errors)
+                                var mapMethod = typeof(Mapper).GetMethod("Map", BindingFlags.Public | BindingFlags.Static);
+                                var genericMapMethod = mapMethod.MakeGenericMethod(property.PropertyType.GetGenericArguments()[0]);
+                                var result = genericMapMethod.Invoke(null, [jsonProperty, newPath]);
+                                var resultSuccessProperty = result.GetType().GetProperty("Success");
+
+                                if ((bool)resultSuccessProperty.GetValue(result))
                                 {
-                                    newErrorsResult = newErrorsResult.Or(Result<Unit>.Error(error));
+                                    var valueProperty = result.GetType().GetProperty("Value");
+                                    var getValue = valueProperty.GetValue(result);
+                                    var someType = typeof(Some<>).MakeGenericType(property.PropertyType.GetGenericArguments()[0]);
+                                    var someInstance = Activator.CreateInstance(someType, getValue);
+                                    property.SetValue(obj, someInstance);
                                 }
-                                validationResult = validationResult.Or(newErrorsResult);
+                                else
+                                {
+                                    var errorProperty = result.GetType().GetProperty("Errors");
+                                    var errors = (IReadOnlyList<IError>)errorProperty.GetValue(result);
+                                    var newErrorsResult = UnitResult.Ok;
+                                    foreach (var error in errors)
+                                    {
+                                        newErrorsResult = newErrorsResult.Or(Result<Unit>.Error(error));
+                                    }
+                                    validationResult = validationResult.Or(newErrorsResult);
+                                }
+                            }
+                            else 
+                            { 
+                                var mapMethod = typeof(Mapper).GetMethod("Map", BindingFlags.Public | BindingFlags.Static);
+                                var genericMapMethod = mapMethod.MakeGenericMethod(property.PropertyType);
+                                var result = genericMapMethod.Invoke(null, [jsonProperty, newPath]);
+                                var resultSuccessProperty = result.GetType().GetProperty("Success");
+
+                                if ((bool)resultSuccessProperty.GetValue(result))
+                                {
+                                    var valueProperty = result.GetType().GetProperty("Value");
+                                    property.SetValue(obj, valueProperty.GetValue(result));
+                                }
+                                else
+                                {
+                                    var errorProperty = result.GetType().GetProperty("Errors");
+                                    var errors = (IReadOnlyList<IError>)errorProperty.GetValue(result);
+                                    var newErrorsResult = UnitResult.Ok;
+                                    foreach (var error in errors)
+                                    {
+                                        newErrorsResult = newErrorsResult.Or(Result<Unit>.Error(error));
+                                    }
+                                    validationResult = validationResult.Or(newErrorsResult);
+                                }
                             }
                         }
                     }
@@ -140,7 +176,7 @@ public class Mapper
                 }
                 else
                 {
-                    validationResult = validationResult.Or(Result<Unit>.Error(new RequiredPropertyMissingError(property.Name)));
+                    validationResult = validationResult.Or(Result<Unit>.Error(new RequiredPropertyMissingError(string.Join(".", path.Append(property.Name)))));
                 }
             }
         }

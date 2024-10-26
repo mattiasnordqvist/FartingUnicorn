@@ -1073,7 +1073,7 @@ public class Objects
         }
 
         [Fact]
-        public void Test1()
+        public void Valid()
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -1119,11 +1119,11 @@ public class Objects
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
             blogPost.Success.Should().BeFalse();
-            blogPost.Errors.Should().ContainSingle(e => e.Message == "Age is required"); // It'd be nice if the error message could include the path to the missing field
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "Author.Age is required");
         }
 
         [Fact]
-        public void AgeIsOtional()
+        public void AgeIsOptional()
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -1189,6 +1189,108 @@ public class Objects
             var blogPost = Mapper.Map<BlogPost>(json);
             blogPost.Success.Should().BeFalse();
             blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of Author has the wrong type. Expected Object, got Number");
+
+        }
+    }
+    
+    public class Optional
+    {
+        public class BlogPost
+        {
+            public string Title { get; set; }
+            public bool IsDraft { get; set; }
+            public Option<string> Category { get; set; }
+            public Option<int> Rating { get; set; }
+            public Option<Author> Author { get; set; }
+        }
+        public class Author
+        {
+            public string Name { get; set; }
+            public Option<int> Age { get; set; }
+        }
+        [Fact]
+        public void Valid()
+        {
+            var json = JsonSerializer.Deserialize<JsonElement>("""
+            {
+                "Title": "Farting Unicorns",
+                "IsDraft": true,
+                "Category": "Horses",
+                "Rating": 5,
+                "Author": {
+                    "Name": "John Doe",
+                    "Age": 42
+                }
+            }
+            """);
+            var blogPost = Mapper.Map<BlogPost>(json);
+            blogPost.Success.Should().BeTrue();
+            blogPost.Value.Title.Should().Be("Farting Unicorns");
+            blogPost.Value.IsDraft.Should().BeTrue();
+            blogPost.Value.Category.Should().BeOfType<Some<string>>();
+            var someCategory = (blogPost.Value.Category as Some<string>)!;
+            someCategory.Value.Should().Be("Horses");
+            blogPost.Value.Rating.Should().BeOfType<Some<int>>();
+            var someRating = (blogPost.Value.Rating as Some<int>)!;
+            someRating.Value.Should().Be(5);
+            blogPost.Value.Author.Should().BeOfType<Some<Author>>();
+            var someAuthor = (blogPost.Value.Author as Some<Author>)!;
+            someAuthor.Value.Name.Should().Be("John Doe");
+            someAuthor.Value.Age.Should().BeOfType<Some<int>>();
+            var someAge = (someAuthor.Value.Age as Some<int>)!;
+            someAge.Value.Should().Be(42);
+        }
+
+        [Fact]
+        public void AgeIsOptional_ButIsNotAllowedToBeMissing()
+        {
+            var json = JsonSerializer.Deserialize<JsonElement>("""
+            {
+                "Title": "Farting Unicorns",
+                "IsDraft": true,
+                "Category": "Horses",
+                "Rating": 5,
+                "Author": {
+                    "Name": "John Doe"
+                }
+            }
+            """);
+            var blogPost = Mapper.Map<BlogPost>(json);
+            blogPost.Success.Should().BeFalse();
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "Author.Age is required");
+        }
+
+        [Fact]
+        public void AuthorCannoBeMissing()
+        {
+            var json = JsonSerializer.Deserialize<JsonElement>("""
+            {
+                "Title": "Farting Unicorns",
+                "IsDraft": true,
+                "Category": "Horses",
+                "Rating": 5
+            }
+            """);
+            var blogPost = Mapper.Map<BlogPost>(json);
+            blogPost.Success.Should().BeFalse();
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "Author is required");
+        }
+
+        [Fact]
+        public void AuthorIsOptional()
+        {
+            var json = JsonSerializer.Deserialize<JsonElement>("""
+            {
+                "Title": "Farting Unicorns",
+                "IsDraft": true,
+                "Category": "Horses",
+                "Rating": 5,
+                "Author": null
+            }
+            """);
+            var blogPost = Mapper.Map<BlogPost>(json);
+            blogPost.Success.Should().BeTrue();
+            blogPost.Value.Author.Should().BeOfType<None<Author>>();
 
         }
     }
