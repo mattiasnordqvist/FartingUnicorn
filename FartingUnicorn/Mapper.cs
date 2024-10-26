@@ -2,6 +2,7 @@
 
 using Namotion.Reflection;
 
+using System.Reflection;
 using System.Text.Json;
 
 namespace FartingUnicorn;
@@ -79,7 +80,8 @@ public class Mapper
                             }
                         }
                     }
-                    else if (property.PropertyType == typeof(string) || property.PropertyType == typeof(Option<string>))
+                    else if (property.PropertyType == typeof(string) 
+                        || property.PropertyType == typeof(Option<string>))
                     {
                         if (jsonProperty.ValueKind != JsonValueKind.String)
                         {
@@ -94,6 +96,37 @@ public class Mapper
                             else
                             {
                                 property.SetValue(obj, jsonProperty.GetString());
+                            }
+                        }
+                    }
+                    else /*object!*/
+                    {
+                        if(jsonProperty.ValueKind != JsonValueKind.Object)
+                        {
+                            validationResult = validationResult.Or(Result<Unit>.Error(new ValueHasWrongTypeError(property.Name, "Object", jsonProperty.ValueKind.ToString())));
+                        }
+                        else
+                        {
+                            var mapMethod = typeof(Mapper).GetMethod("Map", BindingFlags.Public | BindingFlags.Static);
+                            var genericMapMethod = mapMethod.MakeGenericMethod(property.PropertyType);
+                            var result = genericMapMethod.Invoke(null, [jsonProperty]);
+                            var resultSuccessProperty = result.GetType().GetProperty("Success");
+
+                            if ((bool)resultSuccessProperty.GetValue(result))
+                            {
+                                var valueProperty = result.GetType().GetProperty("Value");
+                                property.SetValue(obj, valueProperty.GetValue(result));
+                            }
+                            else
+                            {
+                                var errorProperty = result.GetType().GetProperty("Errors");
+                                var errors = (IReadOnlyList<IError>)errorProperty.GetValue(result);
+                                var newErrorsResult = UnitResult.Ok;
+                                foreach (var error in errors)
+                                {
+                                    newErrorsResult = newErrorsResult.Or(Result<Unit>.Error(error));
+                                }
+                                validationResult = validationResult.Or(newErrorsResult);
                             }
                         }
                     }
