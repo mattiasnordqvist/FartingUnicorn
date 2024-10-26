@@ -1174,6 +1174,7 @@ public class Objects
             blogPost.Success.Should().BeFalse();
             blogPost.Errors.Should().ContainSingle(e => e.Message == "Author must have a value");
         }
+
         [Fact]
         public void AuthorIsWrongType()
         {
@@ -1291,6 +1292,23 @@ public class Objects
             var blogPost = Mapper.Map<BlogPost>(json);
             blogPost.Success.Should().BeTrue();
             blogPost.Value.Author.Should().BeOfType<None<Author>>();
+        }
+
+        [Fact]
+        public void AuthorIsWrongType()
+        {
+            var json = JsonSerializer.Deserialize<JsonElement>("""
+            {
+                "Title": "Farting Unicorns",
+                "IsDraft": true,
+                "Category": "Horses",
+                "Rating": 5,
+                "Author": 123456
+            }
+            """);
+            var blogPost = Mapper.Map<BlogPost>(json);
+            blogPost.Success.Should().BeFalse();
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of Author has the wrong type. Expected Object, got Number");
 
         }
     }
