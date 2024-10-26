@@ -1193,7 +1193,7 @@ public class Objects
 
         }
     }
-    
+
     public class Optional
     {
         public class BlogPost
@@ -1312,28 +1312,129 @@ public class Objects
 
         }
     }
-}
 
-public class Arrays
-{
-    public class NotOptional
+    public class Nullable
     {
         public class BlogPost
         {
-            public Comment[] Comments { get; set; }
+            public Author? Author { get; set; }
         }
-
-        public class Comment
+        public class Author
         {
-            public string Text { get; set; }
-            public int Upvotes { get; set; }
-            public Option<string> Contact { get; set; }
+            public string Name { get; set; }
+            public Option<int> Age { get; set; }
         }
 
         [Fact]
         public void Valid()
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
+            {
+                "Author": {
+                    "Name": "John Doe",
+                    "Age": 42
+                }
+            }
+            """);
+            var blogPost = Mapper.Map<BlogPost>(json);
+            blogPost.Success.Should().BeTrue();
+            blogPost.Value.Author.Should().NotBeNull();
+            blogPost.Value.Author!.Name.Should().Be("John Doe");
+            blogPost.Value.Author!.Age.Should().BeOfType<Some<int>>();
+        }
+
+        [Fact]
+        public void Missing_OK()
+        {
+            var json = JsonSerializer.Deserialize<JsonElement>("""
+            {
+            }
+            """);
+            var blogPost = Mapper.Map<BlogPost>(json);
+            blogPost.Success.Should().BeTrue();
+            blogPost.Value.Author.Should().BeNull();
+        }
+    }
+
+    public class NullableOptional
+    {
+        public class BlogPost
+        {
+            public Option<Author>? Author { get; set; }
+        }
+        public class Author
+        {
+            public string Name { get; set; }
+            public Option<int> Age { get; set; }
+        }
+
+        [Fact]
+        public void Valid()
+        {
+            var json = JsonSerializer.Deserialize<JsonElement>("""
+            {
+                "Author": {
+                    "Name": "John Doe",
+                    "Age": 42
+                }
+            }
+            """);
+            var blogPost = Mapper.Map<BlogPost>(json);
+            blogPost.Success.Should().BeTrue();
+            blogPost.Value.Author.Should().NotBeNull();
+            blogPost.Value.Author!.Should().BeOfType<Some<Author>>();
+            var someAuthor = (blogPost.Value.Author as Some<Author>)!;
+            someAuthor.Value.Name.Should().Be("John Doe");
+            someAuthor.Value.Age.Should().BeOfType<Some<int>>();
+        }
+
+        [Fact]
+        public void Missing()
+        {
+            var json = JsonSerializer.Deserialize<JsonElement>("""
+            {
+            }
+            """);
+            var blogPost = Mapper.Map<BlogPost>(json);
+            blogPost.Success.Should().BeTrue();
+            blogPost.Value.Author.Should().BeNull();
+        }
+
+        [Fact]
+        public void Nulled()
+        {
+            var json = JsonSerializer.Deserialize<JsonElement>("""
+            {
+                "Author": null
+            }
+            """);
+            var blogPost = Mapper.Map<BlogPost>(json);
+            blogPost.Success.Should().BeTrue();
+            blogPost.Value.Author.Should().BeOfType<None<Author>>();
+        }
+
+    }
+
+    public class Arrays
+    {
+        public class NotOptional
+        {
+            public class BlogPost
+            {
+                public Comment[] Comments { get; set; }
+            }
+
+            public class Comment
+            {
+                public string Text { get; set; }
+                public int Upvotes { get; set; }
+                public Option<string> Contact { get; set; }
+            }
+
+            [Fact]
+            public void Valid()
+            {
+                var json = JsonSerializer.Deserialize<JsonElement>("""
             {
                 "Comments": [
                     {
@@ -1349,23 +1450,23 @@ public class Arrays
                 ]
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
-            blogPost.Value.Comments.Should().HaveCount(2);
-            blogPost.Value.Comments[0].Text.Should().Be("First!");
-            blogPost.Value.Comments[0].Upvotes.Should().Be(5);
-            blogPost.Value.Comments[0].Contact.Should().BeOfType<Some<string>>();
-            var someAuthor = (blogPost.Value.Comments[0].Contact as Some<string>)!;
-            someAuthor.Value.Should().Be("John Doe");
-            blogPost.Value.Comments[1].Text.Should().Be("Second!");
-            blogPost.Value.Comments[1].Upvotes.Should().Be(3);
-            blogPost.Value.Comments[1].Contact.Should().BeOfType<None<string>>();
-        }
+                var blogPost = Mapper.Map<BlogPost>(json);
+                blogPost.Success.Should().BeTrue();
+                blogPost.Value.Comments.Should().HaveCount(2);
+                blogPost.Value.Comments[0].Text.Should().Be("First!");
+                blogPost.Value.Comments[0].Upvotes.Should().Be(5);
+                blogPost.Value.Comments[0].Contact.Should().BeOfType<Some<string>>();
+                var someAuthor = (blogPost.Value.Comments[0].Contact as Some<string>)!;
+                someAuthor.Value.Should().Be("John Doe");
+                blogPost.Value.Comments[1].Text.Should().Be("Second!");
+                blogPost.Value.Comments[1].Upvotes.Should().Be(3);
+                blogPost.Value.Comments[1].Contact.Should().BeOfType<None<string>>();
+            }
 
-        [Fact]
-        public void MissingFields ()
-        {
-            var json = JsonSerializer.Deserialize<JsonElement>("""
+            [Fact]
+            public void MissingFields()
+            {
+                var json = JsonSerializer.Deserialize<JsonElement>("""
             {
                 "Comments": [
                     {
@@ -1379,23 +1480,26 @@ public class Arrays
                 ]
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeFalse();
-            blogPost.Errors.Should().ContainSingle(e => e.Message == "Comments.0.Text is required");
-            blogPost.Errors.Should().ContainSingle(e => e.Message == "Comments.1.Contact is required");
+                var blogPost = Mapper.Map<BlogPost>(json);
+                blogPost.Success.Should().BeFalse();
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "Comments.0.Text is required");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "Comments.1.Contact is required");
 
-        }
+            }
 
-        [Fact]
-        public void MissingArray()
-        {
-            var json = JsonSerializer.Deserialize<JsonElement>("""
+            [Fact]
+            public void MissingArray()
+            {
+                var json = JsonSerializer.Deserialize<JsonElement>("""
             {
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeFalse();
-            blogPost.Errors.Should().ContainSingle(e => e.Message == "Comments is required");
+                var blogPost = Mapper.Map<BlogPost>(json);
+                blogPost.Success.Should().BeFalse();
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "Comments is required");
+            }
         }
+
+
     }
 }
