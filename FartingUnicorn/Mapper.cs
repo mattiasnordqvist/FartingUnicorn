@@ -20,19 +20,15 @@ public class Mapper
             path = Array.Empty<string>();
         }
         // Rewrite this with source generator to avoid type generics and reflection
-        return MapObject<T>(json, path);
+        return MapObject(typeof(T), json, path).Map(x => (T)x);
     }
 
-    public static MethodInfo MapObjectMethod { get; } = typeof(Mapper).GetMethod(nameof(MapObject), BindingFlags.Public | BindingFlags.Static) ?? throw new Exception("Can't find MapObject method");
-
-    public static Result<T> MapObject<T>(JsonElement json, string[] path)
-        where T : new()
+    public static Result<object> MapObject(Type type, JsonElement json, string[] path)
     {
-
         Result<Unit> validationResult = UnitResult.Ok;
-        var obj = new T();
+        var obj = Activator.CreateInstance(type);
 
-        foreach (var contextualProperty in typeof(T).GetContextualProperties())
+        foreach (var contextualProperty in type.GetContextualProperties())
         {
             var property = contextualProperty.PropertyInfo;
             var isPropertyDefined = json.TryGetProperty(property.Name, out var jsonProperty);
@@ -128,13 +124,12 @@ public class Mapper
                             {
                                 var elementType = property.PropertyType.GetGenericArguments()[0].GetElementType();
                                 
-                                var genericMapMethod = MapObjectMethod.MakeGenericMethod(elementType);
                                 var array = Array.CreateInstance(elementType, jsonProperty.GetArrayLength());
                                 var errors = new List<IError>();
                                 for (int i = 0; i < jsonProperty.GetArrayLength(); i++)
                                 {
                                     var arrayElementPath = arrayPath.Append(i.ToString()).ToArray();
-                                    var result = genericMapMethod.Invoke(null, [jsonProperty[i], arrayElementPath]);
+                                    var result = MapObject(elementType, jsonProperty[i], arrayElementPath);
                                     var resultSuccessProperty = result.GetType().GetProperty("Success");
 
                                     if ((bool)resultSuccessProperty.GetValue(result))
@@ -170,13 +165,12 @@ public class Mapper
                             {
 
                                 var elementType = property.PropertyType.GetElementType();
-                                var genericMapMethod = MapObjectMethod.MakeGenericMethod(elementType);
                                 var array = Array.CreateInstance(elementType, jsonProperty.GetArrayLength());
                                 var errors = new List<IError>();
                                 for (int i = 0; i < jsonProperty.GetArrayLength(); i++)
                                 {
                                     var arrayElementPath = arrayPath.Append(i.ToString()).ToArray();
-                                    var result = genericMapMethod.Invoke(null, [jsonProperty[i], arrayElementPath]);
+                                    var result = MapObject(elementType, jsonProperty[i], arrayElementPath);
                                     var resultSuccessProperty = result.GetType().GetProperty("Success");
 
                                     if ((bool)resultSuccessProperty.GetValue(result))
@@ -220,8 +214,7 @@ public class Mapper
 
                             if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(Option<>))
                             {
-                                var genericMapMethod = MapObjectMethod.MakeGenericMethod(property.PropertyType.GetGenericArguments()[0]);
-                                var result = genericMapMethod.Invoke(null, [jsonProperty, newPath]);
+                                var result = MapObject(property.PropertyType.GetGenericArguments()[0], jsonProperty, newPath);
                                 var resultSuccessProperty = result.GetType().GetProperty("Success");
 
                                 if ((bool)resultSuccessProperty.GetValue(result))
@@ -246,8 +239,8 @@ public class Mapper
                             }
                             else
                             {
-                                var genericMapMethod = MapObjectMethod.MakeGenericMethod(property.PropertyType);
-                                var result = genericMapMethod.Invoke(null, [jsonProperty, newPath]);
+
+                                var result = MapObject(property.PropertyType, jsonProperty, newPath);
                                 var resultSuccessProperty = result.GetType().GetProperty("Success");
 
                                 if ((bool)resultSuccessProperty.GetValue(result))
