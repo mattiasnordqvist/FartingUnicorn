@@ -20,6 +20,14 @@ public class Mapper
             path = Array.Empty<string>();
         }
         // Rewrite this with source generator to avoid type generics and reflection
+        return MapObject<T>(json, path);
+    }
+
+    public static MethodInfo MapObjectMethod { get; } = typeof(Mapper).GetMethod(nameof(MapObject), BindingFlags.Public | BindingFlags.Static) ?? throw new Exception("Can't find MapObject method");
+
+    public static Result<T> MapObject<T>(JsonElement json, string[] path)
+        where T : new()
+    {
 
         Result<Unit> validationResult = UnitResult.Ok;
         var obj = new T();
@@ -104,8 +112,8 @@ public class Mapper
                         }
                     }
                     else if (property.PropertyType.IsArray
-                        || (property.PropertyType.IsGenericType 
-                            && property.PropertyType.GetGenericTypeDefinition() == typeof(Option<>) 
+                        || (property.PropertyType.IsGenericType
+                            && property.PropertyType.GetGenericTypeDefinition() == typeof(Option<>)
                             && property.PropertyType.GetGenericArguments()[0].IsArray))
                     {
                         if (jsonProperty.ValueKind != JsonValueKind.Array)
@@ -119,8 +127,8 @@ public class Mapper
                             if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(Option<>))
                             {
                                 var elementType = property.PropertyType.GetGenericArguments()[0].GetElementType();
-                                var mapMethod = typeof(Mapper).GetMethod("Map", BindingFlags.Public | BindingFlags.Static);
-                                var genericMapMethod = mapMethod.MakeGenericMethod(elementType);
+                                
+                                var genericMapMethod = MapObjectMethod.MakeGenericMethod(elementType);
                                 var array = Array.CreateInstance(elementType, jsonProperty.GetArrayLength());
                                 var errors = new List<IError>();
                                 for (int i = 0; i < jsonProperty.GetArrayLength(); i++)
@@ -160,10 +168,9 @@ public class Mapper
                             }
                             else
                             {
-                             
+
                                 var elementType = property.PropertyType.GetElementType();
-                                var mapMethod = typeof(Mapper).GetMethod("Map", BindingFlags.Public | BindingFlags.Static);
-                                var genericMapMethod = mapMethod.MakeGenericMethod(elementType);
+                                var genericMapMethod = MapObjectMethod.MakeGenericMethod(elementType);
                                 var array = Array.CreateInstance(elementType, jsonProperty.GetArrayLength());
                                 var errors = new List<IError>();
                                 for (int i = 0; i < jsonProperty.GetArrayLength(); i++)
@@ -213,8 +220,7 @@ public class Mapper
 
                             if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(Option<>))
                             {
-                                var mapMethod = typeof(Mapper).GetMethod("Map", BindingFlags.Public | BindingFlags.Static);
-                                var genericMapMethod = mapMethod.MakeGenericMethod(property.PropertyType.GetGenericArguments()[0]);
+                                var genericMapMethod = MapObjectMethod.MakeGenericMethod(property.PropertyType.GetGenericArguments()[0]);
                                 var result = genericMapMethod.Invoke(null, [jsonProperty, newPath]);
                                 var resultSuccessProperty = result.GetType().GetProperty("Success");
 
@@ -240,8 +246,7 @@ public class Mapper
                             }
                             else
                             {
-                                var mapMethod = typeof(Mapper).GetMethod("Map", BindingFlags.Public | BindingFlags.Static);
-                                var genericMapMethod = mapMethod.MakeGenericMethod(property.PropertyType);
+                                var genericMapMethod = MapObjectMethod.MakeGenericMethod(property.PropertyType);
                                 var result = genericMapMethod.Invoke(null, [jsonProperty, newPath]);
                                 var resultSuccessProperty = result.GetType().GetProperty("Success");
 
@@ -280,51 +285,5 @@ public class Mapper
         }
 
         return validationResult.Map(() => obj);
-        //// required property in all senses. It must be present in the JSON and must have a value (not null in json)
-        //if (!json.TryGetProperty("name", out var nameProperty))
-        //{
-        //    // This handles the case when the property is completely missing
-        //    result = result.Or(Result<Unit>.Error(new RequiredPropertyMissingError("name")));
-        //}
-        //else
-        //{
-        //    if (nameProperty.ValueKind == JsonValueKind.Null)
-        //    {
-        //        result = result.Or(Result<Unit>.Error(new RequiredValueMissingError("name")));
-        //    }
-        //    userProfile.Name = nameProperty.GetString();
-        //}
-        //userProfile.Age = json.GetProperty("age").GetInt32();
-        //userProfile.IsSubscribed = json.GetProperty("isSubscribed").GetBoolean();
-        //userProfile.Courses = json.GetProperty("courses").EnumerateArray().Select(course => course.GetString()).ToArray();
-
-        //if (json.GetProperty("pet").ValueKind == JsonValueKind.Null)
-        //{
-        //    userProfile.Pet = new None<Pet>();
-        //}
-        //else
-        //{
-        //    userProfile.Pet = new Some<Pet>(new Pet
-        //    {
-        //        Name = json.GetProperty("pet").GetProperty("name").GetString(),
-        //        Type = json.GetProperty("pet").GetProperty("type").GetString()
-        //    });
-        //}
-
-        //if (json.TryGetProperty("isGay", out var isGay))
-        //{
-        //    userProfile.IsGay = isGay.GetBoolean();
-        //}
-
-        //if (json.TryGetProperty("favoritePet", out var favoritePet))
-        //{
-        //    userProfile.FavoritePet = new Pet
-        //    {
-        //        Name = favoritePet.GetProperty("name").GetString(),
-        //        Type = favoritePet.GetProperty("type").GetString()
-        //    };
-        //}
-
-        //return result.Map(() => userProfile);
     }
 }

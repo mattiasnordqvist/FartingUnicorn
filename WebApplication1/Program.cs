@@ -9,13 +9,6 @@ public class Program
     public static void Main(string[] args)
     {
 
-        var blogPost = JsonSerializer.Deserialize<JsonElement>("""
-            {
-              "Title": 123456,
-              "IsDraft": "DRAFT"
-            }
-            """);
-
 
         var builder = WebApplication.CreateBuilder(args);
 

@@ -14,9 +14,19 @@ public partial class WeatherForecastController : ControllerBase
     {
         return Task.CompletedTask;
     }
-    [HttpPost]
-    public async Task<Result<UserProfile>> Post([FromBody] JsonElement weatherForecast)
+
+    [HttpPost("profile1")]
+    public async Task<Result<UserProfile>> Post([FromBody] JsonElement userProfile)
     {
-        return Mapper.Map(weatherForecast);
+        return FartingUnicorn.Mapper.Map<UserProfile>(userProfile);
+    }
+
+    [HttpPost("profile2")]
+    public async Task<Result<UserProfile>> Post()
+    {
+        // use system.text.json to deserialize the request body stream
+        using var json = await JsonDocument.ParseAsync(Request.Body);
+        var rootElement = json.RootElement;
+        return FartingUnicorn.Mapper.Map<UserProfile>(rootElement);
     }
 }

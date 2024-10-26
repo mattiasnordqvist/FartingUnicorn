@@ -1,23 +1,15 @@
 @WebApplication1_HostAddress = http://localhost:5290
 
-POST {{WebApplication1_HostAddress}}/weatherforecast/blog/
+Post {{WebApplication1_HostAddress}}/weatherforecast/profile1
 Content-Type: application/json
 
 {
-  "Title": 123456,
-  "IsDraft": "DRAFT"
-}
-
-###
-Post {{WebApplication1_HostAddress}}/weatherforecast/
-Content-Type: application/json
-
-{
-  "age":40,
-  "isSubscribed": true,
-  "courses": ["SQL", "C#"],
-  "pet": {
-    "name":"Fido",
-    "type":"Snake"
+  "Name": "mattias",
+  "Age":40,
+  "IsSubscribed": true,
+  "Courses": ["SQL", "C#"],
+  "Pet": {
+    "Name":"Fido",
+    "Type":"Snake"
   }
 }
