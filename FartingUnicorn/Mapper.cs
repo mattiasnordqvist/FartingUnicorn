@@ -212,18 +212,12 @@ public class Mapper
                         {
                             var newPath = path.Append(property.Name).ToArray();
 
-                            if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(Option<>))
-                            {
-                                var result = MapObject(property.PropertyType.GetGenericArguments()[0], jsonProperty, newPath);
-                                MapResultToPropertyAndValidationResult(result, obj, property, ref validationResult);
-                            }
-                            else
-                            {
+                            var propertyType = property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(Option<>)
+                                ? property.PropertyType.GetGenericArguments()[0]
+                                : property.PropertyType;
 
-                                var result = MapObject(property.PropertyType, jsonProperty, newPath);
-                                MapResultToPropertyAndValidationResult(result, obj, property, ref validationResult);
-
-                            }
+                            var result = MapObject(propertyType, jsonProperty, newPath);
+                            MapResultToPropertyAndValidationResult(result, obj, property, ref validationResult);
                         }
                     }
                 }
