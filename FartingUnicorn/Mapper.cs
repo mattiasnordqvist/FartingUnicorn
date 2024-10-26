@@ -103,6 +103,55 @@ public class Mapper
                             }
                         }
                     }
+                    else if (property.PropertyType.IsArray)
+                    {
+                        if(jsonProperty.ValueKind != JsonValueKind.Array)
+                        {
+                            validationResult = validationResult.Or(Result<Unit>.Error(new ValueHasWrongTypeError(property.Name, "Array", jsonProperty.ValueKind.ToString())));
+                        }
+                        else
+                        {
+                            var arrayPath = path.Append(property.Name).ToArray();
+                            var elementType = property.PropertyType.GetElementType();
+                            var mapMethod = typeof(Mapper).GetMethod("Map", BindingFlags.Public | BindingFlags.Static);
+                            var genericMapMethod = mapMethod.MakeGenericMethod(elementType);
+                            var array = Array.CreateInstance(elementType, jsonProperty.GetArrayLength());
+                            var errors = new List<IError>();
+                            for (int i = 0; i < jsonProperty.GetArrayLength(); i++)
+                            {
+                                var arrayElementPath = arrayPath.Append(i.ToString()).ToArray();
+                                var result = genericMapMethod.Invoke(null, [jsonProperty[i], arrayElementPath]);
+                                var resultSuccessProperty = result.GetType().GetProperty("Success");
+
+                                if ((bool)resultSuccessProperty.GetValue(result))
+                                {
+
+                                    var valueProperty = result.GetType().GetProperty("Value");
+                                    array.SetValue(valueProperty.GetValue(result), i);
+                                }
+                                else
+                                {
+                                    var errorProperty = result.GetType().GetProperty("Errors");
+                                    var elementErrors = (IReadOnlyList<IError>)errorProperty.GetValue(result);
+                                    errors.AddRange(elementErrors);
+                                }
+                            }
+                            if (errors.Any())
+                            {
+                                var newErrorsResult = UnitResult.Ok;
+                                foreach (var error in errors)
+                                {
+                                    newErrorsResult = newErrorsResult.Or(Result<Unit>.Error(error));
+                                }
+                                validationResult = validationResult.Or(newErrorsResult);
+                            }
+                            else
+                            {
+                                property.SetValue(obj, array);
+                            }
+
+                        }
+                    }
                     else /*object!*/
                     {
                         if(jsonProperty.ValueKind != JsonValueKind.Object)

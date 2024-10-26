@@ -1313,3 +1313,89 @@ public class Objects
         }
     }
 }
+
+public class Arrays
+{
+    public class NotOptional
+    {
+        public class BlogPost
+        {
+            public Comment[] Comments { get; set; }
+        }
+
+        public class Comment
+        {
+            public string Text { get; set; }
+            public int Upvotes { get; set; }
+            public Option<string> Contact { get; set; }
+        }
+
+        [Fact]
+        public void Valid()
+        {
+            var json = JsonSerializer.Deserialize<JsonElement>("""
+            {
+                "Comments": [
+                    {
+                        "Text": "First!",
+                        "Upvotes": 5,
+                        "Contact": "John Doe"
+                    },
+                    {
+                        "Text": "Second!",
+                        "Upvotes": 3,
+                        "Contact": null
+                    }
+                ]
+            }
+            """);
+            var blogPost = Mapper.Map<BlogPost>(json);
+            blogPost.Success.Should().BeTrue();
+            blogPost.Value.Comments.Should().HaveCount(2);
+            blogPost.Value.Comments[0].Text.Should().Be("First!");
+            blogPost.Value.Comments[0].Upvotes.Should().Be(5);
+            blogPost.Value.Comments[0].Contact.Should().BeOfType<Some<string>>();
+            var someAuthor = (blogPost.Value.Comments[0].Contact as Some<string>)!;
+            someAuthor.Value.Should().Be("John Doe");
+            blogPost.Value.Comments[1].Text.Should().Be("Second!");
+            blogPost.Value.Comments[1].Upvotes.Should().Be(3);
+            blogPost.Value.Comments[1].Contact.Should().BeOfType<None<string>>();
+        }
+
+        [Fact]
+        public void MissingFields ()
+        {
+            var json = JsonSerializer.Deserialize<JsonElement>("""
+            {
+                "Comments": [
+                    {
+                        "Upvotes": 5,
+                        "Contact": "John Doe"
+                    },
+                    {
+                        "Text": "Second!",
+                        "Upvotes": 3
+                    }
+                ]
+            }
+            """);
+            var blogPost = Mapper.Map<BlogPost>(json);
+            blogPost.Success.Should().BeFalse();
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "Comments.0.Text is required");
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "Comments.1.Contact is required");
+
+        }
+
+        [Fact]
+        public void MissingArray()
+        {
+            var json = JsonSerializer.Deserialize<JsonElement>("""
+            {
+            }
+            """);
+            var blogPost = Mapper.Map<BlogPost>(json);
+            blogPost.Success.Should().BeFalse();
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "Comments is required");
+        }
+    }
+}
