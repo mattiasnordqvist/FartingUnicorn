@@ -15,7 +15,7 @@ public class Mapper
     public static Result<T> Map<T>(JsonElement json, string[] path = null)
         where T : new()
     {
-        if(path is null)
+        if (path is null)
         {
             path = Array.Empty<string>();
         }
@@ -44,7 +44,7 @@ public class Mapper
                 }
                 else
                 {
-                    if (property.PropertyType == typeof(int) 
+                    if (property.PropertyType == typeof(int)
                         || property.PropertyType == typeof(Option<int>)
                         || property.PropertyType == typeof(int?))
                     {
@@ -64,7 +64,7 @@ public class Mapper
                             }
                         }
                     }
-                    else if (property.PropertyType == typeof(bool) 
+                    else if (property.PropertyType == typeof(bool)
                         || property.PropertyType == typeof(Option<bool>)
                         || property.PropertyType == typeof(bool?))
                     {
@@ -84,7 +84,7 @@ public class Mapper
                             }
                         }
                     }
-                    else if (property.PropertyType == typeof(string) 
+                    else if (property.PropertyType == typeof(string)
                         || property.PropertyType == typeof(Option<string>))
                     {
                         if (jsonProperty.ValueKind != JsonValueKind.String)
@@ -103,58 +103,107 @@ public class Mapper
                             }
                         }
                     }
-                    else if (property.PropertyType.IsArray)
+                    else if (property.PropertyType.IsArray
+                        || (property.PropertyType.IsGenericType 
+                            && property.PropertyType.GetGenericTypeDefinition() == typeof(Option<>) 
+                            && property.PropertyType.GetGenericArguments()[0].IsArray))
                     {
-                        if(jsonProperty.ValueKind != JsonValueKind.Array)
+                        if (jsonProperty.ValueKind != JsonValueKind.Array)
                         {
                             validationResult = validationResult.Or(Result<Unit>.Error(new ValueHasWrongTypeError(property.Name, "Array", jsonProperty.ValueKind.ToString())));
                         }
                         else
                         {
                             var arrayPath = path.Append(property.Name).ToArray();
-                            var elementType = property.PropertyType.GetElementType();
-                            var mapMethod = typeof(Mapper).GetMethod("Map", BindingFlags.Public | BindingFlags.Static);
-                            var genericMapMethod = mapMethod.MakeGenericMethod(elementType);
-                            var array = Array.CreateInstance(elementType, jsonProperty.GetArrayLength());
-                            var errors = new List<IError>();
-                            for (int i = 0; i < jsonProperty.GetArrayLength(); i++)
+
+                            if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(Option<>))
                             {
-                                var arrayElementPath = arrayPath.Append(i.ToString()).ToArray();
-                                var result = genericMapMethod.Invoke(null, [jsonProperty[i], arrayElementPath]);
-                                var resultSuccessProperty = result.GetType().GetProperty("Success");
-
-                                if ((bool)resultSuccessProperty.GetValue(result))
+                                var elementType = property.PropertyType.GetGenericArguments()[0].GetElementType();
+                                var mapMethod = typeof(Mapper).GetMethod("Map", BindingFlags.Public | BindingFlags.Static);
+                                var genericMapMethod = mapMethod.MakeGenericMethod(elementType);
+                                var array = Array.CreateInstance(elementType, jsonProperty.GetArrayLength());
+                                var errors = new List<IError>();
+                                for (int i = 0; i < jsonProperty.GetArrayLength(); i++)
                                 {
+                                    var arrayElementPath = arrayPath.Append(i.ToString()).ToArray();
+                                    var result = genericMapMethod.Invoke(null, [jsonProperty[i], arrayElementPath]);
+                                    var resultSuccessProperty = result.GetType().GetProperty("Success");
 
-                                    var valueProperty = result.GetType().GetProperty("Value");
-                                    array.SetValue(valueProperty.GetValue(result), i);
+                                    if ((bool)resultSuccessProperty.GetValue(result))
+                                    {
+
+                                        var valueProperty = result.GetType().GetProperty("Value");
+                                        array.SetValue(valueProperty.GetValue(result), i);
+                                    }
+                                    else
+                                    {
+                                        var errorProperty = result.GetType().GetProperty("Errors");
+                                        var elementErrors = (IReadOnlyList<IError>)errorProperty.GetValue(result);
+                                        errors.AddRange(elementErrors);
+                                    }
+                                }
+                                if (errors.Any())
+                                {
+                                    var newErrorsResult = UnitResult.Ok;
+                                    foreach (var error in errors)
+                                    {
+                                        newErrorsResult = newErrorsResult.Or(Result<Unit>.Error(error));
+                                    }
+                                    validationResult = validationResult.Or(newErrorsResult);
                                 }
                                 else
                                 {
-                                    var errorProperty = result.GetType().GetProperty("Errors");
-                                    var elementErrors = (IReadOnlyList<IError>)errorProperty.GetValue(result);
-                                    errors.AddRange(elementErrors);
+                                    var someType = typeof(Some<>).MakeGenericType(property.PropertyType.GetGenericArguments()[0]);
+                                    var someInstance = Activator.CreateInstance(someType, array);
+                                    property.SetValue(obj, someInstance);
                                 }
-                            }
-                            if (errors.Any())
-                            {
-                                var newErrorsResult = UnitResult.Ok;
-                                foreach (var error in errors)
-                                {
-                                    newErrorsResult = newErrorsResult.Or(Result<Unit>.Error(error));
-                                }
-                                validationResult = validationResult.Or(newErrorsResult);
                             }
                             else
                             {
-                                property.SetValue(obj, array);
-                            }
+                             
+                                var elementType = property.PropertyType.GetElementType();
+                                var mapMethod = typeof(Mapper).GetMethod("Map", BindingFlags.Public | BindingFlags.Static);
+                                var genericMapMethod = mapMethod.MakeGenericMethod(elementType);
+                                var array = Array.CreateInstance(elementType, jsonProperty.GetArrayLength());
+                                var errors = new List<IError>();
+                                for (int i = 0; i < jsonProperty.GetArrayLength(); i++)
+                                {
+                                    var arrayElementPath = arrayPath.Append(i.ToString()).ToArray();
+                                    var result = genericMapMethod.Invoke(null, [jsonProperty[i], arrayElementPath]);
+                                    var resultSuccessProperty = result.GetType().GetProperty("Success");
 
+                                    if ((bool)resultSuccessProperty.GetValue(result))
+                                    {
+
+                                        var valueProperty = result.GetType().GetProperty("Value");
+                                        array.SetValue(valueProperty.GetValue(result), i);
+                                    }
+                                    else
+                                    {
+                                        var errorProperty = result.GetType().GetProperty("Errors");
+                                        var elementErrors = (IReadOnlyList<IError>)errorProperty.GetValue(result);
+                                        errors.AddRange(elementErrors);
+                                    }
+                                }
+                                if (errors.Any())
+                                {
+                                    var newErrorsResult = UnitResult.Ok;
+                                    foreach (var error in errors)
+                                    {
+                                        newErrorsResult = newErrorsResult.Or(Result<Unit>.Error(error));
+                                    }
+                                    validationResult = validationResult.Or(newErrorsResult);
+                                }
+                                else
+                                {
+                                    property.SetValue(obj, array);
+                                }
+                            }
                         }
                     }
                     else /*object!*/
                     {
-                        if(jsonProperty.ValueKind != JsonValueKind.Object)
+                        if (jsonProperty.ValueKind != JsonValueKind.Object)
                         {
                             validationResult = validationResult.Or(Result<Unit>.Error(new ValueHasWrongTypeError(property.Name, "Object", jsonProperty.ValueKind.ToString())));
                         }
@@ -189,8 +238,8 @@ public class Mapper
                                     validationResult = validationResult.Or(newErrorsResult);
                                 }
                             }
-                            else 
-                            { 
+                            else
+                            {
                                 var mapMethod = typeof(Mapper).GetMethod("Map", BindingFlags.Public | BindingFlags.Static);
                                 var genericMapMethod = mapMethod.MakeGenericMethod(property.PropertyType);
                                 var result = genericMapMethod.Invoke(null, [jsonProperty, newPath]);
