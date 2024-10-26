@@ -632,7 +632,7 @@ public class SingleField
                 Assert.False(blogPost.Success);
                 blogPost.Errors.Should().ContainSingle();
                 blogPost.Errors.Single().Should().BeOfType<RequiredPropertyMissingError>();
-                blogPost.Errors.Single().Message.Should().Be("Title is required");
+                blogPost.Errors.Single().Message.Should().Be("$.Title is required");
             }
 
             [Fact]
@@ -648,7 +648,7 @@ public class SingleField
                 Assert.False(blogPost.Success);
                 blogPost.Errors.Should().ContainSingle();
                 blogPost.Errors.Single().Should().BeOfType<RequiredValueMissingError>();
-                blogPost.Errors.Single().Message.Should().Be("Title must have a value");
+                blogPost.Errors.Single().Message.Should().Be("$.Title must have a value");
             }
 
             [Fact]
@@ -664,7 +664,7 @@ public class SingleField
                 Assert.False(blogPost.Success);
                 blogPost.Errors.Should().ContainSingle();
                 blogPost.Errors.Single().Should().BeOfType<ValueHasWrongTypeError>();
-                blogPost.Errors.Single().Message.Should().Be("Value of Title has the wrong type. Expected String, got Number");
+                blogPost.Errors.Single().Message.Should().Be("Value of $.Title has the wrong type. Expected String, got Number");
             }
         }
 
@@ -724,7 +724,7 @@ public class SingleField
                 Assert.False(blogPost.Success);
                 blogPost.Errors.Should().ContainSingle();
                 blogPost.Errors.Single().Should().BeOfType<RequiredValueMissingError>();
-                blogPost.Errors.Single().Message.Should().Be("Title must have a value");
+                blogPost.Errors.Single().Message.Should().Be("$.Title must have a value");
             }
         }
 
@@ -767,7 +767,7 @@ public class SingleField
                 Assert.False(blogPost.Success);
                 blogPost.Errors.Should().ContainSingle();
                 blogPost.Errors.Single().Should().BeOfType<RequiredPropertyMissingError>();
-                blogPost.Errors.Single().Message.Should().Be("Title is required");
+                blogPost.Errors.Single().Message.Should().Be("$.Title is required");
             }
 
             [Fact]
@@ -883,7 +883,7 @@ public class SingleField
                 Assert.False(blogPost.Success);
                 blogPost.Errors.Should().ContainSingle();
                 blogPost.Errors.Single().Should().BeOfType<RequiredPropertyMissingError>();
-                blogPost.Errors.Single().Message.Should().Be("IsDraft is required");
+                blogPost.Errors.Single().Message.Should().Be("$.IsDraft is required");
             }
 
             [Fact]
@@ -899,7 +899,7 @@ public class SingleField
                 Assert.False(blogPost.Success);
                 blogPost.Errors.Should().ContainSingle();
                 blogPost.Errors.Single().Should().BeOfType<RequiredValueMissingError>();
-                blogPost.Errors.Single().Message.Should().Be("IsDraft must have a value");
+                blogPost.Errors.Single().Message.Should().Be("$.IsDraft must have a value");
             }
 
             [Fact]
@@ -915,7 +915,7 @@ public class SingleField
                 Assert.False(blogPost.Success);
                 blogPost.Errors.Should().ContainSingle();
                 blogPost.Errors.Single().Should().BeOfType<ValueHasWrongTypeError>();
-                blogPost.Errors.Single().Message.Should().Be("Value of IsDraft has the wrong type. Expected Boolean, got Number");
+                blogPost.Errors.Single().Message.Should().Be("Value of $.IsDraft has the wrong type. Expected Boolean, got Number");
             }
         }
 
@@ -975,7 +975,7 @@ public class SingleField
                 Assert.False(blogPost.Success);
                 blogPost.Errors.Should().ContainSingle();
                 blogPost.Errors.Single().Should().BeOfType<RequiredValueMissingError>();
-                blogPost.Errors.Single().Message.Should().Be("IsDraft must have a value");
+                blogPost.Errors.Single().Message.Should().Be("$.IsDraft must have a value");
             }
         }
 
@@ -1018,7 +1018,7 @@ public class SingleField
                 Assert.False(blogPost.Success);
                 blogPost.Errors.Should().ContainSingle();
                 blogPost.Errors.Single().Should().BeOfType<RequiredPropertyMissingError>();
-                blogPost.Errors.Single().Message.Should().Be("IsDraft is required");
+                blogPost.Errors.Single().Message.Should().Be("$.IsDraft is required");
             }
 
             [Fact]
@@ -1133,8 +1133,8 @@ public class MultipleFields
 
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().HaveCount(2);
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Title is required");
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "IsDraft is required");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Title is required");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "$.IsDraft is required");
             }
 
             [Fact]
@@ -1148,7 +1148,7 @@ public class MultipleFields
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
                 blogPost.Success.Should().BeFalse();
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Title is required");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Title is required");
             }
 
             [Fact]
@@ -1162,7 +1162,7 @@ public class MultipleFields
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
                 blogPost.Success.Should().BeFalse();
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "IsDraft is required");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "$.IsDraft is required");
             }
 
             [Fact]
@@ -1177,7 +1177,7 @@ public class MultipleFields
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
                 blogPost.Success.Should().BeFalse();
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Title must have a value");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Title must have a value");
             }
 
             [Fact]
@@ -1192,7 +1192,7 @@ public class MultipleFields
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
                 blogPost.Success.Should().BeFalse();
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "IsDraft must have a value");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "$.IsDraft must have a value");
             }
 
             [Fact]
@@ -1208,8 +1208,8 @@ public class MultipleFields
 
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().HaveCount(2);
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Title must have a value");
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "IsDraft must have a value");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Title must have a value");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "$.IsDraft must have a value");
             }
 
             [Fact]
@@ -1224,7 +1224,7 @@ public class MultipleFields
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
                 blogPost.Success.Should().BeFalse();
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of Title has the wrong type. Expected String, got Number");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Title has the wrong type. Expected String, got Number");
             }
 
             [Fact]
@@ -1239,7 +1239,7 @@ public class MultipleFields
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
                 blogPost.Success.Should().BeFalse();
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of IsDraft has the wrong type. Expected Boolean, got String");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.IsDraft has the wrong type. Expected Boolean, got String");
             }
 
             [Fact]
@@ -1255,8 +1255,8 @@ public class MultipleFields
 
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().HaveCount(2);
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of Title has the wrong type. Expected String, got Number");
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of IsDraft has the wrong type. Expected Boolean, got String");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Title has the wrong type. Expected String, got Number");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.IsDraft has the wrong type. Expected Boolean, got String");
             }
         }
 
@@ -1326,8 +1326,8 @@ public class MultipleFields
 
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().HaveCount(2);
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Title must have a value");
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "IsDraft must have a value");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Title must have a value");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "$.IsDraft must have a value");
             }
 
         }
@@ -1373,8 +1373,8 @@ public class MultipleFields
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().HaveCount(2);
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Category is required");
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Rating is required");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Category is required");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Rating is required");
             }
 
             [Fact]
@@ -1402,7 +1402,7 @@ public class MultipleFields
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
                 blogPost.Success.Should().BeFalse();
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Category is required");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Category is required");
             }
 
             [Fact]
@@ -1415,7 +1415,7 @@ public class MultipleFields
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
                 blogPost.Success.Should().BeFalse();
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Rating is required");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Rating is required");
             }
 
             [Fact]
@@ -1463,7 +1463,7 @@ public class MultipleFields
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
                 blogPost.Success.Should().BeFalse();
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of Category has the wrong type. Expected String, got Number");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Category has the wrong type. Expected String, got Number");
             }
 
             [Fact]
@@ -1477,7 +1477,7 @@ public class MultipleFields
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
                 blogPost.Success.Should().BeFalse();
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of Rating has the wrong type. Expected Number, got String");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Rating has the wrong type. Expected Number, got String");
             }
 
             [Fact]
@@ -1492,8 +1492,8 @@ public class MultipleFields
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().HaveCount(2);
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of Category has the wrong type. Expected String, got Number");
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of Rating has the wrong type. Expected Number, got String");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Category has the wrong type. Expected String, got Number");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Rating has the wrong type. Expected Number, got String");
             }
 
             [Fact]
@@ -1507,7 +1507,7 @@ public class MultipleFields
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
                 blogPost.Success.Should().BeFalse();
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of Rating has the wrong type. Expected Number, got String");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Rating has the wrong type. Expected Number, got String");
             }
 
             [Fact]
@@ -1521,8 +1521,8 @@ public class MultipleFields
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().HaveCount(2);
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Category is required");
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of Rating has the wrong type. Expected Number, got String");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Category is required");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Rating has the wrong type. Expected Number, got String");
             }
         }
 
@@ -1629,7 +1629,7 @@ public class MultipleFields
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
                 blogPost.Success.Should().BeFalse();
-                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of Rating has the wrong type. Expected Number, got String");
+                blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Rating has the wrong type. Expected Number, got String");
             }
 
         }
@@ -1701,7 +1701,7 @@ public class Objects
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
             blogPost.Success.Should().BeFalse();
-            blogPost.Errors.Should().ContainSingle(e => e.Message == "Author.Age is required");
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Author.Age is required");
         }
 
         [Fact]
@@ -1737,7 +1737,7 @@ public class Objects
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
             blogPost.Success.Should().BeFalse();
-            blogPost.Errors.Should().ContainSingle(e => e.Message == "Author is required");
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Author is required");
         }
 
         [Fact]
@@ -1754,7 +1754,7 @@ public class Objects
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
             blogPost.Success.Should().BeFalse();
-            blogPost.Errors.Should().ContainSingle(e => e.Message == "Author must have a value");
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Author must have a value");
         }
 
         [Fact]
@@ -1771,7 +1771,7 @@ public class Objects
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
             blogPost.Success.Should().BeFalse();
-            blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of Author has the wrong type. Expected Object, got Number");
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Author has the wrong type. Expected Object, got Number");
 
         }
     }
@@ -1840,7 +1840,7 @@ public class Objects
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
             blogPost.Success.Should().BeFalse();
-            blogPost.Errors.Should().ContainSingle(e => e.Message == "Author.Age is required");
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Author.Age is required");
         }
 
         [Fact]
@@ -1856,7 +1856,7 @@ public class Objects
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
             blogPost.Success.Should().BeFalse();
-            blogPost.Errors.Should().ContainSingle(e => e.Message == "Author is required");
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Author is required");
         }
 
         [Fact]
@@ -1890,7 +1890,7 @@ public class Objects
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
             blogPost.Success.Should().BeFalse();
-            blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of Author has the wrong type. Expected Object, got Number");
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Author has the wrong type. Expected Object, got Number");
 
         }
     }
@@ -2066,8 +2066,8 @@ public class Arrays
                     """);
             var blogPost = Mapper.Map<BlogPost>(json);
             blogPost.Success.Should().BeFalse();
-            blogPost.Errors.Should().ContainSingle(e => e.Message == "Comments.0.Text is required");
-            blogPost.Errors.Should().ContainSingle(e => e.Message == "Comments.1.Contact is required");
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Comments.0.Text is required");
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Comments.1.Contact is required");
 
         }
 
@@ -2080,7 +2080,7 @@ public class Arrays
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
             blogPost.Success.Should().BeFalse();
-            blogPost.Errors.Should().ContainSingle(e => e.Message == "Comments is required");
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Comments is required");
         }
     }
 
@@ -2142,7 +2142,7 @@ public class Arrays
                     """);
             var blogPost = Mapper.Map<BlogPost>(json);
             blogPost.Success.Should().BeFalse();
-            blogPost.Errors.Should().ContainSingle(e => e.Message == "Comments is required");
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Comments is required");
         }
 
         [Fact]
@@ -2177,8 +2177,8 @@ public class Arrays
                     """);
             var blogPost = Mapper.Map<BlogPost>(json);
             blogPost.Success.Should().BeFalse();
-            blogPost.Errors.Should().ContainSingle(e => e.Message == "Comments.0.Text is required");
-            blogPost.Errors.Should().ContainSingle(e => e.Message == "Comments.1.Contact is required");
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Comments.0.Text is required");
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Comments.1.Contact is required");
 
         }
 
@@ -2252,7 +2252,7 @@ public class Arrays
                     """);
             var blogPost = Mapper.Map<BlogPost>(json);
             blogPost.Success.Should().BeFalse();
-            blogPost.Errors.Should().ContainSingle(e => e.Message == "Comments must have a value");
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Comments must have a value");
         }
     }
 
