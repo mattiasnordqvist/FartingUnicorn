@@ -5,6 +5,8 @@ using Namotion.Reflection;
 using System.Reflection;
 using System.Text.Json;
 
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
 namespace FartingUnicorn;
 
 public class Mapper
@@ -123,32 +125,18 @@ public class Mapper
                             if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(Option<>))
                             {
                                 var elementType = property.PropertyType.GetGenericArguments()[0].GetElementType();
-                                
                                 var array = Array.CreateInstance(elementType, jsonProperty.GetArrayLength());
-                                var errors = new List<IError>();
+                                var errors = UnitResult.Ok;
                                 for (int i = 0; i < jsonProperty.GetArrayLength(); i++)
                                 {
                                     var arrayElementPath = arrayPath.Append(i.ToString()).ToArray();
                                     var result = MapObject(elementType, jsonProperty[i], arrayElementPath);
-                                    var resultSuccessProperty = result.GetType().GetProperty("Success");
-
-                                    if ((bool)resultSuccessProperty.GetValue(result))
-                                    {
-
-                                        var valueProperty = result.GetType().GetProperty("Value");
-                                        array.SetValue(valueProperty.GetValue(result), i);
-                                    }
-                                    else
-                                    {
-                                        var errorProperty = result.GetType().GetProperty("Errors");
-                                        var elementErrors = (IReadOnlyList<IError>)errorProperty.GetValue(result);
-                                        errors.AddRange(elementErrors);
-                                    }
+                                    MapResultToArrayIndexAndValidationResult(result, array, i, ref errors);
                                 }
-                                if (errors.Any())
+                                if (!errors.Success)
                                 {
                                     var newErrorsResult = UnitResult.Ok;
-                                    foreach (var error in errors)
+                                    foreach (var error in errors.Errors)
                                     {
                                         newErrorsResult = newErrorsResult.Or(Result<Unit>.Error(error));
                                     }
@@ -166,30 +154,18 @@ public class Mapper
 
                                 var elementType = property.PropertyType.GetElementType();
                                 var array = Array.CreateInstance(elementType, jsonProperty.GetArrayLength());
-                                var errors = new List<IError>();
+                                var errors = UnitResult.Ok;
                                 for (int i = 0; i < jsonProperty.GetArrayLength(); i++)
                                 {
                                     var arrayElementPath = arrayPath.Append(i.ToString()).ToArray();
                                     var result = MapObject(elementType, jsonProperty[i], arrayElementPath);
-                                    var resultSuccessProperty = result.GetType().GetProperty("Success");
-
-                                    if ((bool)resultSuccessProperty.GetValue(result))
-                                    {
-
-                                        var valueProperty = result.GetType().GetProperty("Value");
-                                        array.SetValue(valueProperty.GetValue(result), i);
-                                    }
-                                    else
-                                    {
-                                        var errorProperty = result.GetType().GetProperty("Errors");
-                                        var elementErrors = (IReadOnlyList<IError>)errorProperty.GetValue(result);
-                                        errors.AddRange(elementErrors);
-                                    }
+                                    MapResultToArrayIndexAndValidationResult(result, array, i, ref errors);
+                                 
                                 }
-                                if (errors.Any())
+                                if (!errors.Success)
                                 {
                                     var newErrorsResult = UnitResult.Ok;
-                                    foreach (var error in errors)
+                                    foreach (var error in errors.Errors)
                                     {
                                         newErrorsResult = newErrorsResult.Or(Result<Unit>.Error(error));
                                     }
@@ -236,6 +212,29 @@ public class Mapper
         }
 
         return validationResult.Map(() => obj);
+    }
+
+    private static void MapResultToArrayIndexAndValidationResult(Result<object> result, Array array, int i, ref Result<Unit> validationResult)
+    {
+        var resultSuccessProperty = result.GetType().GetProperty("Success");
+
+        if ((bool)resultSuccessProperty.GetValue(result))
+        {
+
+            var valueProperty = result.GetType().GetProperty("Value");
+            array.SetValue(valueProperty.GetValue(result), i);
+        }
+        else
+        {
+            var errorProperty = result.GetType().GetProperty("Errors");
+            var elementErrors = (IReadOnlyList<IError>)errorProperty.GetValue(result);
+            var newErrorsResult = UnitResult.Ok;
+            foreach (var error in elementErrors)
+            {
+                newErrorsResult = newErrorsResult.Or(Result<Unit>.Error(error));
+            }
+            validationResult = validationResult.Or(newErrorsResult);
+        }
     }
 
     private static void MapResultToPropertyAndValidationResult(Result<object> result, object obj, PropertyInfo property, ref Result<Unit> validationResult)
