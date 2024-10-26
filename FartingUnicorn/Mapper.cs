@@ -121,55 +121,35 @@ public class Mapper
                         else
                         {
                             var arrayPath = path.Append(property.Name).ToArray();
+                            var isOption = property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(Option<>);
+                            var elementType = isOption
+                                ? property.PropertyType.GetGenericArguments()[0].GetElementType()
+                                : property.PropertyType.GetElementType();
 
-                            if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(Option<>))
+                            var array = Array.CreateInstance(elementType, jsonProperty.GetArrayLength());
+                            var errors = UnitResult.Ok;
+                            for (int i = 0; i < jsonProperty.GetArrayLength(); i++)
                             {
-                                var elementType = property.PropertyType.GetGenericArguments()[0].GetElementType();
-                                var array = Array.CreateInstance(elementType, jsonProperty.GetArrayLength());
-                                var errors = UnitResult.Ok;
-                                for (int i = 0; i < jsonProperty.GetArrayLength(); i++)
+                                var arrayElementPath = arrayPath.Append(i.ToString()).ToArray();
+                                var result = MapObject(elementType, jsonProperty[i], arrayElementPath);
+                                MapResultToArrayIndexAndValidationResult(result, array, i, ref errors);
+                            }
+                            if (!errors.Success)
+                            {
+                                var newErrorsResult = UnitResult.Ok;
+                                foreach (var error in errors.Errors)
                                 {
-                                    var arrayElementPath = arrayPath.Append(i.ToString()).ToArray();
-                                    var result = MapObject(elementType, jsonProperty[i], arrayElementPath);
-                                    MapResultToArrayIndexAndValidationResult(result, array, i, ref errors);
+                                    newErrorsResult = newErrorsResult.Or(Result<Unit>.Error(error));
                                 }
-                                if (!errors.Success)
-                                {
-                                    var newErrorsResult = UnitResult.Ok;
-                                    foreach (var error in errors.Errors)
-                                    {
-                                        newErrorsResult = newErrorsResult.Or(Result<Unit>.Error(error));
-                                    }
-                                    validationResult = validationResult.Or(newErrorsResult);
-                                }
-                                else
+                                validationResult = validationResult.Or(newErrorsResult);
+                            }
+                            else
+                            {
+                                if (isOption)
                                 {
                                     var someType = typeof(Some<>).MakeGenericType(property.PropertyType.GetGenericArguments()[0]);
                                     var someInstance = Activator.CreateInstance(someType, array);
                                     property.SetValue(obj, someInstance);
-                                }
-                            }
-                            else
-                            {
-
-                                var elementType = property.PropertyType.GetElementType();
-                                var array = Array.CreateInstance(elementType, jsonProperty.GetArrayLength());
-                                var errors = UnitResult.Ok;
-                                for (int i = 0; i < jsonProperty.GetArrayLength(); i++)
-                                {
-                                    var arrayElementPath = arrayPath.Append(i.ToString()).ToArray();
-                                    var result = MapObject(elementType, jsonProperty[i], arrayElementPath);
-                                    MapResultToArrayIndexAndValidationResult(result, array, i, ref errors);
-                                 
-                                }
-                                if (!errors.Success)
-                                {
-                                    var newErrorsResult = UnitResult.Ok;
-                                    foreach (var error in errors.Errors)
-                                    {
-                                        newErrorsResult = newErrorsResult.Or(Result<Unit>.Error(error));
-                                    }
-                                    validationResult = validationResult.Or(newErrorsResult);
                                 }
                                 else
                                 {
