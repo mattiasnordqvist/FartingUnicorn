@@ -26,7 +26,7 @@ public class Mapper
     public static Result<object> MapObject(Type type, JsonElement json, string[] path)
     {
         Result<Unit> validationResult = UnitResult.Ok;
-        var obj = Activator.CreateInstance(type);
+        var obj = Activator.CreateInstance(type)!;
 
         foreach (var contextualProperty in type.GetContextualProperties())
         {
@@ -215,50 +215,14 @@ public class Mapper
                             if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(Option<>))
                             {
                                 var result = MapObject(property.PropertyType.GetGenericArguments()[0], jsonProperty, newPath);
-                                var resultSuccessProperty = result.GetType().GetProperty("Success");
-
-                                if ((bool)resultSuccessProperty.GetValue(result))
-                                {
-                                    var valueProperty = result.GetType().GetProperty("Value");
-                                    var getValue = valueProperty.GetValue(result);
-                                    var someType = typeof(Some<>).MakeGenericType(property.PropertyType.GetGenericArguments()[0]);
-                                    var someInstance = Activator.CreateInstance(someType, getValue);
-                                    property.SetValue(obj, someInstance);
-                                }
-                                else
-                                {
-                                    var errorProperty = result.GetType().GetProperty("Errors");
-                                    var errors = (IReadOnlyList<IError>)errorProperty.GetValue(result);
-                                    var newErrorsResult = UnitResult.Ok;
-                                    foreach (var error in errors)
-                                    {
-                                        newErrorsResult = newErrorsResult.Or(Result<Unit>.Error(error));
-                                    }
-                                    validationResult = validationResult.Or(newErrorsResult);
-                                }
+                                MapResultToPropertyAndValidationResult(result, obj, property, ref validationResult);
                             }
                             else
                             {
 
                                 var result = MapObject(property.PropertyType, jsonProperty, newPath);
-                                var resultSuccessProperty = result.GetType().GetProperty("Success");
+                                MapResultToPropertyAndValidationResult(result, obj, property, ref validationResult);
 
-                                if ((bool)resultSuccessProperty.GetValue(result))
-                                {
-                                    var valueProperty = result.GetType().GetProperty("Value");
-                                    property.SetValue(obj, valueProperty.GetValue(result));
-                                }
-                                else
-                                {
-                                    var errorProperty = result.GetType().GetProperty("Errors");
-                                    var errors = (IReadOnlyList<IError>)errorProperty.GetValue(result);
-                                    var newErrorsResult = UnitResult.Ok;
-                                    foreach (var error in errors)
-                                    {
-                                        newErrorsResult = newErrorsResult.Or(Result<Unit>.Error(error));
-                                    }
-                                    validationResult = validationResult.Or(newErrorsResult);
-                                }
                             }
                         }
                     }
@@ -278,5 +242,39 @@ public class Mapper
         }
 
         return validationResult.Map(() => obj);
+    }
+
+    private static void MapResultToPropertyAndValidationResult(Result<object> result, object obj, PropertyInfo property, ref Result<Unit> validationResult)
+    {
+        var resultSuccessProperty = result.GetType().GetProperty("Success");
+        var isOption = (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(Option<>));
+
+        if ((bool)resultSuccessProperty.GetValue(result))
+        {
+            var valueProperty = result.GetType().GetProperty("Value");
+            var getValue = valueProperty.GetValue(result);
+
+            if(!isOption)
+            {
+                property.SetValue(obj, getValue);
+            }
+            else
+            {
+                var someType = typeof(Some<>).MakeGenericType(property.PropertyType.GetGenericArguments()[0]);
+                var someInstance = Activator.CreateInstance(someType, getValue);
+                property.SetValue(obj, someInstance);
+            }
+        }
+        else
+        {
+            var errorProperty = result.GetType().GetProperty("Errors");
+            var errors = (IReadOnlyList<IError>)errorProperty.GetValue(result);
+            var newErrorsResult = UnitResult.Ok;
+            foreach (var error in errors)
+            {
+                newErrorsResult = newErrorsResult.Or(Result<Unit>.Error(error));
+            }
+            validationResult = validationResult.Or(newErrorsResult);
+        }
     }
 }
