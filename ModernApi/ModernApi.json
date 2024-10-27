@@ -38,9 +38,13 @@
   "components": {
     "schemas": {
       "OptionOfPet": {
-        "type": "object"
+        "$ref": "#/components/schemas/Pet"
       },
       "Pet": {
+        "required": [
+          "name",
+          "type"
+        ],
         "type": "object",
         "properties": {
           "name": {
@@ -49,10 +53,16 @@
           "type": {
             "type": "string"
           }
-        },
-        "nullable": true
+        }
       },
       "UserProfile": {
+        "required": [
+          "name",
+          "age",
+          "isSubscribed",
+          "courses",
+          "pet"
+        ],
         "type": "object",
         "properties": {
           "name": {
@@ -75,8 +85,7 @@
             "$ref": "#/components/schemas/OptionOfPet"
           },
           "isGay": {
-            "type": "boolean",
-            "nullable": true
+            "type": "boolean"
           },
           "favoritePet": {
             "$ref": "#/components/schemas/Pet"

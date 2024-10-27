@@ -1,6 +1,9 @@
 
 using FartingUnicorn;
 
+using Microsoft.AspNetCore.OpenApi;
+using Microsoft.OpenApi.Models;
+
 using System.Reflection;
 using System.Text.Json;
 
@@ -17,13 +20,34 @@ public class Program
         {
             options.AddSchemaTransformer((schema, context, cancellationToken) =>
             {
-                if (context.JsonTypeInfo.Type.IsGenericType 
-                &&  context.JsonTypeInfo.Type.GetGenericTypeDefinition() == typeof(Option<>))
+
+                schema.Nullable = false;
+                foreach (var p in context.JsonTypeInfo.Properties)
                 {
-                    schema.Nullable = true;
-                    schema.Type =
-                    schema.Format = "decimal";
+                    if(!p.IsGetNullable)
+                    {
+                        schema.Required.Add(p.Name);
+                    }
+
+                    if ((p.PropertyType.IsGenericType)
+                        && p.PropertyType.GetGenericTypeDefinition() == typeof(Option<>))
+                    {
+                        schema.Properties.Where(x => x.Key == p.Name).First().Value.Nullable = true;
+                        schema.Properties.Where(x => x.Key == p.Name).First().Value.Reference = new OpenApiReference
+                        {
+                            Id = p.PropertyType.GetGenericArguments()[0].Name,
+                            Type = ReferenceType.Schema
+                        };
+                        //schema.Nullable = true;
+                        //schema.Reference = new OpenApiReference
+                        //{
+                        //    Id = context.JsonTypeInfo.Type.GetGenericArguments()[0].Name,
+                        //    Type = ReferenceType.Schema
+                        //};
+                    }
                 }
+
+                
                 return Task.CompletedTask;
             });
         });
@@ -48,7 +72,6 @@ public class Program
         app.Run();
     }
 }
-
 
 public class UserProfile
 {
