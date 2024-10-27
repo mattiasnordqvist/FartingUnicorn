@@ -2,19 +2,45 @@
 
 using Namotion.Reflection;
 
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
-namespace FartingUnicorn;
+using static FartingUnicorn.MapperOptions;
 
+namespace FartingUnicorn;
+public class MapperOptions
+{
+    public interface IConverter
+    {
+        bool CanConvert(Type type);
+
+        JsonValueKind ExpectedJsonValueKind { get; }
+
+        Result<object> Convert(JsonElement jsonElement, MapperOptions mapperOptions, string[] path);
+    }
+
+    public List<IConverter> _converters = [];
+
+    public void AddConverter(IConverter converter)
+    {
+        _converters.Add(converter);
+    }
+
+    public bool TryGetConverter(Type type, [NotNullWhen(true)] out IConverter? converter)
+    {
+        converter = _converters.FirstOrDefault(x => x.CanConvert(type));
+        return converter != null;
+    }
+}
 public class Mapper
 {
     public abstract record FartingUnicornErrorBase(string[] Path, string Message) : ErrorBase(Message);
     public record RequiredPropertyMissingError(string[] path) : FartingUnicornErrorBase(path, $"{string.Join(".", path)} is required");
     public record RequiredValueMissingError(string[] path) : FartingUnicornErrorBase(path, $"{string.Join(".", path)} must have a value");
     public record ValueHasWrongTypeError(string[] path, string expectedType, string actualType) : FartingUnicornErrorBase(path, $"Value of {string.Join(".", path)} has the wrong type. Expected {expectedType}, got {actualType}");
-    public static Result<T> Map<T>(JsonElement json, string[] path = null)
+    public static Result<T> Map<T>(JsonElement json, MapperOptions mapperOptions = null, string[] path = null)
     {
-        return MapElement(typeof(T), json, path).Map(x => (T)x);
+        return MapElement(typeof(T), json, mapperOptions, path).Map(x => (T)x);
     }
 
     private static (bool isOption, Type type) D(Type type)
@@ -23,12 +49,16 @@ public class Mapper
         var innerType = isOption ? type.GetGenericArguments()[0] : type;
         return (isOption, innerType);
     }
-    public static Result<object> MapElement<T>(JsonElement jsonElement, string[] path = null)
+    public static Result<object> MapElement<T>(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
     {
-        return MapElement(typeof(T), jsonElement, path);
+        return MapElement(typeof(T), jsonElement, mapperOptions, path);
     }
-    public static Result<object> MapElement(Type t, JsonElement jsonElement, string[] path = null)
+    public static Result<object> MapElement(Type t, JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
     {
+        if (mapperOptions is null)
+        {
+            mapperOptions = new MapperOptions();
+        }
         if (path is null)
         {
             path = ["$"];
@@ -117,7 +147,7 @@ public class Mapper
 
             for (int i = 0; i < jsonElement.GetArrayLength(); i++)
             {
-                var mapResult = MapElement(elementType, jsonElement[i], [.. path, i.ToString()]);
+                var mapResult = MapElement(elementType, jsonElement[i], mapperOptions, [.. path, i.ToString()]);
                 if (mapResult.Success)
                 {
                     array.SetValue(mapResult.Value, i);
@@ -146,6 +176,16 @@ public class Mapper
             }
         }
 
+        if (mapperOptions.TryGetConverter(type, out IConverter customConverter))
+        {
+            if (jsonElement.ValueKind != customConverter.ExpectedJsonValueKind)
+            {
+                return Result<object>.Error(new ValueHasWrongTypeError(path, customConverter.ExpectedJsonValueKind.ToString(), jsonElement.ValueKind.ToString()));
+            }
+
+            return customConverter.Convert(jsonElement, mapperOptions, path);
+        }
+
         /*object*/
         {
             if (jsonElement.ValueKind != JsonValueKind.Object)
@@ -162,7 +202,7 @@ public class Mapper
                 var isPropertyDefined = jsonElement.TryGetProperty(property.Name, out var jsonProperty);
                 if (isPropertyDefined)
                 {
-                    var mapResult = MapElement(property.PropertyType, jsonProperty, [.. path, property.Name]);
+                    var mapResult = MapElement(property.PropertyType, jsonProperty, mapperOptions, [.. path, property.Name]);
                     if (mapResult.Success)
                     {
                         property.SetValue(obj, mapResult.Value);

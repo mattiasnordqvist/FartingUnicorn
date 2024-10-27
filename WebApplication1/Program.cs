@@ -58,7 +58,7 @@ internal class FartingFormatter : TextInputFormatter, IInputFormatter
     {
         using var json = await JsonDocument.ParseAsync(context.HttpContext.Request.Body);
         var rootElement = json.RootElement;
-        var mapped = FartingUnicorn.Mapper.MapElement(context.ModelType, rootElement, [context.Metadata.Name ?? "$"]);
+        var mapped = FartingUnicorn.Mapper.MapElement(context.ModelType, rootElement, null, [context.Metadata.Name ?? "$"]);
         if (mapped.Success)
         {
             return await InputFormatterResult.SuccessAsync(mapped.Value);
