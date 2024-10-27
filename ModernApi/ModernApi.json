@@ -1,0 +1,93 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "ModernApi | v1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/profile": {
+      "post": {
+        "tags": [
+          "ModernApi"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserProfile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "OptionOfPet": {
+        "type": "object"
+      },
+      "Pet": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "nullable": true
+      },
+      "UserProfile": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "age": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isSubscribed": {
+            "type": "boolean"
+          },
+          "courses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pet": {
+            "$ref": "#/components/schemas/OptionOfPet"
+          },
+          "isGay": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "favoritePet": {
+            "$ref": "#/components/schemas/Pet"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "ModernApi"
+    }
+  ]
+}
