@@ -12,7 +12,6 @@ public class Mapper
     public record RequiredValueMissingError(string[] path) : ErrorBase($"{string.Join(".", path)} must have a value");
     public record ValueHasWrongTypeError(string[] path, string expectedType, string actualType) : ErrorBase($"Value of {string.Join(".", path)} has the wrong type. Expected {expectedType}, got {actualType}");
     public static Result<T> Map<T>(JsonElement json, string[] path = null)
-        where T : new()
     {
         return MapElement(typeof(T), json, path).Map(x => (T)x);
     }
