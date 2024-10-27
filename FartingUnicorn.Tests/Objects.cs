@@ -28,7 +28,7 @@ public class Converters
             }
         }
 
-        public record InvalidIdError(string candidate) : ErrorBase($"{candidate} is not a valid Id");
+        public record InvalidIdError(string candidate) : ErrorBase($"'{candidate}' is not a valid Id");
     }
 
     public class IdConverter : IConverter
@@ -67,6 +67,22 @@ public class Converters
         blogPost.Success.Should().BeTrue();
         blogPost.Value.Id.Value.Should().Be(123456);
         blogPost.Value.Title.Should().Be("Farting Unicorns");
+    }
+
+    [Fact]
+    public void InvalidId()
+    {
+        var mapperOptions = new MapperOptions();
+        mapperOptions.AddConverter(new IdConverter());
+        var json = JsonSerializer.Deserialize<JsonElement>("""
+        {
+            "Id": "Not a number",
+            "Title": "Farting Unicorns"
+        }
+        """);
+        var blogPost = Mapper.Map<BlogPost>(json, mapperOptions);
+        blogPost.Success.Should().BeFalse();
+        blogPost.Errors.Should().ContainSingle(e => e.Message == "Failed to map $.Id: 'Not a number' is not a valid Id");
     }
 }
 

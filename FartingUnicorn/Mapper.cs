@@ -35,6 +35,7 @@ public class MapperOptions
 public class Mapper
 {
     public abstract record FartingUnicornErrorBase(string[] Path, string Message) : ErrorBase(Message);
+    public record MappingError(string[] path, string message) : FartingUnicornErrorBase(path, $"Failed to map {string.Join(".", path)}: {message}");
     public record RequiredPropertyMissingError(string[] path) : FartingUnicornErrorBase(path, $"{string.Join(".", path)} is required");
     public record RequiredValueMissingError(string[] path) : FartingUnicornErrorBase(path, $"{string.Join(".", path)} must have a value");
     public record ValueHasWrongTypeError(string[] path, string expectedType, string actualType) : FartingUnicornErrorBase(path, $"Value of {string.Join(".", path)} has the wrong type. Expected {expectedType}, got {actualType}");
@@ -183,7 +184,16 @@ public class Mapper
                 return Result<object>.Error(new ValueHasWrongTypeError(path, customConverter.ExpectedJsonValueKind.ToString(), jsonElement.ValueKind.ToString()));
             }
 
-            return customConverter.Convert(jsonElement, mapperOptions, path);
+            var result = customConverter.Convert(jsonElement, mapperOptions, path);
+            if (result.Success)
+            {
+                return result;
+            }
+            else
+            {
+                return Result<object>.Error(
+                    result.Errors.Select(x => new MappingError(path, x.Message)).ToArray());
+            }
         }
 
         /*object*/
