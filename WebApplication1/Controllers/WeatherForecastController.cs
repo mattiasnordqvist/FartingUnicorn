@@ -22,4 +22,11 @@ public partial class WeatherForecastController : ControllerBase
         return await Request.MapBody<UserProfile>();
     }
 
+    [HttpPost("profile3")]
+    public async Task<Result<UserProfile>> Post(UserProfile userProfile)
+    {
+        return userProfile;
+    }
+
+
 }

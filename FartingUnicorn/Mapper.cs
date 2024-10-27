@@ -8,9 +8,10 @@ namespace FartingUnicorn;
 
 public class Mapper
 {
-    public record RequiredPropertyMissingError(string[] path) : ErrorBase($"{string.Join(".", path)} is required");
-    public record RequiredValueMissingError(string[] path) : ErrorBase($"{string.Join(".", path)} must have a value");
-    public record ValueHasWrongTypeError(string[] path, string expectedType, string actualType) : ErrorBase($"Value of {string.Join(".", path)} has the wrong type. Expected {expectedType}, got {actualType}");
+    public abstract record FartingUnicornErrorBase(string[] Path, string Message) : ErrorBase(Message);
+    public record RequiredPropertyMissingError(string[] path) : FartingUnicornErrorBase(path, $"{string.Join(".", path)} is required");
+    public record RequiredValueMissingError(string[] path) : FartingUnicornErrorBase(path, $"{string.Join(".", path)} must have a value");
+    public record ValueHasWrongTypeError(string[] path, string expectedType, string actualType) : FartingUnicornErrorBase(path, $"Value of {string.Join(".", path)} has the wrong type. Expected {expectedType}, got {actualType}");
     public static Result<T> Map<T>(JsonElement json, string[] path = null)
     {
         return MapElement(typeof(T), json, path).Map(x => (T)x);
