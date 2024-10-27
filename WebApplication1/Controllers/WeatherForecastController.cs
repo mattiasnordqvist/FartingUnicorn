@@ -24,9 +24,18 @@ public partial class WeatherForecastController : ControllerBase
     [HttpPost("profile2")]
     public async Task<Result<UserProfile>> Post()
     {
-        // use system.text.json to deserialize the request body stream
-        using var json = await JsonDocument.ParseAsync(Request.Body);
+        return await Request.MapBody<UserProfile>();
+    }
+
+}
+
+public static class FartingControllerExtensions
+{
+    public static async Task<Result<T>> MapBody<T>(this HttpRequest request)
+        where T : new()
+    {
+        using var json = await JsonDocument.ParseAsync(request.Body);
         var rootElement = json.RootElement;
-        return FartingUnicorn.Mapper.Map<UserProfile>(rootElement);
+        return FartingUnicorn.Mapper.Map<T>(rootElement);
     }
 }

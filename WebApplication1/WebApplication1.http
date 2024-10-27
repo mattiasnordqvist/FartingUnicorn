@@ -1,6 +1,6 @@
 @WebApplication1_HostAddress = http://localhost:5290
 
-Post {{WebApplication1_HostAddress}}/weatherforecast/profile1
+Post {{WebApplication1_HostAddress}}/weatherforecast/profile2
 Content-Type: application/json
 
 {
