@@ -1,6 +1,10 @@
 
+using DotNetThoughts.Results;
+
 using FartingUnicorn;
 
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi.Models;
 
@@ -24,7 +28,7 @@ public class Program
                 schema.Nullable = false;
                 foreach (var p in context.JsonTypeInfo.Properties)
                 {
-                    if(!p.IsGetNullable)
+                    if (!p.IsGetNullable)
                     {
                         schema.Required.Add(p.Name);
                     }
@@ -47,12 +51,13 @@ public class Program
                     }
                 }
 
-                
+
                 return Task.CompletedTask;
             });
         });
 
         var app = builder.Build();
+        
         app.MapOpenApi();
         app.UseSwaggerUI(options =>
         {
@@ -61,19 +66,42 @@ public class Program
 
         app.UseAuthorization();
 
-
-        app.MapPost("/profile", (HttpContext httpContext, Fart<UserProfile> profile) =>
+        app.UseExceptionHandler(app =>
         {
-            return profile.Value;
+            app.Run(async c =>
+            {
+                var exceptionHandlerPathFeature =
+                    c.Features.Get<IExceptionHandlerPathFeature>();
+
+                if (exceptionHandlerPathFeature?.Error is ValueOrThrowException e)
+                {
+                    c.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    c.Response.ContentType = "application/json";
+                    await c.Response.WriteAsJsonAsync(new
+                    {
+                        Success = false,
+                        Errors = e.Errors.Select(x => new { x.Type, x.Message, Data = x.GetData() })
+                    });
+                }
+               
+            });
+        });
+        app.MapPost("/profile", (HttpContext httpContext, UserProfile profile) =>
+        {
+            return profile;
         }).Accepts<UserProfile>("application/json")
         .WithOpenApi();
-        
-
+        app.MapPost("/profile2", (HttpContext httpContext, Pet pet) =>
+        {
+            return pet;
+        }).Accepts<Pet>("application/json")
+       .WithOpenApi();
         app.Run();
     }
 }
 
-public class UserProfile
+[DotNetThoughts.FartingUnicorn.MinimalApi.GenerateBindAsync]
+public partial class UserProfile
 {
     public string Name { get; set; }
     public int Age { get; set; }
@@ -89,28 +117,4 @@ public class Pet
 {
     public string Name { get; set; }
     public string Type { get; set; }
-}
-
-public class Fart<TModel>
-{
-    public Fart(TModel? value)
-    {
-        Value = value;
-    }
-
-    public TModel? Value { get; }
-
-    public static async ValueTask<Fart<TModel>?> BindAsync(HttpContext context, ParameterInfo parameter)
-    {
-        if (!context.Request.HasJsonContentType())
-        {
-            throw new BadHttpRequestException(
-                "Request content type was not a recognized JSON content type.",
-                StatusCodes.Status415UnsupportedMediaType);
-        }
-
-        using var json = await JsonDocument.ParseAsync(context.Request.Body);
-        var rootElement = json.RootElement;
-        return new Fart<TModel>(Mapper.Map<TModel>(rootElement).ValueOrThrow());
-    }
 }

@@ -16,8 +16,17 @@
     </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
   </ItemGroup>
-
+	<PropertyGroup>
+		<!-- https://andrewlock.net/creating-a-source-generator-part-6-saving-source-generator-output-in-source-control/ -->
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
+	</PropertyGroup>
+	<ItemGroup>
+		<!-- https://andrewlock.net/creating-a-source-generator-part-6-saving-source-generator-output-in-source-control/ -->
+		<Compile Remove="$(CompilerGeneratedFilesOutputPath)\**\*.cs"></Compile>
+	</ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FartingUnicorn.MinimalApi\FartingUnicorn.MinimalApi.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
     <ProjectReference Include="..\FartingUnicorn\FartingUnicorn.csproj" />
   </ItemGroup>
 
