@@ -12,11 +12,11 @@ public class MapperOptions
 {
     public interface IConverter
     {
-        bool CanConvert(Type type);
+        bool CanConvert(Type clrType);
 
         JsonValueKind ExpectedJsonValueKind { get; }
 
-        Result<object> Convert(JsonElement jsonElement, MapperOptions mapperOptions, string[] path);
+        Result<object> Convert(Type clrType, JsonElement jsonElement, MapperOptions mapperOptions, string[] path);
     }
 
     public List<IConverter> _converters = [];
@@ -184,7 +184,7 @@ public class Mapper
                 return Result<object>.Error(new ValueHasWrongTypeError(path, customConverter.ExpectedJsonValueKind.ToString(), jsonElement.ValueKind.ToString()));
             }
 
-            var result = customConverter.Convert(jsonElement, mapperOptions, path);
+            var result = customConverter.Convert(type, jsonElement, mapperOptions, path);
             if (result.Success)
             {
                 return result;

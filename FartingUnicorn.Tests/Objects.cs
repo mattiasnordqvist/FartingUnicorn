@@ -1,91 +1,10 @@
-﻿using DotNetThoughts.Results;
-
-using FluentAssertions;
+﻿using FluentAssertions;
 
 using System.Text.Json;
 
 using Xunit;
 
-using static FartingUnicorn.MapperOptions;
-
 namespace FartingUnicorn.Tests;
-
-public class Converters
-{
-    public class Id
-    {
-        public long Value { get; set; }
-
-        public static Result<Id> FromInput(string candidate)
-        {
-            if (long.TryParse(candidate, out var value))
-            {
-                return Result<Id>.Ok(new Id { Value = value });
-            }
-            else
-            {
-                return Result<Id>.Error(new InvalidIdError(candidate));
-            }
-        }
-
-        public record InvalidIdError(string candidate) : ErrorBase($"'{candidate}' is not a valid Id");
-    }
-
-    public class IdConverter : IConverter
-    {
-        public bool CanConvert(Type type)
-        {
-            return type == typeof(Id);
-        }
-
-        public JsonValueKind ExpectedJsonValueKind => JsonValueKind.String;
-
-        public Result<object> Convert(JsonElement jsonElement, MapperOptions mapperOptions, string[] path)
-        {
-            return Id.FromInput(jsonElement.GetString()).Map(x => (object)x);
-        }
-    }
-
-    public class BlogPost
-    {
-        public required Id Id { get; set; }
-        public required string Title { get; set; }
-    }
-
-    [Fact]
-    public void Valid()
-    {
-        var mapperOptions = new MapperOptions();
-        mapperOptions.AddConverter(new IdConverter());
-        var json = JsonSerializer.Deserialize<JsonElement>("""
-        {
-            "Id": "123456",
-            "Title": "Farting Unicorns"
-        }
-        """);
-        var blogPost = Mapper.Map<BlogPost>(json, mapperOptions);
-        blogPost.Success.Should().BeTrue();
-        blogPost.Value.Id.Value.Should().Be(123456);
-        blogPost.Value.Title.Should().Be("Farting Unicorns");
-    }
-
-    [Fact]
-    public void InvalidId()
-    {
-        var mapperOptions = new MapperOptions();
-        mapperOptions.AddConverter(new IdConverter());
-        var json = JsonSerializer.Deserialize<JsonElement>("""
-        {
-            "Id": "Not a number",
-            "Title": "Farting Unicorns"
-        }
-        """);
-        var blogPost = Mapper.Map<BlogPost>(json, mapperOptions);
-        blogPost.Success.Should().BeFalse();
-        blogPost.Errors.Should().ContainSingle(e => e.Message == "Failed to map $.Id: 'Not a number' is not a valid Id");
-    }
-}
-
 public class Objects
 {
     public class NotOptional
@@ -120,7 +39,7 @@ public class Objects
             }
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
             blogPost.Value.Title.Should().Be("Farting Unicorns");
             blogPost.Value.IsDraft.Should().BeTrue();
             blogPost.Value.Category.Should().BeOfType<Some<string>>();
@@ -170,7 +89,7 @@ public class Objects
             }
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
             blogPost.Value.Author.Age.Should().BeOfType<None<int>>();
         }
 
@@ -257,7 +176,7 @@ public class Objects
             }
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
             blogPost.Value.Title.Should().Be("Farting Unicorns");
             blogPost.Value.IsDraft.Should().BeTrue();
             blogPost.Value.Category.Should().BeOfType<Some<string>>();
@@ -322,7 +241,7 @@ public class Objects
             }
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
             blogPost.Value.Author.Should().BeOfType<None<Author>>();
         }
 
@@ -369,7 +288,7 @@ public class Objects
             }
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
             blogPost.Value.Author.Should().NotBeNull();
             blogPost.Value.Author!.Name.Should().Be("John Doe");
             blogPost.Value.Author!.Age.Should().BeOfType<Some<int>>();
@@ -383,7 +302,7 @@ public class Objects
             }
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
             blogPost.Value.Author.Should().BeNull();
         }
     }
@@ -412,7 +331,7 @@ public class Objects
             }
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
             blogPost.Value.Author.Should().NotBeNull();
             blogPost.Value.Author!.Should().BeOfType<Some<Author>>();
             var someAuthor = (blogPost.Value.Author as Some<Author>)!;
@@ -428,7 +347,7 @@ public class Objects
             }
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
             blogPost.Value.Author.Should().BeNull();
         }
 
@@ -441,7 +360,7 @@ public class Objects
             }
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
             blogPost.Value.Author.Should().BeOfType<None<Author>>();
         }
 

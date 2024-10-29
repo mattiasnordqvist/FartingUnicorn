@@ -30,7 +30,7 @@ public class MultipleFields
         """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
-                blogPost.Success.Should().BeTrue();
+                blogPost.Should().BeSuccessful();
                 blogPost.Value.Title.Should().Be("Farting Unicorns");
                 blogPost.Value.IsDraft.Should().BeTrue();
             }
@@ -192,7 +192,7 @@ public class MultipleFields
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
-                blogPost.Success.Should().BeTrue();
+                blogPost.Should().BeSuccessful();
                 blogPost.Value.Title.Should().Be("Farting Unicorns");
                 blogPost.Value.IsDraft.Should().BeTrue();
             }
@@ -206,7 +206,7 @@ public class MultipleFields
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
-                blogPost.Success.Should().BeTrue();
+                blogPost.Should().BeSuccessful();
                 blogPost.Value.Title.Should().BeNull();
                 blogPost.Value.IsDraft.Should().BeNull();
             }
@@ -221,7 +221,7 @@ public class MultipleFields
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
-                blogPost.Success.Should().BeTrue();
+                blogPost.Should().BeSuccessful();
                 blogPost.Value.Title.Should().BeNull();
                 blogPost.Value.IsDraft.Should().BeTrue();
             }
@@ -267,7 +267,7 @@ public class MultipleFields
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
-                blogPost.Success.Should().BeTrue();
+                blogPost.Should().BeSuccessful();
                 blogPost.Value.Category.Should().BeOfType<Some<string>>();
                 blogPost.Value.Rating.Should().BeOfType<Some<int>>();
                 var someCategory = (blogPost.Value.Category as Some<string>)!;
@@ -300,7 +300,7 @@ public class MultipleFields
                 }
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
-                blogPost.Success.Should().BeTrue();
+                blogPost.Should().BeSuccessful();
                 blogPost.Value.Category.Should().BeOfType<None<string>>();
                 blogPost.Value.Rating.Should().BeOfType<None<int>>();
             }
@@ -341,7 +341,7 @@ public class MultipleFields
                 }
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
-                blogPost.Success.Should().BeTrue();
+                blogPost.Should().BeSuccessful();
                 blogPost.Value.Category.Should().BeOfType<None<string>>();
                 blogPost.Value.Rating.Should().BeOfType<Some<int>>();
                 var someRating = (blogPost.Value.Rating as Some<int>)!;
@@ -358,7 +358,7 @@ public class MultipleFields
                 }
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
-                blogPost.Success.Should().BeTrue();
+                blogPost.Should().BeSuccessful();
                 blogPost.Value.Category.Should().BeOfType<Some<string>>();
                 var someCategory = (blogPost.Value.Category as Some<string>)!;
                 someCategory.Value.Should().Be("Farting Unicorns");
@@ -458,7 +458,7 @@ public class MultipleFields
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
-                blogPost.Success.Should().BeTrue();
+                blogPost.Should().BeSuccessful();
                 blogPost.Value.Category.Should().BeOfType<Some<string>>();
                 blogPost.Value.Rating.Should().BeOfType<Some<int>>();
                 var someCategory = (blogPost.Value.Category as Some<string>)!;
@@ -476,7 +476,7 @@ public class MultipleFields
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
-                blogPost.Success.Should().BeTrue();
+                blogPost.Should().BeSuccessful();
                 blogPost.Value.Category.Should().BeNull();
                 blogPost.Value.Rating.Should().BeNull();
             }
@@ -491,7 +491,7 @@ public class MultipleFields
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
-                blogPost.Success.Should().BeTrue();
+                blogPost.Should().BeSuccessful();
                 blogPost.Value.Category.Should().BeNull();
                 blogPost.Value.Rating.Should().BeOfType<Some<int>>();
                 var someRating = (blogPost.Value.Rating as Some<int>)!;
@@ -508,7 +508,7 @@ public class MultipleFields
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
-                blogPost.Success.Should().BeTrue();
+                blogPost.Should().BeSuccessful();
                 blogPost.Value.Category.Should().BeOfType<Some<string>>();
                 var someCategory = (blogPost.Value.Category as Some<string>)!;
                 someCategory.Value.Should().Be("Farting Unicorns");
@@ -526,7 +526,7 @@ public class MultipleFields
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
-                blogPost.Success.Should().BeTrue();
+                blogPost.Should().BeSuccessful();
                 blogPost.Value.Category.Should().BeOfType<None<string>>();
                 blogPost.Value.Rating.Should().BeOfType<None<int>>();
             }

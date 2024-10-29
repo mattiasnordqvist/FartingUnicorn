@@ -475,7 +475,7 @@ public class SingleField
                     """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
-                blogPost.Success.Should().BeTrue();
+                blogPost.Should().BeSuccessful();
                 blogPost.Value.IsDraft.Should().BeOfType<Some<bool>>();
                 var someIsDraft = (blogPost.Value.IsDraft as Some<bool>)!;
                 someIsDraft.Value.Should().BeTrue();
@@ -490,7 +490,7 @@ public class SingleField
             """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
-                blogPost.Success.Should().BeTrue();
+                blogPost.Should().BeSuccessful();
                 blogPost.Value.IsDraft.Should().BeNull();
             }
 
@@ -504,7 +504,7 @@ public class SingleField
                 """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
-                blogPost.Success.Should().BeTrue();
+                blogPost.Should().BeSuccessful();
                 blogPost.Value.IsDraft.Should().BeOfType<None<bool>>();
             }
         }

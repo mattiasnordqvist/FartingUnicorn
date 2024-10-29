@@ -60,7 +60,7 @@ public class BigTests
             }
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
         }
 
         [Fact]

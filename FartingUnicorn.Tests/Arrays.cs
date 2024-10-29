@@ -42,7 +42,7 @@ public class Arrays
             }
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
             blogPost.Value.Comments.Should().HaveCount(2);
             blogPost.Value.Comments[0].Text.Should().Be("First!");
             blogPost.Value.Comments[0].Upvotes.Should().Be(5);
@@ -125,7 +125,7 @@ public class Arrays
                     }
                     """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
             blogPost.Value.Comments.Should().BeOfType<Some<Comment[]>>();
             var someComments = (blogPost.Value.Comments as Some<Comment[]>)!;
             someComments.Value.Should().HaveCount(2);
@@ -161,7 +161,7 @@ public class Arrays
                     }
                     """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
             blogPost.Value.Comments.Should().BeOfType<None<Comment[]>>();
         }
 
@@ -225,7 +225,7 @@ public class Arrays
             }
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
             blogPost.Value.Comments.Should().HaveCount(2);
             blogPost.Value.Comments[0].Text.Should().Be("First!");
             blogPost.Value.Comments[0].Upvotes.Should().Be(5);
@@ -245,7 +245,7 @@ public class Arrays
                     }
                     """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
             blogPost.Value.Comments.Should().BeNull();
         }
 
@@ -297,7 +297,7 @@ public class Arrays
             }
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
             blogPost.Value.Comments.Should().BeOfType<Some<Comment[]>>();
             var someComments = (blogPost.Value.Comments as Some<Comment[]>)!;
             someComments.Value.Should().HaveCount(2);
@@ -320,7 +320,7 @@ public class Arrays
                     }
                     """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
             blogPost.Value.Comments.Should().BeNull();
         }
 
@@ -333,7 +333,7 @@ public class Arrays
                     }
                     """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
             blogPost.Value.Comments.Should().BeOfType<None<Comment[]>>();
         }
     }
@@ -354,7 +354,7 @@ public class Arrays
             }
             """);
             var blogPost = Mapper.Map<BlogPost>(json);
-            blogPost.Success.Should().BeTrue();
+            blogPost.Should().BeSuccessful();
             blogPost.Value.Categories.Should().HaveCount(4);
             blogPost.Value.Categories[0].Should().Be("Farts");
             blogPost.Value.Categories[1].Should().Be("Unicorns");
@@ -375,7 +375,7 @@ public class Arrays
             ]
             """);
             var lists = Mapper.MapElement<string[][][]>(json);
-            lists.Success.Should().BeTrue();
+            lists.Should().BeSuccessful();
         }
 
         [Fact]

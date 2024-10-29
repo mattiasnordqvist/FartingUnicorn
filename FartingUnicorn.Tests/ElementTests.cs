@@ -20,7 +20,7 @@ public class ElementTests
                 """);
             var result = Mapper.MapElement<string>(jsonElement);
 
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().Be("Test");
         }
 
@@ -42,7 +42,7 @@ public class ElementTests
                 "Test"
                 """);
             var result = Mapper.MapElement<Option<string>>(jsonElement);
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().BeSome("Test");
         }
 
@@ -53,7 +53,7 @@ public class ElementTests
                 null
                 """);
             var result = Mapper.MapElement<Option<string>>(jsonElement);
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().BeNone<string>();
         }
 
@@ -156,7 +156,7 @@ public class ElementTests
                 """);
             var result = Mapper.MapElement<int>(jsonElement);
 
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().Be(123456);
         }
 
@@ -177,7 +177,7 @@ public class ElementTests
                 123456
                 """);
             var result = Mapper.MapElement<Option<int>>(jsonElement);
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().BeSome(123456);
         }
         [Fact]
@@ -187,7 +187,7 @@ public class ElementTests
                 null
                 """);
             var result = Mapper.MapElement<Option<int>>(jsonElement);
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().BeNone<int>();
         }
         [Fact]
@@ -212,7 +212,7 @@ public class ElementTests
                 """);
             var result = Mapper.MapElement<bool>(jsonElement);
 
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().Be(true);
         }
 
@@ -224,7 +224,7 @@ public class ElementTests
                 """);
             var result = Mapper.MapElement<bool>(jsonElement);
 
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().Be(false);
         }
 
@@ -246,7 +246,7 @@ public class ElementTests
                 true
                 """);
             var result = Mapper.MapElement<Option<bool>>(jsonElement);
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().BeSome(true);
         }
 
@@ -257,7 +257,7 @@ public class ElementTests
                 null
                 """);
             var result = Mapper.MapElement<Option<bool>>(jsonElement);
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().BeNone<bool>();
         }
 
@@ -284,7 +284,7 @@ public class ElementTests
                 {}
                 """);
             var result = Mapper.MapElement<BlogPost>(jsonElement);
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().BeOfType<BlogPost>();
         }
 
@@ -306,7 +306,7 @@ public class ElementTests
                 {}
                 """);
             var result = Mapper.MapElement<Option<BlogPost>>(jsonElement);
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().BeOfType<Some<BlogPost>>();
         }
 
@@ -317,7 +317,7 @@ public class ElementTests
                 null
                 """);
             var result = Mapper.MapElement<Option<BlogPost>>(jsonElement);
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().BeOfType<None<BlogPost>>();
         }
 
@@ -348,7 +348,7 @@ public class ElementTests
                     }
                     """);
                 var result = Mapper.MapElement<BlogPost>(jsonElement);
-                result.Success.Should().BeTrue();
+                result.Should().BeSuccessful();
                 result.Value.Should().BeOfType<BlogPost>();
                 var blogPost = (BlogPost)result.Value!;
                 blogPost.Title.Should().Be("Farting Llamacorns");
@@ -404,7 +404,7 @@ public class ElementTests
                         }
                         """);
                     var result = Mapper.MapElement<BlogPost>(jsonElement);
-                    result.Success.Should().BeTrue();
+                    result.Should().BeSuccessful();
                     result.Value.Should().BeOfType<BlogPost>();
                     var blogPost = (BlogPost)result.Value!;
                     blogPost.Title.Should().Be("Farting Llamacorns");
@@ -456,7 +456,7 @@ public class ElementTests
                 []
                 """);
             var result = Mapper.MapElement<BlogPost[]>(jsonElement);
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().BeOfType<BlogPost[]>();
         }
         [Fact]
@@ -477,7 +477,7 @@ public class ElementTests
                 []
                 """);
             var result = Mapper.MapElement<Option<BlogPost[]>>(jsonElement);
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().BeOfType<Some<BlogPost[]>>();
             var some = (Some<BlogPost[]>)result.Value!;
             some.Value.Should().BeEmpty();
@@ -490,7 +490,7 @@ public class ElementTests
                 null
                 """);
             var result = Mapper.MapElement<Option<BlogPost[]>>(jsonElement);
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().BeOfType<None<BlogPost[]>>();
         }
 
@@ -501,7 +501,7 @@ public class ElementTests
                     ["Test1", "Test2", "Test3"]
                     """);
             var result = Mapper.MapElement<string[]>(jsonElement);
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().BeEquivalentTo(new[] { "Test1", "Test2", "Test3" });
         }
 
@@ -523,7 +523,7 @@ public class ElementTests
                     ["Test1", null, "Test3"]
                     """);
             var result = Mapper.MapElement<Option<string>[]>(jsonElement);
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().BeEquivalentTo(new Option<string>[]
             {
                 new Some<string>("Test1"),
@@ -549,7 +549,7 @@ public class ElementTests
                 }
                 """);
             var result = Mapper.MapElement<BlogPost>(jsonElement);
-            result.Success.Should().BeTrue();
+            result.Should().BeSuccessful();
             result.Value.Should().BeOfType<BlogPost>();
             var blogPost = (BlogPost)result.Value!;
             blogPost.Tags.Should().BeEquivalentTo(new[] { "Tag1", "Tag2", "Tag3" });
