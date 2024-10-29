@@ -409,3 +409,32 @@ public partial class UserProfile
     public Option<Pet> Pet { get; set; }
 }
 ```
+
+This binder will: 
+1. Create a bad request response if content type ain't application/json
+2. throw a serializationexception if the request contains invalid json
+3. throw an ValueOrThrowException if there are any validation issues.
+
+You can handle these exception using the strange UseExceptionHandler-stuff. Here's an example
+
+```csharp
+ app.UseExceptionHandler(app =>
+ {
+     app.Run(async c =>
+     {
+         var exceptionHandlerPathFeature =
+             c.Features.Get<IExceptionHandlerPathFeature>();
+
+         if (exceptionHandlerPathFeature?.Error is ValueOrThrowException e)
+         {
+             c.Response.StatusCode = StatusCodes.Status400BadRequest;
+             c.Response.ContentType = "application/json";
+             await c.Response.WriteAsJsonAsync(new
+             {
+                 Success = false,
+                 Errors = e.Errors.Select(x => new { x.Type, x.Message, Data = x.GetData() })
+             });
+         }
+     });
+ });
+```
