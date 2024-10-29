@@ -366,6 +366,7 @@ var mapperResult = Mapper.Map<YourDto>(rootElement);
 if(mapperResult.Success)
   // mapperResult.Value will contain your parsed DTO.
 ```
+
 ## Custom Converters
 Mapper.Map can take a MapperOptions as parameter. Custom converters can be added through the MapperOptions.  
 The library comes with a built-in converter you can use if you want your DTOs to contain `Enum`s that maps to json strings.
@@ -378,11 +379,33 @@ The library comes with a built-in converter you can use if you want your DTOs to
  }
 
  public enum BlogPostStatus { Draft, Published }
-
+```
+```csharp
  var _mapperOptions = new MapperOptions();
  _mapperOptions.AddConverter(new EnumAsStringConverter());
  var json = JsonSerializer.Deserialize<JsonElement>("""
    {"Title":"Farting Unicorns","Status":"Draft"}
    """);
  var blogPost = Mapper.Map<BlogPost>(json, mapperOptions: _mapperOptions);
+```
+
+## Minimal API
+If you want to take the dto as a parameter in a minimal api endpoint, there is a source generator available to generate a BindAsync-method that deserializes the json and creates a DTO for you.
+
+Install FartingUnicorn.MinimalApi
+
+Make your DTO partial and add a `GenerateBindAsyncAttribute` attribute to your DTO.
+
+```csharp
+using DotNetThoughts.FartingUnicorn.MinimalApi;
+
+[GenerateBindAsync]
+public partial class UserProfile
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+    public bool IsSubscribed { get; set; }
+    public string[] Courses { get; set; }
+    public Option<Pet> Pet { get; set; }
+}
 ```
