@@ -339,15 +339,15 @@ So we've decided the following:
     - A json null value will be represented with a `None<T>`
     - A json value will be represented with a `Some<T>`
   
-✅ The `Option`-type
-✅ Create `JsonElement to Type`-Mapper
-✅ Custom converters for Mapper
-✅ Verify mapper works well with Enums (included a CustomConverter for EnumsAsStrings
-⭕ Add support for records
-⭕ Better documentation and validation/exceptions on usage of invalid types. Like, are we expecting an empty constructor? Do we support `Option<Nullable<T>>`?
-⭕ Case insensitivity please
-⭕ Rewrite Mapper as SourceGenerator
-⭕ Write Source Generator for Minimal Apis BindAsync
-❌ Support Microsofts OpenApi-implementation. (seems impossible right now)
-⭕ Add Swagger support
-⭕ Create IInputFormatter for ASP.NET
+- ✅ The `Option`-type
+- ✅ Create `JsonElement to Type`-Mapper
+- ✅ Custom converters for Mapper
+- ✅ Verify mapper works well with Enums (included a CustomConverter for EnumsAsStrings
+- ⭕ Add support for records
+- ⭕ Better documentation and validation/exceptions on usage of invalid types. Like, are we expecting an empty constructor? Do we support `Option<Nullable<T>>`?
+- ⭕ Case insensitivity please
+- ⭕ Rewrite Mapper as SourceGenerator
+- ⭕ Write Source Generator for Minimal Apis BindAsync
+- ❌ Support Microsofts OpenApi-implementation. (seems impossible right now)
+- ⭕ Add Swagger support
+- ⭕ Create IInputFormatter for ASP.NET
