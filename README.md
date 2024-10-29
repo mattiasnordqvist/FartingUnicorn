@@ -348,6 +348,7 @@ So we've decided the following:
 - ⭕ Case insensitivity please
 - ⭕ Rewrite Mapper as SourceGenerator
 - ✅ Write Source Generator for Minimal Apis BindAsync
+  - ⭕ Make MapperOptions somehow available to generated code. 
 - ❌ Support Microsofts OpenApi-implementation. (seems impossible right now)
 - ⭕ Add Swagger support
 - ⭕ Create IInputFormatter for ASP.NET
