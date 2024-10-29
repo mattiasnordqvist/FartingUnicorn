@@ -342,12 +342,99 @@ So we've decided the following:
 - ✅ The `Option`-type
 - ✅ Create `JsonElement to Type`-Mapper
 - ✅ Custom converters for Mapper
-- ✅ Verify mapper works well with Enums (included a CustomConverter for EnumsAsStrings
+  - ✅ Verify mapper works well with Enums (included a CustomConverter for EnumsAsStrings
 - ⭕ Add support for records
 - ⭕ Better documentation and validation/exceptions on usage of invalid types. Like, are we expecting an empty constructor? Do we support `Option<Nullable<T>>`?
 - ⭕ Case insensitivity please
 - ⭕ Rewrite Mapper as SourceGenerator
-- ⭕ Write Source Generator for Minimal Apis BindAsync
+- ✅ Write Source Generator for Minimal Apis BindAsync
 - ❌ Support Microsofts OpenApi-implementation. (seems impossible right now)
 - ⭕ Add Swagger support
 - ⭕ Create IInputFormatter for ASP.NET
+
+
+# How to use
+
+Install FartingUnicorn-package.  
+Create your input DTOs in the way we talked about above. Currently, only Classes with an empty constructor are supported. Make fields that are not required in json nullable. Use the `Option<T>` type for fields that should be nullable.  
+
+Now you can parse the json and map it to your DTO like this:
+```csharp
+using var json = await JsonDocument.ParseAsync(jsonAsText);
+var rootElement = json.RootElement;
+var mapperResult = Mapper.Map<YourDto>(rootElement);
+if(mapperResult.Success)
+  // mapperResult.Value will contain your parsed DTO.
+```
+
+## Custom Converters
+Mapper.Map can take a MapperOptions as parameter. Custom converters can be added through the MapperOptions.  
+The library comes with a built-in converter you can use if you want your DTOs to contain `Enum`s that maps to json strings.
+
+```csharp
+ public class BlogPost
+ {
+     public string Title { get; set; }
+     public BlogPostStatus Status { get; set; }
+ }
+
+ public enum BlogPostStatus { Draft, Published }
+```
+```csharp
+ var _mapperOptions = new MapperOptions();
+ _mapperOptions.AddConverter(new EnumAsStringConverter());
+ var json = JsonSerializer.Deserialize<JsonElement>("""
+   {"Title":"Farting Unicorns","Status":"Draft"}
+   """);
+ var blogPost = Mapper.Map<BlogPost>(json, mapperOptions: _mapperOptions);
+```
+
+## Minimal API
+If you want to take the dto as a parameter in a minimal api endpoint, there is a source generator available to generate a BindAsync-method that deserializes the json and creates a DTO for you.
+
+Install FartingUnicorn.MinimalApi
+
+Make your DTO partial and add a `GenerateBindAsyncAttribute` attribute to your DTO.
+
+```csharp
+using DotNetThoughts.FartingUnicorn.MinimalApi;
+
+[GenerateBindAsync]
+public partial class UserProfile
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+    public bool IsSubscribed { get; set; }
+    public string[] Courses { get; set; }
+    public Option<Pet> Pet { get; set; }
+}
+```
+
+This binder will: 
+1. Create a bad request response if content type ain't application/json
+2. throw a serializationexception if the request contains invalid json
+3. throw an ValueOrThrowException if there are any validation issues.
+
+You can handle these exception using the strange UseExceptionHandler-stuff. Here's an example
+
+```csharp
+ app.UseExceptionHandler(app =>
+ {
+     app.Run(async c =>
+     {
+         var exceptionHandlerPathFeature =
+             c.Features.Get<IExceptionHandlerPathFeature>();
+
+         if (exceptionHandlerPathFeature?.Error is ValueOrThrowException e)
+         {
+             c.Response.StatusCode = StatusCodes.Status400BadRequest;
+             c.Response.ContentType = "application/json";
+             await c.Response.WriteAsJsonAsync(new
+             {
+                 Success = false,
+                 Errors = e.Errors.Select(x => new { x.Type, x.Message, Data = x.GetData() })
+             });
+         }
+     });
+ });
+```
