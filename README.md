@@ -342,7 +342,7 @@ So we've decided the following:
 ✅ The `Option`-type
 ✅ Create `JsonElement to Type`-Mapper
 ✅ Custom converters for Mapper
-❔ Verify mapper works well with Enums
+✅ Verify mapper works well with Enums (included a CustomConverter for EnumsAsStrings
 ⭕ Add support for records
 ⭕ Better documentation and validation/exceptions on usage of invalid types. Like, are we expecting an empty constructor? Do we support `Option<Nullable<T>>`?
 ⭕ Case insensitivity please
