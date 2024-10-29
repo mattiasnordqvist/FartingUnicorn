@@ -345,6 +345,7 @@ So we've decided the following:
 ❔ Verify mapper works well with Enums
 ⭕ Add support for records
 ⭕ Better documentation and validation/exceptions on usage of invalid types. Like, are we expecting an empty constructor? Do we support `Option<Nullable<T>>`?
+⭕ Case insensitivity please
 ⭕ Rewrite Mapper as SourceGenerator
 ⭕ Write Source Generator for Minimal Apis BindAsync
 ❌ Support Microsofts OpenApi-implementation. (seems impossible right now)
