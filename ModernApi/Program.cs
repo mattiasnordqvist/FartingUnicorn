@@ -10,7 +10,7 @@ using Microsoft.OpenApi.Models;
 
 using System.Reflection;
 using System.Text.Json;
-
+using DotNetThoughts.FartingUnicorn.MinimalApi;
 namespace ModernApi;
 
 public class Program
@@ -83,24 +83,21 @@ public class Program
                         Errors = e.Errors.Select(x => new { x.Type, x.Message, Data = x.GetData() })
                     });
                 }
-               
             });
         });
         app.MapPost("/profile", (HttpContext httpContext, UserProfile profile) =>
         {
             return profile;
-        }).Accepts<UserProfile>("application/json")
-        .WithOpenApi();
+        }).Accepts<UserProfile>("application/json");
         app.MapPost("/profile2", (HttpContext httpContext, Pet pet) =>
         {
             return pet;
-        }).Accepts<Pet>("application/json")
-       .WithOpenApi();
+        });
         app.Run();
     }
 }
 
-[DotNetThoughts.FartingUnicorn.MinimalApi.GenerateBindAsync]
+[GenerateBindAsync]
 public partial class UserProfile
 {
     public string Name { get; set; }
