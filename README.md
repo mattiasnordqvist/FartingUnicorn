@@ -269,10 +269,12 @@ public class BlogPost
     public string?? Category { get;set; } 
 }
 ```
-![image](https://gist.github.com/user-attachments/assets/01aa33b5-b88d-4e3a-9d55-0575ac524339)
+![image](https://github.com/user-attachments/assets/becfb62f-9632-4f53-bea6-8a6b95be7b39)
+
 
 Maybe we can create an option type like this?  
-![image](https://gist.github.com/user-attachments/assets/9ff574d3-48eb-4ea1-ad35-492b483f460a)
+![image](https://github.com/user-attachments/assets/4f9ca35b-f5cf-4498-ac43-8a2acc790c92)
+
 
 ```csharp
 public class BlogPost
