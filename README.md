@@ -275,6 +275,7 @@ public class BlogPost
 Maybe we can create an option type like this?  
 ![image](https://github.com/user-attachments/assets/4f9ca35b-f5cf-4498-ac43-8a2acc790c92)
 
+And combine it with nullable like this?
 
 ```csharp
 public class BlogPost
