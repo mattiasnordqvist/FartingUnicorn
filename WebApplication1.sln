@@ -7,13 +7,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApplication1", "WebAppli
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapperGenerator", "MapperGenerator\MapperGenerator.csproj", "{0E79C29B-DE21-48F9-98AD-D15CBCA50982}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FartingUnicorn.Tests", "FartingUnicorn.Tests\FartingUnicorn.Tests.csproj", "{82923B50-D326-4A9D-8436-B07346935442}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FartingUnicorn.Tests", "FartingUnicorn.Tests\FartingUnicorn.Tests.csproj", "{82923B50-D326-4A9D-8436-B07346935442}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FartingUnicorn", "FartingUnicorn\FartingUnicorn.csproj", "{6C859890-7D57-4651-BFE7-7DA339FD6447}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FartingUnicorn", "FartingUnicorn\FartingUnicorn.csproj", "{6C859890-7D57-4651-BFE7-7DA339FD6447}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModernApi", "ModernApi\ModernApi.csproj", "{10BC1CCE-F104-489D-B79E-EFB7BAA3AD16}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModernApi", "ModernApi\ModernApi.csproj", "{10BC1CCE-F104-489D-B79E-EFB7BAA3AD16}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FartingUnicorn.MinimalApi", "FartingUnicorn.MinimalApi\FartingUnicorn.MinimalApi.csproj", "{A2855C78-D0D3-4236-B180-AADD370862F6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FartingUnicorn.MinimalApi", "FartingUnicorn.MinimalApi\FartingUnicorn.MinimalApi.csproj", "{A2855C78-D0D3-4236-B180-AADD370862F6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FartingUnicorn.Benchmarks", "FartingUnicorn.Benchmarks\FartingUnicorn.Benchmarks.csproj", "{CBD1E18D-1EB8-462B-B09B-10F321B1D976}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{A2855C78-D0D3-4236-B180-AADD370862F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A2855C78-D0D3-4236-B180-AADD370862F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A2855C78-D0D3-4236-B180-AADD370862F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CBD1E18D-1EB8-462B-B09B-10F321B1D976}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBD1E18D-1EB8-462B-B09B-10F321B1D976}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBD1E18D-1EB8-462B-B09B-10F321B1D976}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBD1E18D-1EB8-462B-B09B-10F321B1D976}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

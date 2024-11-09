@@ -4,12 +4,7 @@ using DotNetThoughts.Results;
 using FartingUnicorn;
 
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi.Models;
-
-using System.Reflection;
-using System.Text.Json;
 using DotNetThoughts.FartingUnicorn.MinimalApi;
 namespace ModernApi;
 
