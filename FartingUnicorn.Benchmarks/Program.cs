@@ -52,14 +52,14 @@ public class SerializationBenchmarks
     private static Stream _jsonStream = new MemoryStream(Encoding.UTF8.GetBytes(_json));
 
     [Benchmark]
-    public async Task<UserProfile> Test1()
+    public async Task<UserProfile> ClassicDeserializeToT()
     {
         _jsonStream.Seek(0, SeekOrigin.Begin);
         return (await JsonSerializer.DeserializeAsync<UserProfile>(_jsonStream))!;
     }
 
     [Benchmark]
-    public async Task<UserProfile> Test2()
+    public async Task<UserProfile> FartingDeserialization()
     {
         _jsonStream.Seek(0, SeekOrigin.Begin);
         using var json = await JsonDocument.ParseAsync(_jsonStream);
