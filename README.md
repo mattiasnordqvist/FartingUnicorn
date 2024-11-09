@@ -269,10 +269,13 @@ public class BlogPost
     public string?? Category { get;set; } 
 }
 ```
-![image](https://gist.github.com/user-attachments/assets/01aa33b5-b88d-4e3a-9d55-0575ac524339)
+![image](https://github.com/user-attachments/assets/becfb62f-9632-4f53-bea6-8a6b95be7b39)
+
 
 Maybe we can create an option type like this?  
-![image](https://gist.github.com/user-attachments/assets/9ff574d3-48eb-4ea1-ad35-492b483f460a)
+![image](https://github.com/user-attachments/assets/4f9ca35b-f5cf-4498-ac43-8a2acc790c92)
+
+And combine it with nullable like this?
 
 ```csharp
 public class BlogPost
@@ -348,6 +351,7 @@ So we've decided the following:
 - ⭕ Case insensitivity please
 - ⭕ Rewrite Mapper as SourceGenerator
 - ✅ Write Source Generator for Minimal Apis BindAsync
+  - ⭕ Make MapperOptions somehow available to generated code. 
 - ❌ Support Microsofts OpenApi-implementation. (seems impossible right now)
 - ⭕ Add Swagger support
 - ⭕ Create IInputFormatter for ASP.NET
