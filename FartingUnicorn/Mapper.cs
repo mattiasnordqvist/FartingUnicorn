@@ -252,7 +252,6 @@ public class Mapper
 
                 return Result<object>.Ok(obj);
             }
-
         }
 
         throw new NotImplementedException();
