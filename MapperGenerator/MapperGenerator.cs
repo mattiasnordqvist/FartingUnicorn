@@ -13,14 +13,15 @@ public class MapperGenerator : IIncrementalGenerator
 {
     public static class SourceGenerationHelper
     {
-        public const string Attribute = @"
-namespace DotNetThoughts.FartingUnicorn
-{
-    [System.AttributeUsage(System.AttributeTargets.Class)]
-    public class CreateMapperAttribute : System.Attribute
-    {
-    }
-}";
+        public const string Attribute = """
+            namespace DotNetThoughts.FartingUnicorn
+            {
+                [System.AttributeUsage(System.AttributeTargets.Class)]
+                public class CreateMapperAttribute : System.Attribute
+                {
+                }
+            }
+            """;
         public static SourceText GenerateExtensionClass(ClassToGenerateMapperFor classToGenerateMapperFor)
         {
             var sb = new SourceBuilder();
@@ -28,6 +29,7 @@ namespace DotNetThoughts.FartingUnicorn
             sb.AppendLine("using System.Text.Json;");
             sb.AppendLine();
             sb.AppendLine("namespace FartingUnicorn.Generated;");
+            sb.AppendLine();
             sb.AppendLine($"public static partial class Mappers");
             sb.AppendLine("{");
             using (var _ = sb.Indent())

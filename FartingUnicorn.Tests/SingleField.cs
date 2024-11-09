@@ -1,11 +1,14 @@
-﻿using FluentAssertions;
+﻿using DotNetThoughts.FartingUnicorn;
+using DotNetThoughts.Results;
+
+using FluentAssertions;
 
 using System.Text.Json;
 
 using Xunit;
 
 using static FartingUnicorn.Mapper;
-
+using FartingUnicorn.Generated;
 namespace FartingUnicorn.Tests;
 
 public class SingleField
@@ -13,8 +16,14 @@ public class SingleField
     public class ReferenceType
     {
         public class NonNullableNonOptional_Tests
-
         {
+            public static IEnumerable<object[]> GetMappers => 
+                [
+                    [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
+                    [Mappers.MapToBlogPost]
+                ];
+
+            [CreateMapper]
             public class BlogPost
             {
                 /// <summary>
@@ -24,15 +33,16 @@ public class SingleField
                 public string Title { get; set; }
             }
 
-            [Fact]
-            public void ValidSingleField()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void ValidSingleField(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            {
-              "Title": "Farting Unicorns"
-            }
-            """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                    {
+                      "Title": "Farting Unicorns"
+                    }
+                    """);
+                var blogPost = map(jsonElement);
 
                 Assert.True(blogPost.Success);
                 Assert.Equal("Farting Unicorns", blogPost.Value.Title);
@@ -42,9 +52,9 @@ public class SingleField
             public void MissingNonNullableField()
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            {
-            }
-            """);
+                    {
+                    }
+                    """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
                 Assert.False(blogPost.Success);
@@ -57,10 +67,10 @@ public class SingleField
             public void NulledNonNullableField()
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            {
-              "Title": null
-            }
-            """);
+                    {
+                      "Title": null
+                    }
+                    """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
                 Assert.False(blogPost.Success);
@@ -73,10 +83,10 @@ public class SingleField
             public void InvalidFieldType()
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            {
-              "Title": 123456
-            }
-            """);
+                    {
+                      "Title": 123456
+                    }
+                    """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
                 Assert.False(blogPost.Success);

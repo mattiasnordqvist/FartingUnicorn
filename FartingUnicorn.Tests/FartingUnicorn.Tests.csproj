@@ -16,9 +16,19 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+	<PropertyGroup>
+		<!-- https://andrewlock.net/creating-a-source-generator-part-6-saving-source-generator-output-in-source-control/ -->
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
+	</PropertyGroup>
+	<ItemGroup>
+		<!-- https://andrewlock.net/creating-a-source-generator-part-6-saving-source-generator-output-in-source-control/ -->
+		<Compile Remove="$(CompilerGeneratedFilesOutputPath)\**\*.cs"></Compile>
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\FartingUnicorn\FartingUnicorn.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\FartingUnicorn\FartingUnicorn.csproj" />
+		<ProjectReference Include="..\MapperGenerator\MapperGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+	</ItemGroup>
 
 </Project>
