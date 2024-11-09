@@ -15,6 +15,7 @@ public class Program
     }
 }
 
+[MemoryDiagnoser]
 public class SerializationBenchmarks
 {
     public class UserProfile
