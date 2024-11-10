@@ -303,11 +303,17 @@ public class SingleField
         }
     }
 
-    public class ValueType
+    public class BoolType
     {
         public class NonNullableNonOptional_Tests
-
         {
+            public static IEnumerable<object[]> GetMappers =>
+            [
+                [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
+                [(Func<JsonElement, Result<BlogPost>>)(x => FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_BoolType_NonNullableNonOptional_Tests_BlogPost(x, null))]
+            ];
+
+            [CreateMapper]
             public class BlogPost
             {
                 /// <summary>
@@ -317,28 +323,30 @@ public class SingleField
                 public bool IsDraft { get; set; }
             }
 
-            [Fact]
-            public void ValidSingleField()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void ValidSingleField(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            {
-              "IsDraft": true
-            }
-            """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                    {
+                      "IsDraft": true
+                    }
+                    """);
+                var blogPost = map(jsonElement);
 
                 Assert.True(blogPost.Success);
                 blogPost.Value.IsDraft.Should().BeTrue();
             }
 
-            [Fact]
-            public void MissingNonNullableField()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void MissingNonNullableField(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            {
-            }
-            """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                    {
+                    }
+                    """);
+                var blogPost = map(jsonElement);
 
                 Assert.False(blogPost.Success);
                 blogPost.Errors.Should().ContainSingle();
@@ -346,15 +354,16 @@ public class SingleField
                 blogPost.Errors.Single().Message.Should().Be("$.IsDraft is required");
             }
 
-            [Fact]
-            public void NulledNonNullableField()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void NulledNonNullableField(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            {
-              "IsDraft": null
-            }
-            """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                    {
+                      "IsDraft": null
+                    }
+                    """);
+                var blogPost = map(jsonElement);
 
                 Assert.False(blogPost.Success);
                 blogPost.Errors.Should().ContainSingle();
@@ -362,15 +371,16 @@ public class SingleField
                 blogPost.Errors.Single().Message.Should().Be("$.IsDraft must have a value");
             }
 
-            [Fact]
-            public void InvalidFieldType()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void InvalidFieldType(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            {
-              "IsDraft": 123456
-            }
-            """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                    {
+                      "IsDraft": 123456
+                    }
+                    """);
+                var blogPost = map(jsonElement);
 
                 Assert.False(blogPost.Success);
                 blogPost.Errors.Should().ContainSingle();
@@ -381,6 +391,13 @@ public class SingleField
 
         public class NullableNonOptional_Tests
         {
+            public static IEnumerable<object[]> GetMappers =>
+            [
+                [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
+                [(Func<JsonElement, Result<BlogPost>>)(x => FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_BoolType_NullableNonOptional_Tests_BlogPost(x, null))]
+            ];
+            
+            [CreateMapper]
             public class BlogPost
             {
                 /// <summary>
@@ -390,15 +407,16 @@ public class SingleField
                 public bool? IsDraft { get; set; }
             }
 
-            [Fact]
-            public void ValidSingleField()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void ValidSingleField(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                     {
                       "IsDraft": true
                     }
                     """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
 
                 Assert.True(blogPost.Success);
                 blogPost.Value.IsDraft.Should().BeTrue();

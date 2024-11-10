@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.Text;
 
 using System.Collections;
 using System.Collections.Immutable;
-using System.IO;
 using System.Text;
 
 namespace MapperGenerator;
@@ -98,6 +97,27 @@ public class MapperGenerator : IIncrementalGenerator
                                 using (var _4 = sb.CodeBlock())
                                 {
                                     sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"String\", json{p.Name}Property.ValueKind.ToString()));");
+                                }
+                            }
+                            else if(p.Type == "Boolean")
+                            {
+                                sb.AppendLine($"else if (json{p.Name}Property.ValueKind == JsonValueKind.True || json{p.Name}Property.ValueKind == JsonValueKind.False)");
+                                using (var _4 = sb.CodeBlock())
+                                {
+                                    if (p.IsOption)
+                                    {
+                                        sb.AppendLine($"obj.{p.Name} = new Some<bool>(json{p.Name}Property.GetBoolean());");
+
+                                    }
+                                    else
+                                    {
+                                        sb.AppendLine($"obj.{p.Name} = json{p.Name}Property.GetBoolean();");
+                                    }
+                                }
+                                sb.AppendLine("else");
+                                using (var _4 = sb.CodeBlock())
+                                {
+                                    sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"Boolean\", json{p.Name}Property.ValueKind.ToString()));");
                                 }
                             }
                         }
