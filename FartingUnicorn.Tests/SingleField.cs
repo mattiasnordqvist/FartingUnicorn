@@ -925,55 +925,55 @@ public class SingleField
                 blogPost.Value.Status.Should().Be(BlogPost.BlogPostStatus.Published);
             }
 
-            //[Theory]
-            //[MemberData(nameof(GetMappers))]
-            //public void MissingNonNullableField(Func<JsonElement, Result<BlogPost>> map)
-            //{
-            //    var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            //        {
-            //        }
-            //        """);
-            //    var blogPost = map(jsonElement);
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void MissingNonNullableField(Func<JsonElement, Result<BlogPost>> map)
+            {
+                var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
+                    {
+                    }
+                    """);
+                var blogPost = map(jsonElement);
 
-            //    Assert.False(blogPost.Success);
-            //    blogPost.Errors.Should().ContainSingle();
-            //    blogPost.Errors.Single().Should().BeOfType<RequiredPropertyMissingError>();
-            //    blogPost.Errors.Single().Message.Should().Be("$.Rating is required");
-            //}
+                Assert.False(blogPost.Success);
+                blogPost.Errors.Should().ContainSingle();
+                blogPost.Errors.Single().Should().BeOfType<RequiredPropertyMissingError>();
+                blogPost.Errors.Single().Message.Should().Be("$.Status is required");
+            }
 
-            //[Theory]
-            //[MemberData(nameof(GetMappers))]
-            //public void NulledNonNullableField(Func<JsonElement, Result<BlogPost>> map)
-            //{
-            //    var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            //        {
-            //          "Rating": null
-            //        }
-            //        """);
-            //    var blogPost = map(jsonElement);
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void NulledNonNullableField(Func<JsonElement, Result<BlogPost>> map)
+            {
+                var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
+                    {
+                      "Status": null
+                    }
+                    """);
+                var blogPost = map(jsonElement);
 
-            //    Assert.False(blogPost.Success);
-            //    blogPost.Errors.Should().ContainSingle();
-            //    blogPost.Errors.Single().Should().BeOfType<RequiredValueMissingError>();
-            //    blogPost.Errors.Single().Message.Should().Be("$.Rating must have a value");
-            //}
+                Assert.False(blogPost.Success);
+                blogPost.Errors.Should().ContainSingle();
+                blogPost.Errors.Single().Should().BeOfType<RequiredValueMissingError>();
+                blogPost.Errors.Single().Message.Should().Be("$.Status must have a value");
+            }
 
-            //[Theory]
-            //[MemberData(nameof(GetMappers))]
-            //public void InvalidFieldType(Func<JsonElement, Result<BlogPost>> map)
-            //{
-            //    var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            //        {
-            //          "Rating": true
-            //        }
-            //        """);
-            //    var blogPost = map(jsonElement);
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void InvalidFieldType(Func<JsonElement, Result<BlogPost>> map)
+            {
+                var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
+                    {
+                      "Status": true
+                    }
+                    """);
+                var blogPost = map(jsonElement);
 
-            //    Assert.False(blogPost.Success);
-            //    blogPost.Errors.Should().ContainSingle();
-            //    blogPost.Errors.Single().Should().BeOfType<ValueHasWrongTypeError>();
-            //    blogPost.Errors.Single().Message.Should().Be("Value of $.Rating has the wrong type. Expected Number, got True");
-            //}
+                Assert.False(blogPost.Success);
+                blogPost.Errors.Should().ContainSingle();
+                blogPost.Errors.Single().Should().BeOfType<ValueHasWrongTypeError>();
+                blogPost.Errors.Single().Message.Should().Be("Value of $.Status has the wrong type. Expected String, got True");
+            }
         }
 
         //public class NullableNonOptional_Tests

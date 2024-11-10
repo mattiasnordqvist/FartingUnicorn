@@ -31,20 +31,23 @@ public static partial class Mappers
             {
                 errors.Add(new RequiredValueMissingError([.. path, "Status"]));
             }
-            if (mapperOptions.TryGetConverter(typeof(FartingUnicorn.Tests.SingleField.EnumType.NonNullableNonOptional_Tests.BlogPost.BlogPostStatus), out IConverter customConverter))
+            else if (mapperOptions.TryGetConverter(typeof(FartingUnicorn.Tests.SingleField.EnumType.NonNullableNonOptional_Tests.BlogPost.BlogPostStatus), out IConverter customConverter))
             {
                 if (jsonStatusProperty.ValueKind != customConverter.ExpectedJsonValueKind)
                 {
-                    errors.Add(new ValueHasWrongTypeError(path, customConverter.ExpectedJsonValueKind.ToString(), jsonStatusProperty.ValueKind.ToString()));
-                }
-                var result = customConverter.Convert(typeof(FartingUnicorn.Tests.SingleField.EnumType.NonNullableNonOptional_Tests.BlogPost.BlogPostStatus), jsonStatusProperty, mapperOptions, path);
-                if (result.Success)
-                {
-                    obj.Status = result.Map(x => (FartingUnicorn.Tests.SingleField.EnumType.NonNullableNonOptional_Tests.BlogPost.BlogPostStatus)x).Value;
+                    errors.Add(new ValueHasWrongTypeError([.. path, "Status"], customConverter.ExpectedJsonValueKind.ToString(), jsonStatusProperty.ValueKind.ToString()));
                 }
                 else
                 {
-                    errors.AddRange(result.Errors.Select(x => new MappingError(path, x.Message)).ToArray());
+                    var result = customConverter.Convert(typeof(FartingUnicorn.Tests.SingleField.EnumType.NonNullableNonOptional_Tests.BlogPost.BlogPostStatus), jsonStatusProperty, mapperOptions, [.. path, "Status"]);
+                    if (result.Success)
+                    {
+                        obj.Status = result.Map(x => (FartingUnicorn.Tests.SingleField.EnumType.NonNullableNonOptional_Tests.BlogPost.BlogPostStatus)x).Value;
+                    }
+                    else
+                    {
+                        errors.AddRange(result.Errors.Select(x => new MappingError([.. path, "{p.Name}"], x.Message)).ToArray());
+                    }
                 }
             }
         }

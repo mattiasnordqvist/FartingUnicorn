@@ -145,24 +145,28 @@ public class MapperGenerator : IIncrementalGenerator
                             }
                             else
                             {
-                                sb.AppendLine($"if (mapperOptions.TryGetConverter(typeof({p.Type}), out IConverter customConverter))");
+                                sb.AppendLine($"else if (mapperOptions.TryGetConverter(typeof({p.Type}), out IConverter customConverter))");
                                 using(var _4 = sb.CodeBlock())
                                 {
                                     sb.AppendLine($"if (json{p.Name}Property.ValueKind != customConverter.ExpectedJsonValueKind)");
                                     using(var _5 = sb.CodeBlock())
                                     {
-                                        sb.AppendLine($"errors.Add(new ValueHasWrongTypeError(path, customConverter.ExpectedJsonValueKind.ToString(), json{p.Name}Property.ValueKind.ToString()));");
-                                    }
-                                    sb.AppendLine($"var result = customConverter.Convert(typeof({p.Type}), json{p.Name}Property, mapperOptions, path);");
-                                    sb.AppendLine("if (result.Success)");
-                                    using(var _5 = sb.CodeBlock())
-                                    {
-                                        sb.AppendLine($"obj.{p.Name} = result.Map(x => ({p.Type})x).Value;");
+                                        sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], customConverter.ExpectedJsonValueKind.ToString(), json{p.Name}Property.ValueKind.ToString()));");
                                     }
                                     sb.AppendLine("else");
                                     using (var _5 = sb.CodeBlock())
                                     {
-                                        sb.AppendLine("errors.AddRange(result.Errors.Select(x => new MappingError(path, x.Message)).ToArray());");
+                                        sb.AppendLine($"var result = customConverter.Convert(typeof({p.Type}), json{p.Name}Property, mapperOptions, [.. path, \"{p.Name}\"]);");
+                                        sb.AppendLine("if (result.Success)");
+                                        using (var _6 = sb.CodeBlock())
+                                        {
+                                            sb.AppendLine($"obj.{p.Name} = result.Map(x => ({p.Type})x).Value;");
+                                        }
+                                        sb.AppendLine("else");
+                                        using (var _6 = sb.CodeBlock())
+                                        {
+                                            sb.AppendLine("errors.AddRange(result.Errors.Select(x => new MappingError([.. path, \"{p.Name}\"], x.Message)).ToArray());");
+                                        }
                                     }
                                 }
                             }
