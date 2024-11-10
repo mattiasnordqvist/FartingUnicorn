@@ -976,75 +976,84 @@ public class SingleField
             }
         }
 
-        //public class NullableNonOptional_Tests
-        //{
-        //    public static IEnumerable<object[]> GetMappers =>
-        //    [
-        //        [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
-        //        [(Func<JsonElement, Result<BlogPost>>)(x => FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_IntType_NullableNonOptional_Tests_BlogPost(x, null))]
-        //    ];
+        public class NullableNonOptional_Tests
+        {
+            public static IEnumerable<object[]> GetMappers
+            {
+                get
+                {
+                    var mapperOptions = new MapperOptions();
+                    mapperOptions.AddConverter(new EnumAsStringConverter());
+                    return [
+                        [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, mapperOptions, null))],
+                        [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_EnumType_NullableNonOptional_Tests_BlogPost(x, mapperOptions, null))]
+                    ];
+                }
+            }
 
-        //    [CreateMapper]
-        //    public class BlogPost
-        //    {
-        //        /// <summary>
-        //        /// Field can be missing
-        //        /// Value cannot be null
-        //        /// </summary>
-        //        public int? Rating { get; set; }
-        //    }
+            [CreateMapper]
+            public class BlogPost
+            {
+                public enum BlogPostStatus { Draft, Published }
 
-        //    [Theory]
-        //    [MemberData(nameof(GetMappers))]
-        //    public void ValidSingleField(Func<JsonElement, Result<BlogPost>> map)
-        //    {
-        //        var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-        //            {
-        //              "Rating": 5
-        //            }
-        //            """);
-        //        var blogPost = map(jsonElement);
+                /// <summary>
+                /// Field can be missing
+                /// Value cannot be null
+                /// </summary>
+                public BlogPostStatus? Status { get; set; }
+            }
 
-        //        Assert.True(blogPost.Success);
-        //        blogPost.Value.Rating.Should().Be(5);
-        //    }
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void ValidSingleField(Func<JsonElement, Result<BlogPost>> map)
+            {
+                var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
+                    {
+                      "Status": "Published"
+                    }
+                    """);
+                var blogPost = map(jsonElement);
 
-        //    [Theory]
-        //    [MemberData(nameof(GetMappers))]
-        //    public void MissingNullableField(Func<JsonElement, Result<BlogPost>> map)
-        //    {
-        //        var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-        //            {
-        //            }
-        //            """);
-        //        var blogPost = map(jsonElement);
+                Assert.True(blogPost.Success);
+                blogPost.Value.Status.Should().Be(BlogPost.BlogPostStatus.Published);
+            }
 
-        //        Assert.True(blogPost.Success);
-        //        blogPost.Value.Rating.Should().BeNull();
-        //    }
+            //[Theory]
+            //[MemberData(nameof(GetMappers))]
+            //public void MissingNullableField(Func<JsonElement, Result<BlogPost>> map)
+            //{
+            //    var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
+            //        {
+            //        }
+            //        """);
+            //    var blogPost = map(jsonElement);
 
-        //    [Theory]
-        //    [MemberData(nameof(GetMappers))]
-        //    public void NulledNullableField(Func<JsonElement, Result<BlogPost>> map)
-        //    {
-        //        // Might seem counterintuitive, but remember, we said that 
-        //        // clr-null should reflect a missing field. In this case, the field exists, but does not have a value.
-        //        // This would be equivalent to None in an Option type.
-        //        // Therefor, this is not valid json for a nullable field. 
-        //        // If the field exists, it must have a value!
-        //        var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-        //            {
-        //              "Rating": null
-        //            }
-        //            """);
-        //        var blogPost = map(jsonElement);
+            //    Assert.True(blogPost.Success);
+            //    blogPost.Value.Rating.Should().BeNull();
+            //}
 
-        //        Assert.False(blogPost.Success);
-        //        blogPost.Errors.Should().ContainSingle();
-        //        blogPost.Errors.Single().Should().BeOfType<RequiredValueMissingError>();
-        //        blogPost.Errors.Single().Message.Should().Be("$.Rating must have a value");
-        //    }
-        //}
+            //[Theory]
+            //[MemberData(nameof(GetMappers))]
+            //public void NulledNullableField(Func<JsonElement, Result<BlogPost>> map)
+            //{
+            //    // Might seem counterintuitive, but remember, we said that 
+            //    // clr-null should reflect a missing field. In this case, the field exists, but does not have a value.
+            //    // This would be equivalent to None in an Option type.
+            //    // Therefor, this is not valid json for a nullable field. 
+            //    // If the field exists, it must have a value!
+            //    var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
+            //        {
+            //          "Rating": null
+            //        }
+            //        """);
+            //    var blogPost = map(jsonElement);
+
+            //    Assert.False(blogPost.Success);
+            //    blogPost.Errors.Should().ContainSingle();
+            //    blogPost.Errors.Single().Should().BeOfType<RequiredValueMissingError>();
+            //    blogPost.Errors.Single().Message.Should().Be("$.Rating must have a value");
+            //}
+        }
 
         //public class NonNullableOptional_Tests
         //{
