@@ -24,10 +24,18 @@ public static partial class Mappers
         var isIsDraftPropertyDefined = jsonElement.TryGetProperty("IsDraft", out var jsonIsDraftProperty);
         if (isIsDraftPropertyDefined)
         {
-            // type = Nullable, isOption = False, isNullable = True
+            // type = Boolean, isOption = False, isNullable = True
             if (jsonIsDraftProperty.ValueKind == JsonValueKind.Null)
             {
                 errors.Add(new RequiredValueMissingError([.. path, "IsDraft"]));
+            }
+            else if (jsonIsDraftProperty.ValueKind == JsonValueKind.True || jsonIsDraftProperty.ValueKind == JsonValueKind.False)
+            {
+                obj.IsDraft = jsonIsDraftProperty.GetBoolean();
+            }
+            else
+            {
+                errors.Add(new ValueHasWrongTypeError([.. path, "IsDraft"], "Boolean", jsonIsDraftProperty.ValueKind.ToString()));
             }
         }
         else

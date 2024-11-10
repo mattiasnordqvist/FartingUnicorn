@@ -242,7 +242,10 @@ public class MapperGenerator : IIncrementalGenerator
                         : ((INamedTypeSymbol)p.Type).TypeArguments.First().Name;
 
                     var isNullable = t.IsNullable();
-
+                    if (t.IsNullableValueType())
+                    {
+                        tName = ((INamedTypeSymbol)p.Type).TypeArguments.First().Name;
+                    }
                     properties.Add(new PropertyToGenerateMapperFor(p.Name, tName, isOptions, isNullable));
                 }
             }
