@@ -41,7 +41,7 @@ public class MapperGenerator : IIncrementalGenerator
                 using (var _2 = sb.CodeBlock())
                 {
                     sb.AppendLine("if(path is null)");
-                    using(var _3 = sb.CodeBlock())
+                    using (var _3 = sb.CodeBlock())
                     {
                         sb.AppendLine("path = [\"$\"];");
                     }
@@ -104,10 +104,14 @@ public class MapperGenerator : IIncrementalGenerator
                         sb.AppendLine("else");
                         using (var _3 = sb.CodeBlock())
                         {
-                            //if nullable
-                            //sb.AppendLine($"obj.{p.Name} = null;");
-
-                            sb.AppendLine($"errors.Add(new RequiredPropertyMissingError([.. path, \"{p.Name}\"]));");
+                            if (p.IsNullable)
+                            {
+                                sb.AppendLine($"obj.{p.Name} = null;");
+                            }
+                            else
+                            {
+                                sb.AppendLine($"errors.Add(new RequiredPropertyMissingError([.. path, \"{p.Name}\"]));");
+                            }
                         }
                     }
 

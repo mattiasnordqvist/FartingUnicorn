@@ -12,14 +12,14 @@ namespace FartingUnicorn.Tests;
 
 public class SingleField
 {
-    public class ReferenceType
+    public class StringType
     {
         public class NonNullableNonOptional_Tests
         {
             public static IEnumerable<object[]> GetMappers =>
                 [
                     [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
-                    [(Func<JsonElement, Result<BlogPost>>)(x => FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_ReferenceType_NonNullableNonOptional_Tests_BlogPost(x, null))]
+                    [(Func<JsonElement, Result<BlogPost>>)(x => FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_StringType_NonNullableNonOptional_Tests_BlogPost(x, null))]
 
                 ];
 
@@ -104,7 +104,7 @@ public class SingleField
             public static IEnumerable<object[]> GetMappers =>
             [
                 [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
-                [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_ReferenceType_NullableNonOptional_Tests_BlogPost(x, null))]
+                [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_StringType_NullableNonOptional_Tests_BlogPost(x, null))]
             ];
 
             [CreateMapper]
@@ -174,7 +174,7 @@ public class SingleField
             public static IEnumerable<object[]> GetMappers =>
                 [
                     [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
-                    [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_ReferenceType_NonNullableOptional_Tests_BlogPost(x, null))]
+                    [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_StringType_NonNullableOptional_Tests_BlogPost(x, null))]
                 ];
 
             [CreateMapper]
@@ -242,7 +242,7 @@ public class SingleField
             public static IEnumerable<object[]> GetMappers =>
             [
                 [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
-                [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_ReferenceType_NullableOptional_Tests_BlogPost(x, null))]
+                [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_StringType_NullableOptional_Tests_BlogPost(x, null))]
             ];
             [CreateMapper]
             public class BlogPost

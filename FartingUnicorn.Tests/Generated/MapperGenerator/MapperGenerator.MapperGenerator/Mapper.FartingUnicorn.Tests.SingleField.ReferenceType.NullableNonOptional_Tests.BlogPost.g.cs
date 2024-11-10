@@ -40,7 +40,7 @@ public static partial class Mappers
         }
         else
         {
-            errors.Add(new RequiredPropertyMissingError([.. path, "Title"]));
+            obj.Title = null;
         }
         if(errors.Any())
         {

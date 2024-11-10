@@ -5,7 +5,7 @@ namespace FartingUnicorn.Generated;
 
 public static partial class Mappers
 {
-    public static Result<FartingUnicorn.Tests.SingleField.ReferenceType.NullableOptional_Tests.BlogPost> MapToFartingUnicorn_Tests_SingleField_ReferenceType_NullableOptional_Tests_BlogPost(JsonElement jsonElement, string[] path = null)
+    public static Result<FartingUnicorn.Tests.SingleField.StringType.NullableOptional_Tests.BlogPost> MapToFartingUnicorn_Tests_SingleField_StringType_NullableOptional_Tests_BlogPost(JsonElement jsonElement, string[] path = null)
     {
         if(path is null)
         {
@@ -15,10 +15,10 @@ public static partial class Mappers
         {
             if (jsonElement.ValueKind != JsonValueKind.Object)
             {
-                return Result<FartingUnicorn.Tests.SingleField.ReferenceType.NullableOptional_Tests.BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
+                return Result<FartingUnicorn.Tests.SingleField.StringType.NullableOptional_Tests.BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
             }
         }
-        var obj = new FartingUnicorn.Tests.SingleField.ReferenceType.NullableOptional_Tests.BlogPost();
+        var obj = new FartingUnicorn.Tests.SingleField.StringType.NullableOptional_Tests.BlogPost();
 
         List<IError> errors = new();
         var isTitlePropertyDefined = jsonElement.TryGetProperty("Title", out var jsonTitleProperty);
@@ -44,14 +44,14 @@ public static partial class Mappers
         }
         if(errors.Any())
         {
-            return Result<FartingUnicorn.Tests.SingleField.ReferenceType.NullableOptional_Tests.BlogPost>.Error(errors);
+            return Result<FartingUnicorn.Tests.SingleField.StringType.NullableOptional_Tests.BlogPost>.Error(errors);
         }
         if(false)/*check if is option*/
         {
         }
         else
         {
-            return Result<FartingUnicorn.Tests.SingleField.ReferenceType.NullableOptional_Tests.BlogPost>.Ok(obj);
+            return Result<FartingUnicorn.Tests.SingleField.StringType.NullableOptional_Tests.BlogPost>.Ok(obj);
         }
         throw new NotImplementedException();
     }
