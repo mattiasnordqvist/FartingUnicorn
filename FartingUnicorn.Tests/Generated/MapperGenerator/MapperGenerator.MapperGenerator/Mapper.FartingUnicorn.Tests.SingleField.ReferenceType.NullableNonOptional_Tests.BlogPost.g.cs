@@ -24,7 +24,7 @@ public static partial class Mappers
         var isTitlePropertyDefined = jsonElement.TryGetProperty("Title", out var jsonTitleProperty);
         if (isTitlePropertyDefined)
         {
-            // String, isOption = False
+            // type = String, isOption = False, isNullable = True
             if (jsonTitleProperty.ValueKind == JsonValueKind.Null)
             {
                 errors.Add(new RequiredValueMissingError([.. path, "Title"]));

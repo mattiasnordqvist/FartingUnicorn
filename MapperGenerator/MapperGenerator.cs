@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.Text;
 
 using System.Collections;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -66,7 +65,7 @@ public class MapperGenerator : IIncrementalGenerator
                         sb.AppendLine($"if (is{p.Name}PropertyDefined)");
                         using (var _3 = sb.CodeBlock())
                         {
-                            sb.AppendLine($"// {p.Type}, isOption = {p.IsOption}");
+                            sb.AppendLine($"// type = {p.Type}, isOption = {p.IsOption}, isNullable = {p.IsNullable}");
                             sb.AppendLine($"if (json{p.Name}Property.ValueKind == JsonValueKind.Null)");
                             using (var _4 = sb.CodeBlock())
                             {
@@ -158,9 +157,7 @@ public class MapperGenerator : IIncrementalGenerator
         {
             if (classToGenerateMapperFor is { } value)
             {
-                // generate the source code and add it to the output
                 var sourceText = SourceGenerationHelper.GenerateExtensionClass(value);
-                // Create a separate partial class file for each enum
                 context.AddSource($"Mapper.{value.FullName}.g.cs", sourceText);
             }
         }
@@ -169,10 +166,8 @@ public class MapperGenerator : IIncrementalGenerator
 
         static ClassToGenerateMapperFor? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
         {
-            // we know the node is a EnumDeclarationSyntax thanks to IsSyntaxTargetForGeneration
             var classDeclarationSyntaxNode = (ClassDeclarationSyntax)context.Node;
 
-            // loop through all the attributes on the method
             foreach (AttributeListSyntax attributeListSyntax in classDeclarationSyntaxNode.AttributeLists)
             {
                 foreach (AttributeSyntax attributeSyntax in attributeListSyntax.Attributes)
@@ -186,35 +181,26 @@ public class MapperGenerator : IIncrementalGenerator
                     INamedTypeSymbol attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                     string fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                    // Is the attribute the [EnumExtensions] attribute?
                     if (fullName == "DotNetThoughts.FartingUnicorn.CreateMapperAttribute")
                     {
-                        // return the enum. Implementation shown in section 7.
                         return GetClassToGenerate(context.SemanticModel, classDeclarationSyntaxNode);
                     }
                 }
             }
 
-            // we didn't find the attribute we were looking for
             return null;
         }
 
         static ClassToGenerateMapperFor? GetClassToGenerate(SemanticModel semanticModel, SyntaxNode enumDeclarationSyntax)
         {
-            // Get the semantic representation of the enum syntax
             if (semanticModel.GetDeclaredSymbol(enumDeclarationSyntax) is not INamedTypeSymbol classSymbol)
             {
                 // something went wrong
                 return null;
             }
 
-            // Get the full type name of the enum e.g. Colour, 
-            // or OuterClass<T>.Colour if it was nested in a generic type (for example)
             string className = classSymbol.ToString();
             string name = classSymbol.Name.ToString();
-
-
-
 
             // Get all the members in the enum
             ImmutableArray<ISymbol> members = classSymbol.GetMembers();
@@ -230,7 +216,10 @@ public class MapperGenerator : IIncrementalGenerator
                     var tName = !isOptions
                         ? p.Type.Name
                         : ((INamedTypeSymbol)p.Type).TypeArguments.First().Name;
-                    properties.Add(new PropertyToGenerateMapperFor(p.Name, tName, isOptions));
+
+                    var isNullable = t.IsNullable();
+
+                    properties.Add(new PropertyToGenerateMapperFor(p.Name, tName, isOptions, isNullable));
                 }
             }
 
@@ -243,11 +232,13 @@ public readonly record struct PropertyToGenerateMapperFor
     public readonly string Name;
     public readonly string Type;
     public readonly bool IsOption;
-    public PropertyToGenerateMapperFor(string name, string type, bool isOption)
+    public readonly bool IsNullable;
+    public PropertyToGenerateMapperFor(string name, string type, bool isOption, bool isNullable)
     {
         Name = name;
         Type = type;
         IsOption = isOption;
+        IsNullable = isNullable;
     }
 
 }

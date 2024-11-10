@@ -19,13 +19,13 @@ public class Program
 public class UserProfile
 {
     public string Name { get; set; }
-    public int Age { get; set; }
-    public bool IsSubscribed { get; set; }
-    public string[] Courses { get; set; }
-    public Pet Pet { get; set; }
+    //public int Age { get; set; }
+    //public bool IsSubscribed { get; set; }
+    //public string[] Courses { get; set; }
+    //public Pet Pet { get; set; }
 
-    public bool? IsGay { get; set; }
-    public Pet? FavoritePet { get; set; }
+    //public bool? IsGay { get; set; }
+    //public Pet? FavoritePet { get; set; }
 }
 
 public class Pet
@@ -41,15 +41,7 @@ public class SerializationBenchmarks
 
     private static string _json = """
         {   
-            "Name": "John Doe",
-            "Age": 30,
-            "IsSubscribed": true,
-            "Courses": ["Math", "Science"],
-            "Pet": {
-                "Name": "Fluffy",
-                "Type": "Dog"
-            },
-            "IsGay": true
+            "Name": "John Doe"
         }
         """;
 
