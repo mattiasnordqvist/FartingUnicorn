@@ -120,6 +120,27 @@ public class MapperGenerator : IIncrementalGenerator
                                     sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"Boolean\", json{p.Name}Property.ValueKind.ToString()));");
                                 }
                             }
+                            else if (p.Type == "Int32")
+                            {
+                                sb.AppendLine($"else if (json{p.Name}Property.ValueKind == JsonValueKind.Number)");
+                                using (var _4 = sb.CodeBlock())
+                                {
+                                    if (p.IsOption)
+                                    {
+                                        sb.AppendLine($"obj.{p.Name} = new Some<int>(json{p.Name}Property.GetInt32());");
+
+                                    }
+                                    else
+                                    {
+                                        sb.AppendLine($"obj.{p.Name} = json{p.Name}Property.GetInt32();");
+                                    }
+                                }
+                                sb.AppendLine("else");
+                                using (var _4 = sb.CodeBlock())
+                                {
+                                    sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"Number\", json{p.Name}Property.ValueKind.ToString()));");
+                                }
+                            }
                         }
                         sb.AppendLine("else");
                         using (var _3 = sb.CodeBlock())
