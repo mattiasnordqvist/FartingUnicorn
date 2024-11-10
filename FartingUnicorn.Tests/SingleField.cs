@@ -422,21 +422,23 @@ public class SingleField
                 blogPost.Value.IsDraft.Should().BeTrue();
             }
 
-            [Fact]
-            public void MissingNullableField()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void MissingNullableField(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            {
-            }
-            """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                    {
+                    }
+                    """);
+                var blogPost = map(jsonElement);
 
                 Assert.True(blogPost.Success);
                 blogPost.Value.IsDraft.Should().BeNull();
             }
 
-            [Fact]
-            public void NulledNullableField()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void NulledNullableField(Func<JsonElement, Result<BlogPost>> map)
             {
                 // Might seem counterintuitive, but remember, we said that 
                 // clr-null should reflect a missing field. In this case, the field exists, but does not have a value.
@@ -448,7 +450,7 @@ public class SingleField
                       "IsDraft": null
                     }
                     """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
 
                 Assert.False(blogPost.Success);
                 blogPost.Errors.Should().ContainSingle();
@@ -459,6 +461,12 @@ public class SingleField
 
         public class NonNullableOptional_Tests
         {
+            public static IEnumerable<object[]> GetMappers =>
+            [
+                [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
+                [(Func<JsonElement, Result<BlogPost>>)(x => FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_BoolType_NonNullableOptional_Tests_BlogPost(x, null))]
+            ];
+            [CreateMapper]
             public class BlogPost
             {
                 /// <summary>
@@ -468,15 +476,16 @@ public class SingleField
                 public Option<bool> IsDraft { get; set; }
             }
 
-            [Fact]
-            public void ValidSingleField()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void ValidSingleField(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            {
-              "IsDraft": true
-            }
-            """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                    {
+                      "IsDraft": true
+                    }
+                    """);
+                var blogPost = map(jsonElement);
 
                 Assert.True(blogPost.Success);
                 blogPost.Value.IsDraft.Should().BeOfType<Some<bool>>();
@@ -484,14 +493,15 @@ public class SingleField
                 someIsDraft.Value.Should().BeTrue();
             }
 
-            [Fact]
-            public void MissingNonNullableField()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void MissingNonNullableField(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            {
-            }
-            """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                    {
+                    }
+                    """);
+                var blogPost = map(jsonElement);
 
                 Assert.False(blogPost.Success);
                 blogPost.Errors.Should().ContainSingle();
@@ -499,15 +509,16 @@ public class SingleField
                 blogPost.Errors.Single().Message.Should().Be("$.IsDraft is required");
             }
 
-            [Fact]
-            public void NulledOptionalField()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void NulledOptionalField(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                     {
                       "IsDraft": null
                     }
                     """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
 
                 Assert.True(blogPost.Success);
                 blogPost.Value.IsDraft.Should().BeOfType<None<bool>>();
@@ -516,6 +527,13 @@ public class SingleField
 
         public class NullableOptional_Tests
         {
+            public static IEnumerable<object[]> GetMappers =>
+            [
+                [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
+                [(Func<JsonElement, Result<BlogPost>>)(x => FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_BoolType_NullableOptional_Tests_BlogPost(x, null))]
+            ];
+
+            [CreateMapper]
             public class BlogPost
             {
                 /// <summary>
@@ -525,15 +543,16 @@ public class SingleField
                 public Option<bool>? IsDraft { get; set; }
             }
 
-            [Fact]
-            public void ValidSingleField()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void ValidSingleField(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                     {
                       "IsDraft": true
                     }
                     """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
 
                 blogPost.Should().BeSuccessful();
                 blogPost.Value.IsDraft.Should().BeOfType<Some<bool>>();
@@ -541,28 +560,30 @@ public class SingleField
                 someIsDraft.Value.Should().BeTrue();
             }
 
-            [Fact]
-            public void MissingOptionalField()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void MissingOptionalField(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            {
-            }
-            """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                    {
+                    }
+                    """);
+                var blogPost = map(jsonElement);
 
                 blogPost.Should().BeSuccessful();
                 blogPost.Value.IsDraft.Should().BeNull();
             }
 
-            [Fact]
-            public void NulledOptionalField()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void NulledOptionalField(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-                {
-                  "IsDraft": null
-                }
-                """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                    {
+                      "IsDraft": null
+                    }
+                    """);
+                var blogPost = map(jsonElement);
 
                 blogPost.Should().BeSuccessful();
                 blogPost.Value.IsDraft.Should().BeOfType<None<bool>>();
