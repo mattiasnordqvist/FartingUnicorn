@@ -143,7 +143,7 @@ public class MapperGenerator : IIncrementalGenerator
                                     sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"Number\", json{p.Name}Property.ValueKind.ToString()));");
                                 }
                             }
-                            else
+                            else // custom converter?
                             {
                                 sb.AppendLine($"else if (mapperOptions.TryGetConverter(typeof({p.Type}), out IConverter customConverter))");
                                 using(var _4 = sb.CodeBlock())
@@ -160,7 +160,10 @@ public class MapperGenerator : IIncrementalGenerator
                                         sb.AppendLine("if (result.Success)");
                                         using (var _6 = sb.CodeBlock())
                                         {
-                                            sb.AppendLine($"obj.{p.Name} = result.Map(x => ({p.Type})x).Value;");
+                                            if(p.IsOption)
+                                                sb.AppendLine($"obj.{p.Name} = new Some<{p.Type}>(result.Map(x => ({p.Type})x).Value);");
+                                            else
+                                                sb.AppendLine($"obj.{p.Name} = result.Map(x => ({p.Type})x).Value;");
                                         }
                                         sb.AppendLine("else");
                                         using (var _6 = sb.CodeBlock())

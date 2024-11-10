@@ -178,7 +178,16 @@ public class Mapper
             var result = customConverter.Convert(type, jsonElement, mapperOptions, path);
             if (result.Success)
             {
-                return result;
+                if(isOption)
+                {
+                    var someType = typeof(Some<>).MakeGenericType(type);
+                    var someInstance = Activator.CreateInstance(someType, result.Value);
+                    return Result<object>.Ok(someInstance);
+                }
+                else
+                {
+                    return result;
+                }
             }
             else
             {

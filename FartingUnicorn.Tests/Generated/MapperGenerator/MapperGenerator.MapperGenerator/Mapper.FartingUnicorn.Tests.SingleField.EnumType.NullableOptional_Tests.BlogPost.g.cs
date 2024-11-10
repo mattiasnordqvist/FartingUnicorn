@@ -42,7 +42,7 @@ public static partial class Mappers
                     var result = customConverter.Convert(typeof(FartingUnicorn.Tests.SingleField.EnumType.NullableOptional_Tests.BlogPost.BlogPostStatus), jsonStatusProperty, mapperOptions, [.. path, "Status"]);
                     if (result.Success)
                     {
-                        obj.Status = result.Map(x => (FartingUnicorn.Tests.SingleField.EnumType.NullableOptional_Tests.BlogPost.BlogPostStatus)x).Value;
+                        obj.Status = new Some<FartingUnicorn.Tests.SingleField.EnumType.NullableOptional_Tests.BlogPost.BlogPostStatus>(result.Map(x => (FartingUnicorn.Tests.SingleField.EnumType.NullableOptional_Tests.BlogPost.BlogPostStatus)x).Value);
                     }
                     else
                     {
