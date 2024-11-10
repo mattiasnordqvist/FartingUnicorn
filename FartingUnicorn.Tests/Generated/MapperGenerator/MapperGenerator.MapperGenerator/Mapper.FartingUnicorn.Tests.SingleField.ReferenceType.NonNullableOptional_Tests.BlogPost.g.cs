@@ -16,26 +16,31 @@ public static partial class Mappers
         }
         var obj = new FartingUnicorn.Tests.SingleField.ReferenceType.NonNullableOptional_Tests.BlogPost();
 
-        Result<Unit> compositeResult = UnitResult.Ok;
+        List<IError> errors = new();
         var isTitlePropertyDefined = jsonElement.TryGetProperty("Title", out var jsonTitleProperty);
         if (isTitlePropertyDefined)
         {
-            // Option
-            if (mapResult.Success)
+            // String, isOption = True
+            if (jsonTitleProperty.ValueKind == JsonValueKind.Null)
             {
-                obj.Title = mapResult.Value;
+                obj.Title = new None<String>();
+            }
+            if (jsonTitleProperty.ValueKind == JsonValueKind.String)
+            {
+                obj.Title = new Some<string>(jsonTitleProperty.GetString());
             }
             else
             {
-                compositeResult = compositeResult.Or(mapResult);
+                errors.Add(new ValueHasWrongTypeError([.. path, "Title"], "String", jsonTitleProperty.ValueKind.ToString()));
             }
         }
         else
         {
+            obj.Title = null;
         }
-        if(!compositeResult.Success)
+        if(errors.Any())
         {
-            return Result<FartingUnicorn.Tests.SingleField.ReferenceType.NonNullableOptional_Tests.BlogPost>.Error(compositeResult.Errors);
+            return Result<FartingUnicorn.Tests.SingleField.ReferenceType.NonNullableOptional_Tests.BlogPost>.Error(errors);
         }
         if(false)/*check if is option*/
         {

@@ -16,123 +16,109 @@ public static partial class Mappers
         }
         var obj = new WebApplication1.Controllers.WeatherForecastController.UserProfile();
 
-        Result<Unit> compositeResult = UnitResult.Ok;
+        List<IError> errors = new();
         var isNamePropertyDefined = jsonElement.TryGetProperty("Name", out var jsonNameProperty);
         if (isNamePropertyDefined)
         {
-            // String
-            var mapResult = MapString(jsonNameProperty, /*mapperOptions,*/ [.. path, Name]);
-            if (mapResult.Success)
+            // String, isOption = False
+            if (jsonNameProperty.ValueKind == JsonValueKind.Null)
             {
-                obj.Name = mapResult.Value;
+                errors.Add(new RequiredValueMissingError([.. path, "Name"]));
+            }
+            if (jsonNameProperty.ValueKind == JsonValueKind.String)
+            {
+                obj.Name = jsonNameProperty.GetString();
             }
             else
             {
-                compositeResult = compositeResult.Or(mapResult);
+                errors.Add(new ValueHasWrongTypeError([.. path, "Name"], "String", jsonNameProperty.ValueKind.ToString()));
             }
         }
         else
         {
+            obj.Name = null;
         }
         var isAgePropertyDefined = jsonElement.TryGetProperty("Age", out var jsonAgeProperty);
         if (isAgePropertyDefined)
         {
-            // Int32
-            if (mapResult.Success)
+            // Int32, isOption = False
+            if (jsonAgeProperty.ValueKind == JsonValueKind.Null)
             {
-                obj.Age = mapResult.Value;
-            }
-            else
-            {
-                compositeResult = compositeResult.Or(mapResult);
+                errors.Add(new RequiredValueMissingError([.. path, "Age"]));
             }
         }
         else
         {
+            obj.Age = null;
         }
         var isIsSubscribedPropertyDefined = jsonElement.TryGetProperty("IsSubscribed", out var jsonIsSubscribedProperty);
         if (isIsSubscribedPropertyDefined)
         {
-            // Boolean
-            if (mapResult.Success)
+            // Boolean, isOption = False
+            if (jsonIsSubscribedProperty.ValueKind == JsonValueKind.Null)
             {
-                obj.IsSubscribed = mapResult.Value;
-            }
-            else
-            {
-                compositeResult = compositeResult.Or(mapResult);
+                errors.Add(new RequiredValueMissingError([.. path, "IsSubscribed"]));
             }
         }
         else
         {
+            obj.IsSubscribed = null;
         }
         var isCoursesPropertyDefined = jsonElement.TryGetProperty("Courses", out var jsonCoursesProperty);
         if (isCoursesPropertyDefined)
         {
-            // 
-            if (mapResult.Success)
+            // , isOption = False
+            if (jsonCoursesProperty.ValueKind == JsonValueKind.Null)
             {
-                obj.Courses = mapResult.Value;
-            }
-            else
-            {
-                compositeResult = compositeResult.Or(mapResult);
+                errors.Add(new RequiredValueMissingError([.. path, "Courses"]));
             }
         }
         else
         {
+            obj.Courses = null;
         }
         var isPetPropertyDefined = jsonElement.TryGetProperty("Pet", out var jsonPetProperty);
         if (isPetPropertyDefined)
         {
-            // Option
-            if (mapResult.Success)
+            // Pet, isOption = True
+            if (jsonPetProperty.ValueKind == JsonValueKind.Null)
             {
-                obj.Pet = mapResult.Value;
-            }
-            else
-            {
-                compositeResult = compositeResult.Or(mapResult);
+                obj.Pet = new None<Pet>();
             }
         }
         else
         {
+            obj.Pet = null;
         }
         var isIsGayPropertyDefined = jsonElement.TryGetProperty("IsGay", out var jsonIsGayProperty);
         if (isIsGayPropertyDefined)
         {
-            // Nullable
-            if (mapResult.Success)
+            // Nullable, isOption = False
+            if (jsonIsGayProperty.ValueKind == JsonValueKind.Null)
             {
-                obj.IsGay = mapResult.Value;
-            }
-            else
-            {
-                compositeResult = compositeResult.Or(mapResult);
+                errors.Add(new RequiredValueMissingError([.. path, "IsGay"]));
             }
         }
         else
         {
+            obj.IsGay = null;
         }
         var isFavoritePetPropertyDefined = jsonElement.TryGetProperty("FavoritePet", out var jsonFavoritePetProperty);
         if (isFavoritePetPropertyDefined)
         {
-            // Pet
-            if (mapResult.Success)
+            // Pet, isOption = False
+            if (jsonFavoritePetProperty.ValueKind == JsonValueKind.Null)
             {
-                obj.FavoritePet = mapResult.Value;
-            }
-            else
-            {
-                compositeResult = compositeResult.Or(mapResult);
+                errors.Add(new RequiredValueMissingError([.. path, "FavoritePet"]));
             }
         }
         else
         {
+            obj.FavoritePet = null;
         }
-        if(!compositeResult.Success)
+        if(errors.Any())
         {
-            return Result<WebApplication1.Controllers.WeatherForecastController.UserProfile>.Error(compositeResult.Errors);
+            return Result<WebApplication1.Controllers.WeatherForecastController.UserProfile>.Error(errors);
         }
         if(false)/*check if is option*/
         {

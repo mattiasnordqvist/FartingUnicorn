@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis.Text;
 
 using System.Collections;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.IO;
 using System.Text;
 
 namespace MapperGenerator;
@@ -22,6 +24,8 @@ public class MapperGenerator : IIncrementalGenerator
                 }
             }
             """;
+
+
         public static SourceText GenerateExtensionClass(ClassToGenerateMapperFor classToGenerateMapperFor)
         {
             var sb = new SourceBuilder();
@@ -30,6 +34,7 @@ public class MapperGenerator : IIncrementalGenerator
             sb.AppendLine();
             sb.AppendLine("namespace FartingUnicorn.Generated;");
             sb.AppendLine();
+
             sb.AppendLine($"public static partial class Mappers");
             using (var _1 = sb.CodeBlock())
             {
@@ -47,7 +52,7 @@ public class MapperGenerator : IIncrementalGenerator
                     }
                     sb.AppendLine($"var obj = new {classToGenerateMapperFor.FullName}();");
                     sb.AppendLine();
-                    sb.AppendLine("Result<Unit> compositeResult = UnitResult.Ok;");
+                    sb.AppendLine("List<IError> errors = new();");
 
                     foreach (var p in classToGenerateMapperFor.Properties)
                     {
@@ -55,33 +60,53 @@ public class MapperGenerator : IIncrementalGenerator
                         sb.AppendLine($"if (is{p.Name}PropertyDefined)");
                         using (var _3 = sb.CodeBlock())
                         {
-                            sb.AppendLine($"// {p.Type}");
+                            sb.AppendLine($"// {p.Type}, isOption = {p.IsOption}");
+                            sb.AppendLine($"if (json{p.Name}Property.ValueKind == JsonValueKind.Null)");
+                            using (var _4 = sb.CodeBlock())
+                            {
+                                if (p.IsOption)
+                                {
+                                    sb.AppendLine($"obj.{p.Name} = new None<{p.Type}>();");
+                                }
+                                else
+                                {
+                                    sb.AppendLine($"errors.Add(new RequiredValueMissingError([.. path, \"{p.Name}\"]));");
+                                }
+                            }
+
                             if (p.Type == "String")
                             {
-                                sb.AppendLine($"var mapResult = MapString(json{p.Name}Property, /*mapperOptions,*/ [.. path, \"{p.Name}\"]);");
-                            }
-                            sb.AppendLine("if (mapResult.Success)");
-                            using (var _4 = sb.CodeBlock())
-                            {
-                                sb.AppendLine($"obj.{p.Name} = mapResult.Value;");
-                            }
-                            sb.AppendLine("else");
-                            using (var _4 = sb.CodeBlock())
-                            {
-                                sb.AppendLine("compositeResult = compositeResult.Or(mapResult);");
+                                sb.AppendLine($"if (json{p.Name}Property.ValueKind == JsonValueKind.String)");
+                                using (var _4 = sb.CodeBlock())
+                                {
+                                    if (p.IsOption)
+                                    {
+                                        sb.AppendLine($"obj.{p.Name} = new Some<string>(json{p.Name}Property.GetString());");
+
+                                    }
+                                    else
+                                    {
+                                        sb.AppendLine($"obj.{p.Name} = json{p.Name}Property.GetString();");
+                                    }
+                                }
+                                sb.AppendLine("else");
+                                using (var _4 = sb.CodeBlock())
+                                {
+                                    sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"String\", json{p.Name}Property.ValueKind.ToString()));");
+                                }
                             }
                         }
                         sb.AppendLine("else");
                         using (var _3 = sb.CodeBlock())
                         {
-
+                            sb.AppendLine($"obj.{p.Name} = null;");
                         }
                     }
 
-                    sb.AppendLine("if(!compositeResult.Success)");
+                    sb.AppendLine("if(errors.Any())");
                     using (var _3 = sb.CodeBlock())
                     {
-                        sb.AppendLine($"return Result<{classToGenerateMapperFor.FullName}>.Error(compositeResult.Errors);");
+                        sb.AppendLine($"return Result<{classToGenerateMapperFor.FullName}>.Error(errors);");
                     }
 
                     sb.AppendLine("if(false)/*check if is option*/");
@@ -191,7 +216,12 @@ public class MapperGenerator : IIncrementalGenerator
             {
                 if (member is IPropertySymbol p)
                 {
-                    properties.Add(new PropertyToGenerateMapperFor(p.Name, p.Type.Name));
+                    var t = p.Type;
+                    var isOptions = t.Name == "Option";
+                    var tName = !isOptions
+                        ? p.Type.Name
+                        : ((INamedTypeSymbol)p.Type).TypeArguments.First().Name;
+                    properties.Add(new PropertyToGenerateMapperFor(p.Name, tName, isOptions));
                 }
             }
 
@@ -203,11 +233,14 @@ public readonly record struct PropertyToGenerateMapperFor
 {
     public readonly string Name;
     public readonly string Type;
-    public PropertyToGenerateMapperFor(string name, string type)
+    public readonly bool IsOption;
+    public PropertyToGenerateMapperFor(string name, string type, bool isOption)
     {
         Name = name;
         Type = type;
+        IsOption = isOption;
     }
+
 }
 public readonly record struct ClassToGenerateMapperFor
 {

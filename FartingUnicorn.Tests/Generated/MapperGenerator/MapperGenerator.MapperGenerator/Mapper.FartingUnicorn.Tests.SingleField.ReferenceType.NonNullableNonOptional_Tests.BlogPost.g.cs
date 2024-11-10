@@ -16,27 +16,31 @@ public static partial class Mappers
         }
         var obj = new FartingUnicorn.Tests.SingleField.ReferenceType.NonNullableNonOptional_Tests.BlogPost();
 
-        Result<Unit> compositeResult = UnitResult.Ok;
+        List<IError> errors = new();
         var isTitlePropertyDefined = jsonElement.TryGetProperty("Title", out var jsonTitleProperty);
         if (isTitlePropertyDefined)
         {
-            // String
-            var mapResult = MapString(jsonTitleProperty, /*mapperOptions,*/ [.. path, Title]);
-            if (mapResult.Success)
+            // String, isOption = False
+            if (jsonTitleProperty.ValueKind == JsonValueKind.Null)
             {
-                obj.Title = mapResult.Value;
+                errors.Add(new RequiredValueMissingError([.. path, "Title"]));
+            }
+            if (jsonTitleProperty.ValueKind == JsonValueKind.String)
+            {
+                obj.Title = jsonTitleProperty.GetString();
             }
             else
             {
-                compositeResult = compositeResult.Or(mapResult);
+                errors.Add(new ValueHasWrongTypeError([.. path, "Title"], "String", jsonTitleProperty.ValueKind.ToString()));
             }
         }
         else
         {
+            obj.Title = null;
         }
-        if(!compositeResult.Success)
+        if(errors.Any())
         {
-            return Result<FartingUnicorn.Tests.SingleField.ReferenceType.NonNullableNonOptional_Tests.BlogPost>.Error(compositeResult.Errors);
+            return Result<FartingUnicorn.Tests.SingleField.ReferenceType.NonNullableNonOptional_Tests.BlogPost>.Error(errors);
         }
         if(false)/*check if is option*/
         {
