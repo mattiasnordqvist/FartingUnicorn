@@ -8,8 +8,9 @@ using System.Text.Json;
 using Xunit;
 
 using static FartingUnicorn.Mapper;
-using FartingUnicorn.Generated;
 namespace FartingUnicorn.Tests;
+
+
 
 public class SingleField
 {
@@ -17,10 +18,11 @@ public class SingleField
     {
         public class NonNullableNonOptional_Tests
         {
-            public static IEnumerable<object[]> GetMappers => 
+            public static IEnumerable<object[]> GetMappers =>
                 [
                     [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
-                    [Mappers.MapToBlogPost]
+                    [(Func<JsonElement, Result<BlogPost>>)(x => FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_ReferenceType_NonNullableNonOptional_Tests_BlogPost(x, null))]
+
                 ];
 
             [CreateMapper]
@@ -111,10 +113,10 @@ public class SingleField
             public void ValidSingleField()
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            {
-              "Title": "Farting Unicorns"
-            }
-            """);
+                    {
+                      "Title": "Farting Unicorns"
+                    }
+                    """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
                 Assert.True(blogPost.Success);
@@ -158,6 +160,13 @@ public class SingleField
 
         public class NonNullableOptional_Tests
         {
+            public static IEnumerable<object[]> GetMappers =>
+                [
+                    [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
+                    [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_ReferenceType_NonNullableOptional_Tests_BlogPost(x, null))]
+                ];
+
+            [CreateMapper]
             public class BlogPost
             {
                 /// <summary>
@@ -198,15 +207,16 @@ public class SingleField
                 blogPost.Errors.Single().Message.Should().Be("$.Title is required");
             }
 
-            [Fact]
-            public void NulledOptionalField()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void NulledOptionalField(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            {
-              "Title": null
-            }
-            """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                {
+                  "Title": null
+                }
+                """);
+                var blogPost = map(jsonElement);
 
                 Assert.True(blogPost.Success);
                 blogPost.Value.Title.Should().BeOfType<None<string>>();
@@ -216,6 +226,12 @@ public class SingleField
 
         public class NullableOptional_Tests
         {
+            public static IEnumerable<object[]> GetMappers =>
+            [
+                [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
+                [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_ReferenceType_NullableOptional_Tests_BlogPost(x, null))]
+            ];
+            [CreateMapper]
             public class BlogPost
             {
                 /// <summary>
@@ -229,10 +245,10 @@ public class SingleField
             public void ValidSingleField()
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            {
-              "Title": "Farting Unicorns"
-            }
-            """);
+                {
+                  "Title": "Farting Unicorns"
+                }
+                """);
                 var blogPost = Mapper.Map<BlogPost>(jsonElement);
 
                 Assert.True(blogPost.Success);
@@ -241,28 +257,30 @@ public class SingleField
                 Assert.Equal("Farting Unicorns", someTitle.Value);
             }
 
-            [Fact]
-            public void MissingOptionalField()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void MissingOptionalField(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            {
-            }
-            """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                {
+                }
+                """);
+                var blogPost = map(jsonElement);
 
                 Assert.True(blogPost.Success);
                 blogPost.Value.Title.Should().BeNull();
             }
 
-            [Fact]
-            public void NulledOptionalField()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void NulledOptionalField(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            {
-              "Title": null
-            }
-            """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                {
+                  "Title": null
+                }
+                """);
+                var blogPost = map(jsonElement);
 
                 Assert.True(blogPost.Success);
                 blogPost.Value.Title.Should().BeOfType<None<string>>();

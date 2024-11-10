@@ -75,6 +75,6 @@ public class SerializationBenchmarks
     {
         _jsonStream.Seek(0, SeekOrigin.Begin);
         using var json = await JsonDocument.ParseAsync(_jsonStream);
-        return FartingUnicorn.Generated.Mappers.MapToUserProfile(json.RootElement).ValueOrThrow();
+        return FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Benchmarks_UserProfile(json.RootElement).ValueOrThrow();
     }
 }

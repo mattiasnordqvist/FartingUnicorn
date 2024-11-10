@@ -31,29 +31,79 @@ public class MapperGenerator : IIncrementalGenerator
             sb.AppendLine("namespace FartingUnicorn.Generated;");
             sb.AppendLine();
             sb.AppendLine($"public static partial class Mappers");
-            sb.AppendLine("{");
-            using (var _ = sb.Indent())
+            using (var _1 = sb.CodeBlock())
             {
-                sb.AppendLine($"public static Result<{classToGenerateMapperFor.FullName}> MapTo{classToGenerateMapperFor.Name}(JsonElement jsonElement)");
-                sb.AppendLine("{");
-                using (var __ = sb.Indent())
+                sb.AppendLine($"public static Result<{classToGenerateMapperFor.FullName}> MapTo{classToGenerateMapperFor.FullName.Replace(".", "_")}(JsonElement jsonElement, string[] path = null)");
+                using (var _2 = sb.CodeBlock())
                 {
-                    sb.AppendLine($"var result = new {classToGenerateMapperFor.FullName}();");
-                    foreach (var value in classToGenerateMapperFor.Values)
+                    sb.AppendLine("/*object*/");
+                    using (var _3 = sb.CodeBlock())
                     {
-                        sb.AppendLine($"result.{value} = jsonElement.GetProperty(\"{value}\").GetString();");
+                        sb.AppendLine("if (jsonElement.ValueKind != JsonValueKind.Object)");
+                        using (var _4 = sb.CodeBlock())
+                        {
+                            sb.AppendLine($"return Result<{classToGenerateMapperFor.FullName}>.Error(new ValueHasWrongTypeError(path, \"Object\", jsonElement.ValueKind.ToString()));");
+                        }
                     }
-                    sb.AppendLine($"return Result<{classToGenerateMapperFor.FullName}>.Ok(result);");
+                    sb.AppendLine($"var obj = new {classToGenerateMapperFor.FullName}();");
+                    sb.AppendLine();
+                    sb.AppendLine("Result<Unit> compositeResult = UnitResult.Ok;");
+
+                    foreach (var p in classToGenerateMapperFor.Properties)
+                    {
+                        sb.AppendLine($"var is{p.Name}PropertyDefined = jsonElement.TryGetProperty(\"{p.Name}\", out var json{p.Name}Property);");
+                        sb.AppendLine($"if (is{p.Name}PropertyDefined)");
+                        using (var _3 = sb.CodeBlock())
+                        {
+                            sb.AppendLine($"// {p.Type}");
+                            if (p.Type == "String")
+                            {
+                                sb.AppendLine($"var mapResult = MapString(json{p.Name}Property, /*mapperOptions,*/ [.. path, \"{p.Name}\"]);");
+                            }
+                            sb.AppendLine("if (mapResult.Success)");
+                            using (var _4 = sb.CodeBlock())
+                            {
+                                sb.AppendLine($"obj.{p.Name} = mapResult.Value;");
+                            }
+                            sb.AppendLine("else");
+                            using (var _4 = sb.CodeBlock())
+                            {
+                                sb.AppendLine("compositeResult = compositeResult.Or(mapResult);");
+                            }
+                        }
+                        sb.AppendLine("else");
+                        using (var _3 = sb.CodeBlock())
+                        {
+
+                        }
+                    }
+
+                    sb.AppendLine("if(!compositeResult.Success)");
+                    using (var _3 = sb.CodeBlock())
+                    {
+                        sb.AppendLine($"return Result<{classToGenerateMapperFor.FullName}>.Error(compositeResult.Errors);");
+                    }
+
+                    sb.AppendLine("if(false)/*check if is option*/");
+                    using (var _3 = sb.CodeBlock())
+                    {
+                        // handle if option
+                    }
+                    sb.AppendLine("else");
+                    using (var _3 = sb.CodeBlock())
+                    {
+                        sb.AppendLine($"return Result<{classToGenerateMapperFor.FullName}>.Ok(obj);");
+                    }
+                    sb.AppendLine("throw new NotImplementedException();");
 
                 }
-                sb.AppendLine("}");
             }
-            sb.AppendLine("}");
+
             return sb.ToSourceText();
         }
     }
 
-   
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Add the marker attribute to the compilation
@@ -129,43 +179,47 @@ public class MapperGenerator : IIncrementalGenerator
             string className = classSymbol.ToString();
             string name = classSymbol.Name.ToString();
 
+
+
+
             // Get all the members in the enum
-            ImmutableArray<ISymbol> enumMembers = classSymbol.GetMembers();
-            var members = new List<string>(enumMembers.Length);
+            ImmutableArray<ISymbol> members = classSymbol.GetMembers();
+            var properties = new List<PropertyToGenerateMapperFor>(members.Length);
 
-            // Get all the fields from the enum, and add their name to the list
-            foreach (ISymbol member in enumMembers)
+            // Get all the props from the class, and add their name to the list
+            foreach (ISymbol member in members)
             {
-                if (member is IFieldSymbol field && field.ConstantValue is not null)
+                if (member is IPropertySymbol p)
                 {
-                    members.Add(member.Name);
+                    properties.Add(new PropertyToGenerateMapperFor(p.Name, p.Type.Name));
                 }
             }
 
-            foreach (ISymbol member in enumMembers)
-            {
-                if (member is IFieldSymbol field && field.ConstantValue is not null)
-                {
-                    members.Add(member.Name);
-                }
-            }
-
-            return new ClassToGenerateMapperFor(className, name, members);
+            return new ClassToGenerateMapperFor(className, name, properties);
         }
     }
 }
-
+public readonly record struct PropertyToGenerateMapperFor
+{
+    public readonly string Name;
+    public readonly string Type;
+    public PropertyToGenerateMapperFor(string name, string type)
+    {
+        Name = name;
+        Type = type;
+    }
+}
 public readonly record struct ClassToGenerateMapperFor
 {
     public readonly string FullName;
     public readonly string Name;
-    public readonly EquatableArray<string> Values;
+    public readonly EquatableArray<PropertyToGenerateMapperFor> Properties;
 
-    public ClassToGenerateMapperFor(string fullName, string name, List<string> values)
+    public ClassToGenerateMapperFor(string fullName, string name, List<PropertyToGenerateMapperFor> properties)
     {
         FullName = fullName;
         Name = name;
-        Values = new(values.ToArray());
+        Properties = new(properties.ToArray());
     }
 }
 

@@ -32,14 +32,15 @@ public class MapperOptions
         return converter != null;
     }
 }
+public abstract record FartingUnicornErrorBase(string[] Path, string Message) : ErrorBase(Message);
+public record MappingError(string[] Path, string Message) : FartingUnicornErrorBase(Path, $"Failed to map {string.Join(".", Path)}: {Message}");
+public record RequiredPropertyMissingError(string[] Path) : FartingUnicornErrorBase(Path, $"{string.Join(".", Path)} is required");
+public record RequiredValueMissingError(string[] Path) : FartingUnicornErrorBase(Path, $"{string.Join(".", Path)} must have a value");
+public record ValueHasWrongTypeError(string[] Path, string ExpectedType, string ActualType) : FartingUnicornErrorBase(Path, $"Value of {string.Join(".", Path)} has the wrong type. Expected {ExpectedType}, got {ActualType}");
+
 public class Mapper
 {
-    public abstract record FartingUnicornErrorBase(string[] Path, string Message) : ErrorBase(Message);
-    public record MappingError(string[] Path, string Message) : FartingUnicornErrorBase(Path, $"Failed to map {string.Join(".", Path)}: {Message}");
-    public record RequiredPropertyMissingError(string[] Path) : FartingUnicornErrorBase(Path, $"{string.Join(".", Path)} is required");
-    public record RequiredValueMissingError(string[] Path) : FartingUnicornErrorBase(Path, $"{string.Join(".", Path)} must have a value");
-    public record ValueHasWrongTypeError(string[] Path, string ExpectedType, string ActualType) : FartingUnicornErrorBase(Path, $"Value of {string.Join(".", Path)} has the wrong type. Expected {ExpectedType}, got {ActualType}");
-    public static Result<T> Map<T>(JsonElement json, MapperOptions mapperOptions = null, string[] path = null)
+   public static Result<T> Map<T>(JsonElement json, MapperOptions mapperOptions = null, string[] path = null)
     {
         return MapElement(typeof(T), json, mapperOptions, path).Map(x => (T)x);
     }
@@ -249,7 +250,6 @@ public class Mapper
             }
             else
             {
-
                 return Result<object>.Ok(obj);
             }
         }

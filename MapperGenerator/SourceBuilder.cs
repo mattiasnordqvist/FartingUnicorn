@@ -28,6 +28,18 @@ public class SourceBuilder
         }
     }
 
+    public IDisposable CodeBlock()
+    {
+        AppendLine("{");
+        var indent = Indent();
+
+        return new DisposeFunc(() =>
+        {
+            indent.Dispose();
+            AppendLine("}");
+        });
+
+    }
     public IDisposable Indent()
     {
         _indentLevel++;
@@ -35,7 +47,7 @@ public class SourceBuilder
         {
             _indentStrings.Add(new string(' ', _indentSize * _indentLevel));
         }
-        return new Unindent(() => _indentLevel--);
+        return new DisposeFunc(() => _indentLevel--);
     }
 
     public override string? ToString()
@@ -52,19 +64,17 @@ public class SourceBuilder
     {
         _stringBuilder.AppendLine();
     }
-
-    private class Unindent : IDisposable
+    private class DisposeFunc : IDisposable
     {
-        private Func<int> _unindent;
-
-        public Unindent(Func<int> unindent)
+        private Action _endBlock;
+        public DisposeFunc(Action endBlock)
         {
-            _unindent = unindent;
+            _endBlock = endBlock;
         }
-
         public void Dispose()
         {
-            _unindent();
+            _endBlock();
         }
     }
+   
 }
