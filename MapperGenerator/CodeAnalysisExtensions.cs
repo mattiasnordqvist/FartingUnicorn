@@ -6,6 +6,13 @@ namespace MapperGenerator;
 
 public static partial class CodeAnalysisExtensions
 {
+    public static string FullTypeName(this ITypeSymbol typeSymbol) =>
+        typeSymbol.ToDisplayString(new SymbolDisplayFormat(
+            SymbolDisplayGlobalNamespaceStyle.Omitted,
+            SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.ExpandNullable
+        ));
     public static bool IsNullable(this ITypeSymbol typeSymbol) =>
         typeSymbol.NullableAnnotation == NullableAnnotation.Annotated;
 

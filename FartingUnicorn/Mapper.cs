@@ -2,36 +2,11 @@
 
 using Namotion.Reflection;
 
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 using static FartingUnicorn.MapperOptions;
 
 namespace FartingUnicorn;
-public class MapperOptions
-{
-    public interface IConverter
-    {
-        bool CanConvert(Type clrType);
-
-        JsonValueKind ExpectedJsonValueKind { get; }
-
-        Result<object> Convert(Type clrType, JsonElement jsonElement, MapperOptions mapperOptions, string[] path);
-    }
-
-    public List<IConverter> _converters = [];
-
-    public void AddConverter(IConverter converter)
-    {
-        _converters.Add(converter);
-    }
-
-    public bool TryGetConverter(Type type, [NotNullWhen(true)] out IConverter? converter)
-    {
-        converter = _converters.FirstOrDefault(x => x.CanConvert(type));
-        return converter != null;
-    }
-}
 public abstract record FartingUnicornErrorBase(string[] Path, string Message) : ErrorBase(Message);
 public record MappingError(string[] Path, string Message) : FartingUnicornErrorBase(Path, $"Failed to map {string.Join(".", Path)}: {Message}");
 public record RequiredPropertyMissingError(string[] Path) : FartingUnicornErrorBase(Path, $"{string.Join(".", Path)} is required");

@@ -1,22 +1,24 @@
 ﻿using DotNetThoughts.Results;
 using System.Text.Json;
+using static FartingUnicorn.MapperOptions;
 
 namespace FartingUnicorn.Generated;
 
 public static partial class Mappers
 {
-    public static Result<FartingUnicorn.Benchmarks.UserProfile> MapToFartingUnicorn_Benchmarks_UserProfile(JsonElement jsonElement, string[] path = null)
+    public static Result<FartingUnicorn.Benchmarks.UserProfile> MapToFartingUnicorn_Benchmarks_UserProfile(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
     {
-        if(path is null)
+        if (mapperOptions is null)
+        {
+            mapperOptions = new MapperOptions();
+        }
+        if (path is null)
         {
             path = ["$"];
         }
-        /*object*/
+        if (jsonElement.ValueKind != JsonValueKind.Object)
         {
-            if (jsonElement.ValueKind != JsonValueKind.Object)
-            {
-                return Result<FartingUnicorn.Benchmarks.UserProfile>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
-            }
+            return Result<FartingUnicorn.Benchmarks.UserProfile>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
         }
         var obj = new FartingUnicorn.Benchmarks.UserProfile();
 
@@ -24,7 +26,7 @@ public static partial class Mappers
         var isNamePropertyDefined = jsonElement.TryGetProperty("Name", out var jsonNameProperty);
         if (isNamePropertyDefined)
         {
-            // type = String, isOption = False, isNullable = False
+            // type = System.String, isOption = False, isNullable = False
             if (jsonNameProperty.ValueKind == JsonValueKind.Null)
             {
                 errors.Add(new RequiredValueMissingError([.. path, "Name"]));

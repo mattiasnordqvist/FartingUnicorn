@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-using System.Collections;
 using System.Collections.Immutable;
 using System.Text;
 
@@ -29,6 +28,7 @@ public class MapperGenerator : IIncrementalGenerator
             var sb = new SourceBuilder();
             sb.AppendLine("using DotNetThoughts.Results;");
             sb.AppendLine("using System.Text.Json;");
+            sb.AppendLine("using static FartingUnicorn.MapperOptions;");
             sb.AppendLine();
             sb.AppendLine("namespace FartingUnicorn.Generated;");
             sb.AppendLine();
@@ -36,24 +36,27 @@ public class MapperGenerator : IIncrementalGenerator
             sb.AppendLine($"public static partial class Mappers");
             using (var _1 = sb.CodeBlock())
             {
-                sb.AppendLine($"public static Result<{classToGenerateMapperFor.FullName}> MapTo{classToGenerateMapperFor.FullName.Replace(".", "_")}(JsonElement jsonElement, string[] path = null)");
+                sb.AppendLine($"public static Result<{classToGenerateMapperFor.FullName}> MapTo{classToGenerateMapperFor.FullName.Replace(".", "_")}(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)");
                 using (var _2 = sb.CodeBlock())
                 {
-                    sb.AppendLine("if(path is null)");
+                    sb.AppendLine("if (mapperOptions is null)");
+                    using (var _3 = sb.CodeBlock())
+                    {
+                        sb.AppendLine("mapperOptions = new MapperOptions();");
+                    }
+
+                    sb.AppendLine("if (path is null)");
                     using (var _3 = sb.CodeBlock())
                     {
                         sb.AppendLine("path = [\"$\"];");
                     }
 
-                    sb.AppendLine("/*object*/");
-                    using (var _3 = sb.CodeBlock())
+                    sb.AppendLine("if (jsonElement.ValueKind != JsonValueKind.Object)");
+                    using (var _4 = sb.CodeBlock())
                     {
-                        sb.AppendLine("if (jsonElement.ValueKind != JsonValueKind.Object)");
-                        using (var _4 = sb.CodeBlock())
-                        {
-                            sb.AppendLine($"return Result<{classToGenerateMapperFor.FullName}>.Error(new ValueHasWrongTypeError(path, \"Object\", jsonElement.ValueKind.ToString()));");
-                        }
+                        sb.AppendLine($"return Result<{classToGenerateMapperFor.FullName}>.Error(new ValueHasWrongTypeError(path, \"Object\", jsonElement.ValueKind.ToString()));");
                     }
+
                     sb.AppendLine($"var obj = new {classToGenerateMapperFor.FullName}();");
                     sb.AppendLine();
                     sb.AppendLine("List<IError> errors = new();");
@@ -77,8 +80,7 @@ public class MapperGenerator : IIncrementalGenerator
                                     sb.AppendLine($"errors.Add(new RequiredValueMissingError([.. path, \"{p.Name}\"]));");
                                 }
                             }
-
-                            if (p.Type == "String")
+                            if (p.Type == "System.String")
                             {
                                 sb.AppendLine($"else if (json{p.Name}Property.ValueKind == JsonValueKind.String)");
                                 using (var _4 = sb.CodeBlock())
@@ -99,7 +101,7 @@ public class MapperGenerator : IIncrementalGenerator
                                     sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"String\", json{p.Name}Property.ValueKind.ToString()));");
                                 }
                             }
-                            else if(p.Type == "Boolean")
+                            else if(p.Type == "System.Boolean")
                             {
                                 sb.AppendLine($"else if (json{p.Name}Property.ValueKind == JsonValueKind.True || json{p.Name}Property.ValueKind == JsonValueKind.False)");
                                 using (var _4 = sb.CodeBlock())
@@ -120,7 +122,7 @@ public class MapperGenerator : IIncrementalGenerator
                                     sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"Boolean\", json{p.Name}Property.ValueKind.ToString()));");
                                 }
                             }
-                            else if (p.Type == "Int32")
+                            else if (p.Type == "System.Int32")
                             {
                                 sb.AppendLine($"else if (json{p.Name}Property.ValueKind == JsonValueKind.Number)");
                                 using (var _4 = sb.CodeBlock())
@@ -139,6 +141,29 @@ public class MapperGenerator : IIncrementalGenerator
                                 using (var _4 = sb.CodeBlock())
                                 {
                                     sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"Number\", json{p.Name}Property.ValueKind.ToString()));");
+                                }
+                            }
+                            else
+                            {
+                                sb.AppendLine($"if (mapperOptions.TryGetConverter(typeof({p.Type}), out IConverter customConverter))");
+                                using(var _4 = sb.CodeBlock())
+                                {
+                                    sb.AppendLine($"if (json{p.Name}Property.ValueKind != customConverter.ExpectedJsonValueKind)");
+                                    using(var _5 = sb.CodeBlock())
+                                    {
+                                        sb.AppendLine($"errors.Add(new ValueHasWrongTypeError(path, customConverter.ExpectedJsonValueKind.ToString(), json{p.Name}Property.ValueKind.ToString()));");
+                                    }
+                                    sb.AppendLine($"var result = customConverter.Convert(typeof({p.Type}), json{p.Name}Property, mapperOptions, path);");
+                                    sb.AppendLine("if (result.Success)");
+                                    using(var _5 = sb.CodeBlock())
+                                    {
+                                        sb.AppendLine($"obj.{p.Name} = result.Map(x => ({p.Type})x).Value;");
+                                    }
+                                    sb.AppendLine("else");
+                                    using (var _5 = sb.CodeBlock())
+                                    {
+                                        sb.AppendLine("errors.AddRange(result.Errors.Select(x => new MappingError(path, x.Message)).ToArray());");
+                                    }
                                 }
                             }
                         }
@@ -259,13 +284,13 @@ public class MapperGenerator : IIncrementalGenerator
                     var t = p.Type;
                     var isOptions = t.Name == "Option";
                     var tName = !isOptions
-                        ? p.Type.Name
-                        : ((INamedTypeSymbol)p.Type).TypeArguments.First().Name;
+                        ? p.Type.FullTypeName()
+                        : ((INamedTypeSymbol)p.Type).TypeArguments.First().FullTypeName();
 
                     var isNullable = t.IsNullable();
                     if (t.IsNullableValueType())
                     {
-                        tName = ((INamedTypeSymbol)p.Type).TypeArguments.First().Name;
+                        tName = ((INamedTypeSymbol)p.Type).TypeArguments.First().FullTypeName();
                     }
                     properties.Add(new PropertyToGenerateMapperFor(p.Name, tName, isOptions, isNullable));
                 }
@@ -301,104 +326,5 @@ public readonly record struct ClassToGenerateMapperFor
         FullName = fullName;
         Name = name;
         Properties = new(properties.ToArray());
-    }
-}
-
-public readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnumerable<T>
-    where T : IEquatable<T>
-{
-    /// <summary>
-    /// The underlying <typeparamref name="T"/> array.
-    /// </summary>
-    private readonly T[]? _array;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="EquatableArray{T}"/> struct.
-    /// </summary>
-    /// <param name="array">The input array to wrap.</param>
-    public EquatableArray(T[] array)
-    {
-        _array = array;
-    }
-
-    /// <summary>
-    /// Gets the length of the array, or 0 if the array is null
-    /// </summary>
-    public int Count => _array?.Length ?? 0;
-
-    /// <summary>
-    /// Checks whether two <see cref="EquatableArray{T}"/> values are the same.
-    /// </summary>
-    /// <param name="left">The first <see cref="EquatableArray{T}"/> value.</param>
-    /// <param name="right">The second <see cref="EquatableArray{T}"/> value.</param>
-    /// <returns>Whether <paramref name="left"/> and <paramref name="right"/> are equal.</returns>
-    public static bool operator ==(EquatableArray<T> left, EquatableArray<T> right)
-    {
-        return left.Equals(right);
-    }
-
-    /// <summary>
-    /// Checks whether two <see cref="EquatableArray{T}"/> values are not the same.
-    /// </summary>
-    /// <param name="left">The first <see cref="EquatableArray{T}"/> value.</param>
-    /// <param name="right">The second <see cref="EquatableArray{T}"/> value.</param>
-    /// <returns>Whether <paramref name="left"/> and <paramref name="right"/> are not equal.</returns>
-    public static bool operator !=(EquatableArray<T> left, EquatableArray<T> right)
-    {
-        return !left.Equals(right);
-    }
-
-    /// <inheritdoc/>
-    public bool Equals(EquatableArray<T> array)
-    {
-        return AsSpan().SequenceEqual(array.AsSpan());
-    }
-
-    /// <inheritdoc/>
-    public override bool Equals(object? obj)
-    {
-        return obj is EquatableArray<T> array && Equals(this, array);
-    }
-
-    /// <inheritdoc/>
-    public override int GetHashCode()
-    {
-        if (_array is not T[] array)
-        {
-            return 0;
-        }
-
-        return ((IStructuralEquatable)_array).GetHashCode(EqualityComparer<int>.Default);
-
-    }
-
-    /// <summary>
-    /// Returns a <see cref="ReadOnlySpan{T}"/> wrapping the current items.
-    /// </summary>
-    /// <returns>A <see cref="ReadOnlySpan{T}"/> wrapping the current items.</returns>
-    public ReadOnlySpan<T> AsSpan()
-    {
-        return _array.AsSpan();
-    }
-
-    /// <summary>
-    /// Returns the underlying wrapped array.
-    /// </summary>
-    /// <returns>Returns the underlying array.</returns>
-    public T[]? AsArray()
-    {
-        return _array;
-    }
-
-    /// <inheritdoc/>
-    IEnumerator<T> IEnumerable<T>.GetEnumerator()
-    {
-        return ((IEnumerable<T>)(_array ?? Array.Empty<T>())).GetEnumerator();
-    }
-
-    /// <inheritdoc/>
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return ((IEnumerable<T>)(_array ?? Array.Empty<T>())).GetEnumerator();
     }
 }

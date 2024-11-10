@@ -1,22 +1,24 @@
 ﻿using DotNetThoughts.Results;
 using System.Text.Json;
+using static FartingUnicorn.MapperOptions;
 
 namespace FartingUnicorn.Generated;
 
 public static partial class Mappers
 {
-    public static Result<FartingUnicorn.Tests.SingleField.IntType.NonNullableNonOptional_Tests.BlogPost> MapToFartingUnicorn_Tests_SingleField_IntType_NonNullableNonOptional_Tests_BlogPost(JsonElement jsonElement, string[] path = null)
+    public static Result<FartingUnicorn.Tests.SingleField.IntType.NonNullableNonOptional_Tests.BlogPost> MapToFartingUnicorn_Tests_SingleField_IntType_NonNullableNonOptional_Tests_BlogPost(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
     {
-        if(path is null)
+        if (mapperOptions is null)
+        {
+            mapperOptions = new MapperOptions();
+        }
+        if (path is null)
         {
             path = ["$"];
         }
-        /*object*/
+        if (jsonElement.ValueKind != JsonValueKind.Object)
         {
-            if (jsonElement.ValueKind != JsonValueKind.Object)
-            {
-                return Result<FartingUnicorn.Tests.SingleField.IntType.NonNullableNonOptional_Tests.BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
-            }
+            return Result<FartingUnicorn.Tests.SingleField.IntType.NonNullableNonOptional_Tests.BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
         }
         var obj = new FartingUnicorn.Tests.SingleField.IntType.NonNullableNonOptional_Tests.BlogPost();
 
@@ -24,7 +26,7 @@ public static partial class Mappers
         var isRatingPropertyDefined = jsonElement.TryGetProperty("Rating", out var jsonRatingProperty);
         if (isRatingPropertyDefined)
         {
-            // type = Int32, isOption = False, isNullable = False
+            // type = System.Int32, isOption = False, isNullable = False
             if (jsonRatingProperty.ValueKind == JsonValueKind.Null)
             {
                 errors.Add(new RequiredValueMissingError([.. path, "Rating"]));
