@@ -17,20 +17,35 @@ public class Mapper
 {
    public static Result<T> Map<T>(JsonElement json, MapperOptions mapperOptions = null, string[] path = null)
     {
-        return MapElement(typeof(T), json, mapperOptions, path).Map(x => (T)x);
+        return MapElement(typeof(T), null, json, mapperOptions, path).Map(x => (T)x);
     }
 
-    private static (bool isOption, Type type) D(Type type)
+    public static (bool isOption, Type type, bool isNullable) D(Type type, ContextualPropertyInfo? contextualPropertyInfo)
     {
-        var isOption = type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Option<>);
+        ArgumentNullException.ThrowIfNull(type);
+        if(contextualPropertyInfo is not null && type != contextualPropertyInfo.PropertyInfo.PropertyType)
+        {
+            throw new ArgumentException("Type and contextualPropertyInfo.PropertyInfo.PropertyType must be the same");
+        }
+
+        bool isValueTypeNullable = type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+        bool isReferenceTypeNullable = contextualPropertyInfo?.Nullability == Nullability.Nullable;
+        bool isNullable = isValueTypeNullable || isReferenceTypeNullable;
+        if (isValueTypeNullable)
+        {
+            type = type.GetGenericArguments()[0];
+        }
+
+        var isOption = type.IsGenericType && (type.GetGenericTypeDefinition() == typeof(Option<>));
         var innerType = isOption ? type.GetGenericArguments()[0] : type;
-        return (isOption, innerType);
+        return (isOption, innerType, isNullable);
     }
+
     public static Result<object> MapElement<T>(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
     {
-        return MapElement(typeof(T), jsonElement, mapperOptions, path);
+        return MapElement(typeof(T), null, jsonElement, mapperOptions, path);
     }
-    public static Result<object> MapElement(Type t, JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
+    public static Result<object> MapElement(Type t, ContextualPropertyInfo? contextualPropertyInfo, JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
     {
         if (mapperOptions is null)
         {
@@ -40,7 +55,7 @@ public class Mapper
         {
             path = ["$"];
         }
-        var (isOption, type) = D(t);
+        var (isOption, type, isNullable) = D(t, contextualPropertyInfo);
         if (jsonElement.ValueKind == JsonValueKind.Null)
         {
             if (isOption)
@@ -73,7 +88,7 @@ public class Mapper
             }
         }
 
-        if (type == typeof(int) || type == typeof(int?))
+        if (type == typeof(int))
         {
             if (jsonElement.ValueKind != JsonValueKind.Number)
             {
@@ -92,7 +107,7 @@ public class Mapper
             }
         }
 
-        if (type == typeof(bool) || type == typeof(bool?))
+        if (type == typeof(bool))
         {
             if (jsonElement.ValueKind != JsonValueKind.True && jsonElement.ValueKind != JsonValueKind.False)
             {
@@ -124,7 +139,7 @@ public class Mapper
 
             for (int i = 0; i < jsonElement.GetArrayLength(); i++)
             {
-                var mapResult = MapElement(elementType, jsonElement[i], mapperOptions, [.. path, i.ToString()]);
+                var mapResult = MapElement(elementType, null, jsonElement[i], mapperOptions, [.. path, i.ToString()]);
                 if (mapResult.Success)
                 {
                     array.SetValue(mapResult.Value, i);
@@ -188,7 +203,7 @@ public class Mapper
                 var isPropertyDefined = jsonElement.TryGetProperty(property.Name, out var jsonProperty);
                 if (isPropertyDefined)
                 {
-                    var mapResult = MapElement(property.PropertyType, jsonProperty, mapperOptions, [.. path, property.Name]);
+                    var mapResult = MapElement(property.PropertyType, contextualPropertyInfo, jsonProperty, mapperOptions, [.. path, property.Name]);
                     if (mapResult.Success)
                     {
                         property.SetValue(obj, mapResult.Value);

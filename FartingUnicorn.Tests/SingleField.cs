@@ -1018,41 +1018,41 @@ public class SingleField
                 blogPost.Value.Status.Should().Be(BlogPost.BlogPostStatus.Published);
             }
 
-            //[Theory]
-            //[MemberData(nameof(GetMappers))]
-            //public void MissingNullableField(Func<JsonElement, Result<BlogPost>> map)
-            //{
-            //    var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            //        {
-            //        }
-            //        """);
-            //    var blogPost = map(jsonElement);
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void MissingNullableField(Func<JsonElement, Result<BlogPost>> map)
+            {
+                var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
+                    {
+                    }
+                    """);
+                var blogPost = map(jsonElement);
 
-            //    Assert.True(blogPost.Success);
-            //    blogPost.Value.Rating.Should().BeNull();
-            //}
+                Assert.True(blogPost.Success);
+                blogPost.Value.Status.Should().BeNull();
+            }
 
-            //[Theory]
-            //[MemberData(nameof(GetMappers))]
-            //public void NulledNullableField(Func<JsonElement, Result<BlogPost>> map)
-            //{
-            //    // Might seem counterintuitive, but remember, we said that 
-            //    // clr-null should reflect a missing field. In this case, the field exists, but does not have a value.
-            //    // This would be equivalent to None in an Option type.
-            //    // Therefor, this is not valid json for a nullable field. 
-            //    // If the field exists, it must have a value!
-            //    var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            //        {
-            //          "Rating": null
-            //        }
-            //        """);
-            //    var blogPost = map(jsonElement);
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void NulledNullableField(Func<JsonElement, Result<BlogPost>> map)
+            {
+                // Might seem counterintuitive, but remember, we said that 
+                // clr-null should reflect a missing field. In this case, the field exists, but does not have a value.
+                // This would be equivalent to None in an Option type.
+                // Therefor, this is not valid json for a nullable field. 
+                // If the field exists, it must have a value!
+                var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
+                    {
+                      "Status": null
+                    }
+                    """);
+                var blogPost = map(jsonElement);
 
-            //    Assert.False(blogPost.Success);
-            //    blogPost.Errors.Should().ContainSingle();
-            //    blogPost.Errors.Single().Should().BeOfType<RequiredValueMissingError>();
-            //    blogPost.Errors.Single().Message.Should().Be("$.Rating must have a value");
-            //}
+                Assert.False(blogPost.Success);
+                blogPost.Errors.Should().ContainSingle();
+                blogPost.Errors.Single().Should().BeOfType<RequiredValueMissingError>();
+                blogPost.Errors.Single().Message.Should().Be("$.Status must have a value");
+            }
         }
 
         //public class NonNullableOptional_Tests
