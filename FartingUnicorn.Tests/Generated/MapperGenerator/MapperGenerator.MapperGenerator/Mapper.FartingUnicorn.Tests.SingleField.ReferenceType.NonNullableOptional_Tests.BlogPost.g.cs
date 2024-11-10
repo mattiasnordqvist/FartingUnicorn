@@ -7,6 +7,10 @@ public static partial class Mappers
 {
     public static Result<FartingUnicorn.Tests.SingleField.ReferenceType.NonNullableOptional_Tests.BlogPost> MapToFartingUnicorn_Tests_SingleField_ReferenceType_NonNullableOptional_Tests_BlogPost(JsonElement jsonElement, string[] path = null)
     {
+        if(path is null)
+        {
+            path = ["$"];
+        }
         /*object*/
         {
             if (jsonElement.ValueKind != JsonValueKind.Object)
@@ -25,7 +29,7 @@ public static partial class Mappers
             {
                 obj.Title = new None<String>();
             }
-            if (jsonTitleProperty.ValueKind == JsonValueKind.String)
+            else if (jsonTitleProperty.ValueKind == JsonValueKind.String)
             {
                 obj.Title = new Some<string>(jsonTitleProperty.GetString());
             }
@@ -36,7 +40,7 @@ public static partial class Mappers
         }
         else
         {
-            obj.Title = null;
+            errors.Add(new RequiredPropertyMissingError([.. path, "Title"]));
         }
         if(errors.Any())
         {

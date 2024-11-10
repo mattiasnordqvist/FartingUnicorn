@@ -41,6 +41,12 @@ public class MapperGenerator : IIncrementalGenerator
                 sb.AppendLine($"public static Result<{classToGenerateMapperFor.FullName}> MapTo{classToGenerateMapperFor.FullName.Replace(".", "_")}(JsonElement jsonElement, string[] path = null)");
                 using (var _2 = sb.CodeBlock())
                 {
+                    sb.AppendLine("if(path is null)");
+                    using(var _3 = sb.CodeBlock())
+                    {
+                        sb.AppendLine("path = [\"$\"];");
+                    }
+
                     sb.AppendLine("/*object*/");
                     using (var _3 = sb.CodeBlock())
                     {
@@ -76,7 +82,7 @@ public class MapperGenerator : IIncrementalGenerator
 
                             if (p.Type == "String")
                             {
-                                sb.AppendLine($"if (json{p.Name}Property.ValueKind == JsonValueKind.String)");
+                                sb.AppendLine($"else if (json{p.Name}Property.ValueKind == JsonValueKind.String)");
                                 using (var _4 = sb.CodeBlock())
                                 {
                                     if (p.IsOption)
@@ -99,7 +105,10 @@ public class MapperGenerator : IIncrementalGenerator
                         sb.AppendLine("else");
                         using (var _3 = sb.CodeBlock())
                         {
-                            sb.AppendLine($"obj.{p.Name} = null;");
+                            //if nullable
+                            //sb.AppendLine($"obj.{p.Name} = null;");
+
+                            sb.AppendLine($"errors.Add(new RequiredPropertyMissingError([.. path, \"{p.Name}\"]));");
                         }
                     }
 

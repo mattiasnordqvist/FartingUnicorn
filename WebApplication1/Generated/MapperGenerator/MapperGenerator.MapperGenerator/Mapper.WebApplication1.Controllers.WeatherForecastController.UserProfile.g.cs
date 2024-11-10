@@ -36,7 +36,7 @@ public static partial class Mappers
         }
         else
         {
-            obj.Name = null;
+            errors.Add(new RequiredPropertyMissingError([.. path, "Name"]));
         }
         var isAgePropertyDefined = jsonElement.TryGetProperty("Age", out var jsonAgeProperty);
         if (isAgePropertyDefined)
@@ -49,7 +49,7 @@ public static partial class Mappers
         }
         else
         {
-            obj.Age = null;
+            errors.Add(new RequiredPropertyMissingError([.. path, "Age"]));
         }
         var isIsSubscribedPropertyDefined = jsonElement.TryGetProperty("IsSubscribed", out var jsonIsSubscribedProperty);
         if (isIsSubscribedPropertyDefined)
@@ -62,7 +62,7 @@ public static partial class Mappers
         }
         else
         {
-            obj.IsSubscribed = null;
+            errors.Add(new RequiredPropertyMissingError([.. path, "IsSubscribed"]));
         }
         var isCoursesPropertyDefined = jsonElement.TryGetProperty("Courses", out var jsonCoursesProperty);
         if (isCoursesPropertyDefined)
@@ -75,7 +75,7 @@ public static partial class Mappers
         }
         else
         {
-            obj.Courses = null;
+            errors.Add(new RequiredPropertyMissingError([.. path, "Courses"]));
         }
         var isPetPropertyDefined = jsonElement.TryGetProperty("Pet", out var jsonPetProperty);
         if (isPetPropertyDefined)
@@ -88,7 +88,7 @@ public static partial class Mappers
         }
         else
         {
-            obj.Pet = null;
+            errors.Add(new RequiredPropertyMissingError([.. path, "Pet"]));
         }
         var isIsGayPropertyDefined = jsonElement.TryGetProperty("IsGay", out var jsonIsGayProperty);
         if (isIsGayPropertyDefined)
@@ -101,7 +101,7 @@ public static partial class Mappers
         }
         else
         {
-            obj.IsGay = null;
+            errors.Add(new RequiredPropertyMissingError([.. path, "IsGay"]));
         }
         var isFavoritePetPropertyDefined = jsonElement.TryGetProperty("FavoritePet", out var jsonFavoritePetProperty);
         if (isFavoritePetPropertyDefined)
@@ -114,7 +114,7 @@ public static partial class Mappers
         }
         else
         {
-            obj.FavoritePet = null;
+            errors.Add(new RequiredPropertyMissingError([.. path, "FavoritePet"]));
         }
         if(errors.Any())
         {
