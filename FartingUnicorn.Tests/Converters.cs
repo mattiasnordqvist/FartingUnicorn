@@ -1,4 +1,5 @@
-﻿using DotNetThoughts.Results;
+﻿using DotNetThoughts.FartingUnicorn;
+using DotNetThoughts.Results;
 
 using FluentAssertions;
 
@@ -46,14 +47,22 @@ public class Converters
         }
     }
 
+    [CreateMapper]
     public class BlogPost
     {
-        public required Id Id { get; set; }
-        public required string Title { get; set; }
+        public Id Id { get; set; }
+        public string Title { get; set; }
     }
 
-    [Fact]
-    public void Valid()
+    public static IEnumerable<object[]> GetMappers =>
+    [
+        [(Func<JsonElement, MapperOptions, Result<BlogPost>>)((x, m) => Mapper.Map<BlogPost>(x, m, null))],
+        [(Func<JsonElement, MapperOptions, Result<BlogPost>>)((x, m) => Generated.Mappers.MapToFartingUnicorn_Tests_Converters_BlogPost(x, m, null))]
+    ];
+
+    [Theory]
+    [MemberData(nameof(GetMappers))]
+    public void Valid(Func<JsonElement, MapperOptions, Result<BlogPost>> map)
     {
         var mapperOptions = new MapperOptions();
         mapperOptions.AddConverter(new IdConverter());
@@ -63,14 +72,15 @@ public class Converters
             "Title": "Farting Unicorns"
         }
         """);
-        var blogPost = Mapper.Map<BlogPost>(json, mapperOptions);
+        var blogPost = map(json, mapperOptions);
         blogPost.Should().BeSuccessful();
         blogPost.Value.Id.Value.Should().Be(123456);
         blogPost.Value.Title.Should().Be("Farting Unicorns");
     }
 
-    [Fact]
-    public void InvalidId()
+    [Theory]
+    [MemberData(nameof(GetMappers))]
+    public void InvalidId(Func<JsonElement, MapperOptions, Result<BlogPost>> map)
     {
         var mapperOptions = new MapperOptions();
         mapperOptions.AddConverter(new IdConverter());
@@ -80,7 +90,7 @@ public class Converters
             "Title": "Farting Unicorns"
         }
         """);
-        var blogPost = Mapper.Map<BlogPost>(json, mapperOptions);
+        var blogPost = map(json, mapperOptions);
         blogPost.Success.Should().BeFalse();
         blogPost.Errors.Should().ContainSingle(e => e.Message == "Failed to map $.Id: 'Not a number' is not a valid Id");
     }

@@ -168,7 +168,7 @@ public class MapperGenerator : IIncrementalGenerator
                                         sb.AppendLine("else");
                                         using (var _6 = sb.CodeBlock())
                                         {
-                                            sb.AppendLine("errors.AddRange(result.Errors.Select(x => new MappingError([.. path, \"{p.Name}\"], x.Message)).ToArray());");
+                                            sb.AppendLine($"errors.AddRange(result.Errors.Select(x => new MappingError([.. path, \"{p.Name}\"], x.Message)).ToArray());");
                                         }
                                     }
                                 }

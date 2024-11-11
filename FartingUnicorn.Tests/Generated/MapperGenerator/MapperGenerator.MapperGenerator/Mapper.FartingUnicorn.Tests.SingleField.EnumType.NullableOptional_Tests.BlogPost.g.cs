@@ -46,7 +46,7 @@ public static partial class Mappers
                     }
                     else
                     {
-                        errors.AddRange(result.Errors.Select(x => new MappingError([.. path, "{p.Name}"], x.Message)).ToArray());
+                        errors.AddRange(result.Errors.Select(x => new MappingError([.. path, "Status"], x.Message)).ToArray());
                     }
                 }
             }
