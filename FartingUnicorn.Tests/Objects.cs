@@ -213,7 +213,7 @@ public class Objects
         }
 
         [Fact]
-        public void AuthorCannoBeMissing()
+        public void AuthorCannotBeMissing()
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
