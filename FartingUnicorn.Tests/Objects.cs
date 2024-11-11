@@ -1,4 +1,7 @@
-﻿using FluentAssertions;
+﻿using DotNetThoughts.FartingUnicorn;
+using DotNetThoughts.Results;
+
+using FluentAssertions;
 
 using System.Text.Json;
 
@@ -266,6 +269,7 @@ public class Objects
 
     public class Nullable
     {
+        [CreateMapper]
         public class BlogPost
         {
             public Author? Author { get; set; }
@@ -276,8 +280,15 @@ public class Objects
             public Option<int> Age { get; set; }
         }
 
-        [Fact]
-        public void Valid()
+        public static IEnumerable<object[]> GetMappers =>
+        [
+            [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
+            [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_Objects_Nullable_BlogPost(x))]
+        ];
+
+        [Theory]
+        [MemberData(nameof(GetMappers))]
+        public void Valid(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -287,21 +298,22 @@ public class Objects
                 }
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Should().BeSuccessful();
             blogPost.Value.Author.Should().NotBeNull();
             blogPost.Value.Author!.Name.Should().Be("John Doe");
             blogPost.Value.Author!.Age.Should().BeOfType<Some<int>>();
         }
 
-        [Fact]
-        public void Missing_OK()
+        [Theory]
+        [MemberData(nameof(GetMappers))]
+        public void Missing_OK(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Should().BeSuccessful();
             blogPost.Value.Author.Should().BeNull();
         }
