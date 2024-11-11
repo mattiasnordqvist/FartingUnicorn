@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -10,328 +11,614 @@ namespace MapperGenerator;
 [Generator]
 public class MapperGenerator : IIncrementalGenerator
 {
-    public static class SourceGenerationHelper
-    {
-        public const string Attribute = """
-            namespace DotNetThoughts.FartingUnicorn
-            {
-                [System.AttributeUsage(System.AttributeTargets.Class)]
-                public class CreateMapperAttribute : System.Attribute
-                {
-                }
-            }
-            """;
-
-
-        public static SourceText GenerateExtensionClass(ClassToGenerateMapperFor classToGenerateMapperFor)
-        {
-            var sb = new SourceBuilder();
-            sb.AppendLine("using DotNetThoughts.Results;");
-            sb.AppendLine("using System.Text.Json;");
-            sb.AppendLine("using static FartingUnicorn.MapperOptions;");
-            sb.AppendLine();
-            sb.AppendLine("namespace FartingUnicorn.Generated;");
-            sb.AppendLine();
-
-            sb.AppendLine($"public static partial class Mappers");
-            using (var _1 = sb.CodeBlock())
-            {
-                sb.AppendLine($"public static Result<{classToGenerateMapperFor.FullName}> MapTo{classToGenerateMapperFor.FullName.Replace(".", "_")}(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)");
-                using (var _2 = sb.CodeBlock())
-                {
-                    sb.AppendLine("if (mapperOptions is null)");
-                    using (var _3 = sb.CodeBlock())
-                    {
-                        sb.AppendLine("mapperOptions = new MapperOptions();");
-                    }
-
-                    sb.AppendLine("if (path is null)");
-                    using (var _3 = sb.CodeBlock())
-                    {
-                        sb.AppendLine("path = [\"$\"];");
-                    }
-
-                    sb.AppendLine("if (jsonElement.ValueKind != JsonValueKind.Object)");
-                    using (var _4 = sb.CodeBlock())
-                    {
-                        sb.AppendLine($"return Result<{classToGenerateMapperFor.FullName}>.Error(new ValueHasWrongTypeError(path, \"Object\", jsonElement.ValueKind.ToString()));");
-                    }
-
-                    sb.AppendLine($"var obj = new {classToGenerateMapperFor.FullName}();");
-                    sb.AppendLine();
-                    sb.AppendLine("List<IError> errors = new();");
-
-                    foreach (var p in classToGenerateMapperFor.Properties)
-                    {
-                        sb.AppendLine($"var is{p.Name}PropertyDefined = jsonElement.TryGetProperty(\"{p.Name}\", out var json{p.Name}Property);");
-                        sb.AppendLine($"if (is{p.Name}PropertyDefined)");
-                        using (var _3 = sb.CodeBlock())
-                        {
-                            sb.AppendLine($"// type = {p.Type}, isOption = {p.IsOption}, isNullable = {p.IsNullable}");
-                            sb.AppendLine($"if (json{p.Name}Property.ValueKind == JsonValueKind.Null)");
-                            using (var _4 = sb.CodeBlock())
-                            {
-                                if (p.IsOption)
-                                {
-                                    sb.AppendLine($"obj.{p.Name} = new None<{p.Type}>();");
-                                }
-                                else
-                                {
-                                    sb.AppendLine($"errors.Add(new RequiredValueMissingError([.. path, \"{p.Name}\"]));");
-                                }
-                            }
-                            if (p.Type == "System.String")
-                            {
-                                sb.AppendLine($"else if (json{p.Name}Property.ValueKind == JsonValueKind.String)");
-                                using (var _4 = sb.CodeBlock())
-                                {
-                                    if (p.IsOption)
-                                    {
-                                        sb.AppendLine($"obj.{p.Name} = new Some<string>(json{p.Name}Property.GetString());");
-
-                                    }
-                                    else
-                                    {
-                                        sb.AppendLine($"obj.{p.Name} = json{p.Name}Property.GetString();");
-                                    }
-                                }
-                                sb.AppendLine("else");
-                                using (var _4 = sb.CodeBlock())
-                                {
-                                    sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"String\", json{p.Name}Property.ValueKind.ToString()));");
-                                }
-                            }
-                            else if(p.Type == "System.Boolean")
-                            {
-                                sb.AppendLine($"else if (json{p.Name}Property.ValueKind == JsonValueKind.True || json{p.Name}Property.ValueKind == JsonValueKind.False)");
-                                using (var _4 = sb.CodeBlock())
-                                {
-                                    if (p.IsOption)
-                                    {
-                                        sb.AppendLine($"obj.{p.Name} = new Some<bool>(json{p.Name}Property.GetBoolean());");
-
-                                    }
-                                    else
-                                    {
-                                        sb.AppendLine($"obj.{p.Name} = json{p.Name}Property.GetBoolean();");
-                                    }
-                                }
-                                sb.AppendLine("else");
-                                using (var _4 = sb.CodeBlock())
-                                {
-                                    sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"Boolean\", json{p.Name}Property.ValueKind.ToString()));");
-                                }
-                            }
-                            else if (p.Type == "System.Int32")
-                            {
-                                sb.AppendLine($"else if (json{p.Name}Property.ValueKind == JsonValueKind.Number)");
-                                using (var _4 = sb.CodeBlock())
-                                {
-                                    if (p.IsOption)
-                                    {
-                                        sb.AppendLine($"obj.{p.Name} = new Some<int>(json{p.Name}Property.GetInt32());");
-
-                                    }
-                                    else
-                                    {
-                                        sb.AppendLine($"obj.{p.Name} = json{p.Name}Property.GetInt32();");
-                                    }
-                                }
-                                sb.AppendLine("else");
-                                using (var _4 = sb.CodeBlock())
-                                {
-                                    sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"Number\", json{p.Name}Property.ValueKind.ToString()));");
-                                }
-                            }
-                            else // custom converter?
-                            {
-                                sb.AppendLine($"else if (mapperOptions.TryGetConverter(typeof({p.Type}), out IConverter customConverter))");
-                                using(var _4 = sb.CodeBlock())
-                                {
-                                    sb.AppendLine($"if (json{p.Name}Property.ValueKind != customConverter.ExpectedJsonValueKind)");
-                                    using(var _5 = sb.CodeBlock())
-                                    {
-                                        sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], customConverter.ExpectedJsonValueKind.ToString(), json{p.Name}Property.ValueKind.ToString()));");
-                                    }
-                                    sb.AppendLine("else");
-                                    using (var _5 = sb.CodeBlock())
-                                    {
-                                        sb.AppendLine($"var result = customConverter.Convert(typeof({p.Type}), json{p.Name}Property, mapperOptions, [.. path, \"{p.Name}\"]);");
-                                        sb.AppendLine("if (result.Success)");
-                                        using (var _6 = sb.CodeBlock())
-                                        {
-                                            if(p.IsOption)
-                                                sb.AppendLine($"obj.{p.Name} = new Some<{p.Type}>(result.Map(x => ({p.Type})x).Value);");
-                                            else
-                                                sb.AppendLine($"obj.{p.Name} = result.Map(x => ({p.Type})x).Value;");
-                                        }
-                                        sb.AppendLine("else");
-                                        using (var _6 = sb.CodeBlock())
-                                        {
-                                            sb.AppendLine($"errors.AddRange(result.Errors.Select(x => new MappingError([.. path, \"{p.Name}\"], x.Message)).ToArray());");
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        sb.AppendLine("else");
-                        using (var _3 = sb.CodeBlock())
-                        {
-                            if (p.IsNullable)
-                            {
-                                sb.AppendLine($"obj.{p.Name} = null;");
-                            }
-                            else
-                            {
-                                sb.AppendLine($"errors.Add(new RequiredPropertyMissingError([.. path, \"{p.Name}\"]));");
-                            }
-                        }
-                    }
-
-                    sb.AppendLine("if(errors.Any())");
-                    using (var _3 = sb.CodeBlock())
-                    {
-                        sb.AppendLine($"return Result<{classToGenerateMapperFor.FullName}>.Error(errors);");
-                    }
-
-                    sb.AppendLine("if(false)/*check if is option*/");
-                    using (var _3 = sb.CodeBlock())
-                    {
-                        // handle if option
-                    }
-                    sb.AppendLine("else");
-                    using (var _3 = sb.CodeBlock())
-                    {
-                        sb.AppendLine($"return Result<{classToGenerateMapperFor.FullName}>.Ok(obj);");
-                    }
-                    sb.AppendLine("throw new NotImplementedException();");
-
-                }
-            }
-
-            return sb.ToSourceText();
-        }
-    }
-
-
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // Add the marker attribute to the compilation
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
             "CreateMapperAttribute.g.cs",
-            SourceText.From(SourceGenerationHelper.Attribute, Encoding.UTF8)));
+            SourceText.From("""
+                namespace DotNetThoughts.FartingUnicorn
+                {
+                    [System.AttributeUsage(System.AttributeTargets.Class)]
+                    public class CreateMapperAttribute : System.Attribute
+                    {
+                    }
+                }
+                """, Encoding.UTF8)));
 
-        // Do a simple filter for enums
-        IncrementalValuesProvider<ClassToGenerateMapperFor?> classesToGenerate = context.SyntaxProvider
+        IncrementalValuesProvider<ClassDeclarationSyntax> classDeclarations = context.SyntaxProvider
             .CreateSyntaxProvider(
-                predicate: static (s, _) => IsSyntaxTargetForGeneration(s), // select enums with attributes
-                transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx)) // select enums with the [EnumExtensions] attribute and extract details
-            .Where(static m => m is not null); // Filter out errors that we don't care about
+                predicate: static (s, _) => IsSyntaxTargetForGeneration(s),
+                transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx))
+            .Where(static m => m is not null);
 
-        context.RegisterSourceOutput(classesToGenerate,
-          static (spc, source) => Execute(source, spc));
-        static void Execute(ClassToGenerateMapperFor? classToGenerateMapperFor, SourceProductionContext context)
+        IncrementalValueProvider<(Compilation, ImmutableArray<ClassDeclarationSyntax>)> compilationAndClasses
+              = context.CompilationProvider.Combine(classDeclarations.Collect());
+        context.RegisterSourceOutput(compilationAndClasses,
+          static (spc, source) => Execute(source.Item1, source.Item2, spc));
+    }
+
+    private static bool IsSyntaxTargetForGeneration(SyntaxNode node)
+           => node is ClassDeclarationSyntax m && m.AttributeLists.Count > 0;
+    private static ClassDeclarationSyntax GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
+    {
+
+        var classDeclarationSyntaxNode = (ClassDeclarationSyntax)context.Node;
+
+        foreach (AttributeListSyntax attributeListSyntax in classDeclarationSyntaxNode.AttributeLists)
         {
-            if (classToGenerateMapperFor is { } value)
+            foreach (AttributeSyntax attributeSyntax in attributeListSyntax.Attributes)
             {
-                var sourceText = SourceGenerationHelper.GenerateExtensionClass(value);
-                context.AddSource($"Mapper.{value.FullName}.g.cs", sourceText);
+                if (context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol is not IMethodSymbol attributeSymbol)
+                {
+                    continue;
+                }
+
+                INamedTypeSymbol attributeContainingTypeSymbol = attributeSymbol.ContainingType;
+                string fullName = attributeContainingTypeSymbol.ToDisplayString();
+
+                if (fullName == "DotNetThoughts.FartingUnicorn.CreateMapperAttribute")
+                {
+                    return classDeclarationSyntaxNode;
+                }
             }
         }
-        static bool IsSyntaxTargetForGeneration(SyntaxNode node)
-            => node is ClassDeclarationSyntax m && m.AttributeLists.Count > 0;
 
-        static ClassToGenerateMapperFor? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
+        return null;
+    }
+    private static void Execute(Compilation compilation, ImmutableArray<ClassDeclarationSyntax> classes, SourceProductionContext context)
+    {
+        if (classes.IsDefaultOrEmpty)
         {
-            var classDeclarationSyntaxNode = (ClassDeclarationSyntax)context.Node;
+            return;
+        }
 
-            foreach (AttributeListSyntax attributeListSyntax in classDeclarationSyntaxNode.AttributeLists)
+        // Get all referenced types that need mappers
+        var referencedTypes = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
+
+        foreach (var classDeclaration in classes)
+        {
+            var semanticModel = compilation.GetSemanticModel(classDeclaration.SyntaxTree);
+            var classSymbol = semanticModel.GetDeclaredSymbol(classDeclaration);
+            if (classSymbol == null) continue;
+
+            CollectReferencedTypes(classSymbol, referencedTypes, compilation);
+        }
+
+        // Generate mappers for all types
+        var generatedMappers = new HashSet<string>();
+
+        foreach (var classDeclaration in classes)
+        {
+            var model = BuildClassModel(classDeclaration, compilation);
+            if (model != null)
             {
-                foreach (AttributeSyntax attributeSyntax in attributeListSyntax.Attributes)
+                GenerateMapperForClass(model, context, generatedMappers);
+            }
+        }
+
+        foreach (var type in referencedTypes)
+        {
+            var syntaxRef = type.DeclaringSyntaxReferences.FirstOrDefault();
+            if (syntaxRef == null) continue;
+
+            var syntax = syntaxRef.GetSyntax() as ClassDeclarationSyntax;
+            if (syntax == null) continue;
+
+            var model = BuildClassModel(syntax, compilation);
+            if (model != null)
+            {
+                GenerateMapperForClass(model, context, generatedMappers);
+            }
+        }
+    }
+
+    private static void CollectReferencedTypes(ITypeSymbol typeSymbol, HashSet<ITypeSymbol> referencedTypes, Compilation compilation)
+    {
+        foreach (var member in typeSymbol.GetMembers())
+        {
+            if (member is IPropertySymbol property)
+            {
+                var propertyType = property.Type;
+
+                // If it's an array, get the element type
+                if (propertyType is IArrayTypeSymbol arrayType)
                 {
-                    if (context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol is not IMethodSymbol attributeSymbol)
-                    {
-                        // weird, we couldn't get the symbol, ignore it
-                        continue;
-                    }
+                    propertyType = arrayType.ElementType;
+                }
 
-                    INamedTypeSymbol attributeContainingTypeSymbol = attributeSymbol.ContainingType;
-                    string fullName = attributeContainingTypeSymbol.ToDisplayString();
-
-                    if (fullName == "DotNetThoughts.FartingUnicorn.CreateMapperAttribute")
+                // If it's a named type (class) and not a built-in type
+                if (propertyType is INamedTypeSymbol namedType &&
+                    namedType.SpecialType == SpecialType.None &&
+                    namedType.TypeKind == TypeKind.Class)
+                {
+                    if (referencedTypes.Add(propertyType))
                     {
-                        return GetClassToGenerate(context.SemanticModel, classDeclarationSyntaxNode);
+                        // Recursively collect types from the referenced type
+                        CollectReferencedTypes(propertyType, referencedTypes, compilation);
                     }
                 }
             }
-
-            return null;
         }
+    }
 
-        static ClassToGenerateMapperFor? GetClassToGenerate(SemanticModel semanticModel, SyntaxNode enumDeclarationSyntax)
+    private static void GenerateMapperForClass(ClassModel model, SourceProductionContext context, HashSet<string> generatedMappers)
+    {
+        var mapperName = $"{model.FullName}Mapper";
+        if (!generatedMappers.Add(mapperName))
         {
-            if (semanticModel.GetDeclaredSymbol(enumDeclarationSyntax) is not INamedTypeSymbol classSymbol)
-            {
-                // something went wrong
-                return null;
-            }
-
-            string className = classSymbol.ToString();
-            string name = classSymbol.Name.ToString();
-
-            // Get all the members in the enum
-            ImmutableArray<ISymbol> members = classSymbol.GetMembers();
-            var properties = new List<PropertyToGenerateMapperFor>(members.Length);
-
-            // Get all the props from the class, and add their name to the list
-            foreach (ISymbol member in members)
-            {
-                if (member is IPropertySymbol p)
-                {
-                    var t = p.Type;
-                    var isOptions = t.Name == "Option";
-                    var tName = !isOptions
-                        ? p.Type.FullTypeName()
-                        : ((INamedTypeSymbol)p.Type).TypeArguments.First().FullTypeName();
-
-                    var isNullable = t.IsNullable();
-                    if (t.IsNullableValueType())
-                    {
-                        tName = ((INamedTypeSymbol)p.Type).TypeArguments.First().FullTypeName();
-                    }
-                    properties.Add(new PropertyToGenerateMapperFor(p.Name, tName, isOptions, isNullable));
-                }
-            }
-
-            return new ClassToGenerateMapperFor(className, name, properties);
+            return; // Already generated
         }
-    }
-}
-public readonly record struct PropertyToGenerateMapperFor
-{
-    public readonly string Name;
-    public readonly string Type;
-    public readonly bool IsOption;
-    public readonly bool IsNullable;
-    public PropertyToGenerateMapperFor(string name, string type, bool isOption, bool isNullable)
-    {
-        Name = name;
-        Type = type;
-        IsOption = isOption;
-        IsNullable = isNullable;
+
+        var sourceCode = GenerateMapper(model);
+        context.AddSource($"{mapperName}.g.cs", sourceCode);
     }
 
-}
-public readonly record struct ClassToGenerateMapperFor
-{
-    public readonly string FullName;
-    public readonly string Name;
-    public readonly EquatableArray<PropertyToGenerateMapperFor> Properties;
-
-    public ClassToGenerateMapperFor(string fullName, string name, List<PropertyToGenerateMapperFor> properties)
+    private static ClassModel? BuildClassModel(ClassDeclarationSyntax classDeclaration, Compilation compilation)
     {
-        FullName = fullName;
-        Name = name;
-        Properties = new(properties.ToArray());
+        var semanticModel = compilation.GetSemanticModel(classDeclaration.SyntaxTree);
+        var classSymbol = semanticModel.GetDeclaredSymbol(classDeclaration);
+
+        if (classSymbol == null) return null;
+
+        var properties = new List<PropertyModel>();
+
+        foreach (var member in classDeclaration.Members)
+        {
+            if (member is PropertyDeclarationSyntax property)
+            {
+                var propertySymbol = semanticModel.GetDeclaredSymbol(property) as IPropertySymbol;
+                if (propertySymbol == null) continue;
+
+                var propertyType = propertySymbol.Type;
+
+                var isOption = propertyType.FullTypeName().StartsWith("FartingUnicorn.Option<");
+                var effectiveType = isOption
+                    ? ((INamedTypeSymbol)propertyType).TypeArguments.First().FullTypeName()
+                    : propertyType.FullTypeName();
+                var propertyModel = new PropertyModel
+                {
+                    Name = property.Identifier.Text,
+                    TypeName = propertyType.ToDisplayString(),
+                    IsArray = propertyType.TypeKind == TypeKind.Array,
+                    IsReferenceType = propertyType.TypeKind == TypeKind.Class && propertyType.SpecialType == SpecialType.None,
+                    //IsBuiltInType = IsBuiltInType(propertyType),
+                    IsNullable = propertyType.NullableAnnotation == NullableAnnotation.Annotated,
+                    IsOption = isOption,
+                    EffectiveType = effectiveType
+
+                    //foreach (ISymbol member in members)
+                    //            {
+                    //                if (member is IPropertySymbol p)
+                    //                {
+                    //                    var t = p.Type;
+                    //                    var isOptions = t.Name == "Option";
+                    //                    var tName = !isOptions
+                    //                        ? p.Type.FullTypeName()
+                    //                        : ((INamedTypeSymbol)p.Type).TypeArguments.First().FullTypeName();
+
+                    //                    var isNullable = t.IsNullable();
+                    //                    if (t.IsNullableValueType())
+                    //                    {
+                    //                        tName = ((INamedTypeSymbol)p.Type).TypeArguments.First().FullTypeName();
+                    //                    }
+                    //                    properties.Add(new PropertyToGenerateMapperFor(p.Name, tName, isOptions, isNullable));
+                    //                }
+                    //            }
+
+
+                };
+
+                properties.Add(propertyModel);
+            }
+        }
+
+        return new ClassModel
+        {
+            ClassName = classDeclaration.Identifier.Text,
+            FullName = classSymbol.ToDisplayString(),
+            Namespace = GetNamespace(classDeclaration),
+            Properties = properties
+        };
+    }
+
+    //private static bool IsBuiltInType(ITypeSymbol type)
+    //{
+    //    var nullableType = type as INamedTypeSymbol;
+    //    var underlyingType = nullableType?.TypeArguments.FirstOrDefault() ?? type;
+
+    //    return underlyingType.SpecialType switch
+    //    {
+    //        SpecialType.System_String => true,
+    //        SpecialType.System_Boolean => true,
+    //        SpecialType.System_Int32 => true,
+    //        SpecialType.System_Int64 => true,
+    //        SpecialType.System_Single => true,
+    //        SpecialType.System_Double => true,
+    //        SpecialType.System_Decimal => true,
+    //        SpecialType.System_DateTime => true,
+    //        _ => false
+    //    };
+    //}
+
+    private static string GetNamespace(ClassDeclarationSyntax classDeclaration)
+    {
+        var namespaceName = string.Empty;
+        var potentialNamespaceParent = classDeclaration.Parent;
+
+        while (potentialNamespaceParent != null &&
+               potentialNamespaceParent is not NamespaceDeclarationSyntax &&
+               potentialNamespaceParent is not FileScopedNamespaceDeclarationSyntax)
+        {
+            potentialNamespaceParent = potentialNamespaceParent.Parent;
+        }
+
+        if (potentialNamespaceParent is BaseNamespaceDeclarationSyntax namespaceParent)
+        {
+            namespaceName = namespaceParent.Name.ToString();
+        }
+
+        return namespaceName;
+    }
+
+    public class ClassModel
+    {
+        public string ClassName { get; set; }
+        public string FullName { get; set; }
+        public string Namespace { get; set; }
+        public List<PropertyModel> Properties { get; set; }
+        public bool HasCreateMapperAttribute { get; set; }
+
+        public string[] ClassPath =>
+                // remove namespace from start and classname from end from full name and then split by dot
+                FullName.Substring(Namespace.Length + 1, FullName.Length - Namespace.Length - ClassName.Length - 1)
+                    .Split('.').Select(x => x.Trim()).Where(x => x != string.Empty).ToArray();
+    }
+
+    public class PropertyModel
+    {
+        public string Name { get; set; }
+        public string TypeName { get; set; }
+        public bool IsArray { get; set; }
+        public bool IsReferenceType { get; set; }
+        public bool IsNullable { get; set; }
+        public bool IsOption { get; set; }
+        public string EffectiveType { get; set; }
+    }
+
+    private static string GenerateMapper(ClassModel classModel)
+    {
+        var sb = new SourceBuilder();
+        sb.AppendLine($@"// <auto-generated/>");
+        sb.AppendLine("using DotNetThoughts.Results;");
+        sb.AppendLine("using System.Text.Json;");
+        sb.AppendLine("using static FartingUnicorn.MapperOptions;");
+        sb.AppendLine();
+        sb.AppendLine($"namespace {classModel.Namespace};");
+        sb.AppendLine();
+
+
+        sb.AppendLine($"// ClassName: {classModel.ClassName}");
+        sb.AppendLine($"// FullName: {classModel.FullName}");
+        sb.AppendLine($"// Namespace: {classModel.Namespace}");
+        sb.AppendLine($"// Properties: {classModel.Properties.Count}");
+        sb.AppendLine($"// HasCreateMapperAttribute: {classModel.HasCreateMapperAttribute}");
+        sb.AppendLine($"// ClassPath: {string.Join(", ", classModel.ClassPath)}");
+        sb.AppendLine();
+        int i = 0;
+        foreach (var p in classModel.Properties)
+        {
+            sb.AppendLine($"// Property {i}");
+            sb.AppendLine($"// Name: {p.Name}");
+            sb.AppendLine($"// TypeName: {p.TypeName}");
+            sb.AppendLine($"// IsArray: {p.IsArray}");
+            sb.AppendLine($"// IsReferenceType: {p.IsReferenceType}");
+            sb.AppendLine($"// IsNullable: {p.IsNullable}");
+            sb.AppendLine($"// IsOption: {p.IsOption}");
+            sb.AppendLine($"// EffectiveType: {p.EffectiveType}");
+            sb.AppendLine();
+            i++;
+        }
+        sb.AppendLine();
+
+        var stack = new Stack<IDisposable>();
+        foreach (var c in classModel.ClassPath)
+        {
+            sb.AppendLine($"public partial class {c}");
+            sb.AppendLine("{");
+            stack.Push(sb.Indent());
+        }
+
+        // code
+
+        sb.AppendLine($"public partial class {classModel.ClassName}");
+        sb.AppendLine("{");
+        sb.AppendLine("}");
+
+        // unindent
+        while (stack.Count > 0)
+        {
+            stack.Pop().Dispose();
+            sb.AppendLine("}");
+        }
+
+        //sb.AppendLine($"public static partial class Mappers");
+        //using (var _1 = sb.CodeBlock())
+        //{
+        //    sb.AppendLine($"public static Result<{classToGenerateMapperFor.FullName}> MapTo{classToGenerateMapperFor.FullName.Replace(".", "_")}(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)");
+        //    using (var _2 = sb.CodeBlock())
+        //    {
+        //        sb.AppendLine("if (mapperOptions is null)");
+        //        using (var _3 = sb.CodeBlock())
+        //        {
+        //            sb.AppendLine("mapperOptions = new MapperOptions();");
+        //        }
+
+        //        sb.AppendLine("if (path is null)");
+        //        using (var _3 = sb.CodeBlock())
+        //        {
+        //            sb.AppendLine("path = [\"$\"];");
+        //        }
+
+        //        sb.AppendLine("if (jsonElement.ValueKind != JsonValueKind.Object)");
+        //        using (var _4 = sb.CodeBlock())
+        //        {
+        //            sb.AppendLine($"return Result<{classToGenerateMapperFor.FullName}>.Error(new ValueHasWrongTypeError(path, \"Object\", jsonElement.ValueKind.ToString()));");
+        //        }
+
+        //        sb.AppendLine($"var obj = new {classToGenerateMapperFor.FullName}();");
+        //        sb.AppendLine();
+        //        sb.AppendLine("List<IError> errors = new();");
+
+        //        foreach (var p in classToGenerateMapperFor.Properties)
+        //        {
+        //            sb.AppendLine($"var is{p.Name}PropertyDefined = jsonElement.TryGetProperty(\"{p.Name}\", out var json{p.Name}Property);");
+        //            sb.AppendLine($"if (is{p.Name}PropertyDefined)");
+        //            using (var _3 = sb.CodeBlock())
+        //            {
+        //                sb.AppendLine($"// type = {p.Type}, isOption = {p.IsOption}, isNullable = {p.IsNullable}");
+        //                sb.AppendLine($"if (json{p.Name}Property.ValueKind == JsonValueKind.Null)");
+        //                using (var _4 = sb.CodeBlock())
+        //                {
+        //                    if (p.IsOption)
+        //                    {
+        //                        sb.AppendLine($"obj.{p.Name} = new None<{p.Type}>();");
+        //                    }
+        //                    else
+        //                    {
+        //                        sb.AppendLine($"errors.Add(new RequiredValueMissingError([.. path, \"{p.Name}\"]));");
+        //                    }
+        //                }
+        //                if (p.Type == "System.String")
+        //                {
+        //                    sb.AppendLine($"else if (json{p.Name}Property.ValueKind == JsonValueKind.String)");
+        //                    using (var _4 = sb.CodeBlock())
+        //                    {
+        //                        if (p.IsOption)
+        //                        {
+        //                            sb.AppendLine($"obj.{p.Name} = new Some<string>(json{p.Name}Property.GetString());");
+
+        //                        }
+        //                        else
+        //                        {
+        //                            sb.AppendLine($"obj.{p.Name} = json{p.Name}Property.GetString();");
+        //                        }
+        //                    }
+        //                    sb.AppendLine("else");
+        //                    using (var _4 = sb.CodeBlock())
+        //                    {
+        //                        sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"String\", json{p.Name}Property.ValueKind.ToString()));");
+        //                    }
+        //                }
+        //                else if (p.Type == "System.Boolean")
+        //                {
+        //                    sb.AppendLine($"else if (json{p.Name}Property.ValueKind == JsonValueKind.True || json{p.Name}Property.ValueKind == JsonValueKind.False)");
+        //                    using (var _4 = sb.CodeBlock())
+        //                    {
+        //                        if (p.IsOption)
+        //                        {
+        //                            sb.AppendLine($"obj.{p.Name} = new Some<bool>(json{p.Name}Property.GetBoolean());");
+
+        //                        }
+        //                        else
+        //                        {
+        //                            sb.AppendLine($"obj.{p.Name} = json{p.Name}Property.GetBoolean();");
+        //                        }
+        //                    }
+        //                    sb.AppendLine("else");
+        //                    using (var _4 = sb.CodeBlock())
+        //                    {
+        //                        sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"Boolean\", json{p.Name}Property.ValueKind.ToString()));");
+        //                    }
+        //                }
+        //                else if (p.Type == "System.Int32")
+        //                {
+        //                    sb.AppendLine($"else if (json{p.Name}Property.ValueKind == JsonValueKind.Number)");
+        //                    using (var _4 = sb.CodeBlock())
+        //                    {
+        //                        if (p.IsOption)
+        //                        {
+        //                            sb.AppendLine($"obj.{p.Name} = new Some<int>(json{p.Name}Property.GetInt32());");
+
+        //                        }
+        //                        else
+        //                        {
+        //                            sb.AppendLine($"obj.{p.Name} = json{p.Name}Property.GetInt32();");
+        //                        }
+        //                    }
+        //                    sb.AppendLine("else");
+        //                    using (var _4 = sb.CodeBlock())
+        //                    {
+        //                        sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"Number\", json{p.Name}Property.ValueKind.ToString()));");
+        //                    }
+        //                }
+        //                else // custom converter?
+        //                {
+        //                    sb.AppendLine($"else if (mapperOptions.TryGetConverter(typeof({p.Type}), out IConverter customConverter))");
+        //                    using (var _4 = sb.CodeBlock())
+        //                    {
+        //                        sb.AppendLine($"if (json{p.Name}Property.ValueKind != customConverter.ExpectedJsonValueKind)");
+        //                        using (var _5 = sb.CodeBlock())
+        //                        {
+        //                            sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], customConverter.ExpectedJsonValueKind.ToString(), json{p.Name}Property.ValueKind.ToString()));");
+        //                        }
+        //                        sb.AppendLine("else");
+        //                        using (var _5 = sb.CodeBlock())
+        //                        {
+        //                            sb.AppendLine($"var result = customConverter.Convert(typeof({p.Type}), json{p.Name}Property, mapperOptions, [.. path, \"{p.Name}\"]);");
+        //                            sb.AppendLine("if (result.Success)");
+        //                            using (var _6 = sb.CodeBlock())
+        //                            {
+        //                                if (p.IsOption)
+        //                                    sb.AppendLine($"obj.{p.Name} = new Some<{p.Type}>(result.Map(x => ({p.Type})x).Value);");
+        //                                else
+        //                                    sb.AppendLine($"obj.{p.Name} = result.Map(x => ({p.Type})x).Value;");
+        //                            }
+        //                            sb.AppendLine("else");
+        //                            using (var _6 = sb.CodeBlock())
+        //                            {
+        //                                sb.AppendLine($"errors.AddRange(result.Errors.Select(x => new MappingError([.. path, \"{p.Name}\"], x.Message)).ToArray());");
+        //                            }
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //            sb.AppendLine("else");
+        //            using (var _3 = sb.CodeBlock())
+        //            {
+        //                if (p.IsNullable)
+        //                {
+        //                    sb.AppendLine($"obj.{p.Name} = null;");
+        //                }
+        //                else
+        //                {
+        //                    sb.AppendLine($"errors.Add(new RequiredPropertyMissingError([.. path, \"{p.Name}\"]));");
+        //                }
+        //            }
+        //        }
+
+        //        sb.AppendLine("if(errors.Any())");
+        //        using (var _3 = sb.CodeBlock())
+        //        {
+        //            sb.AppendLine($"return Result<{classToGenerateMapperFor.FullName}>.Error(errors);");
+        //        }
+
+        //        sb.AppendLine("if(false)/*check if is option*/");
+        //        using (var _3 = sb.CodeBlock())
+        //        {
+        //            // handle if option
+        //        }
+        //        sb.AppendLine("else");
+        //        using (var _3 = sb.CodeBlock())
+        //        {
+        //            sb.AppendLine($"return Result<{classToGenerateMapperFor.FullName}>.Ok(obj);");
+        //        }
+        //        sb.AppendLine("throw new NotImplementedException();");
+
+        //    }
+        //}
+
+        return sb.ToString();
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//        static ClassToGenerateMapperFor? GetClassToGenerate(SemanticModel semanticModel, SyntaxNode enumDeclarationSyntax)
+//        {
+//            if (semanticModel.GetDeclaredSymbol(enumDeclarationSyntax) is not INamedTypeSymbol classSymbol)
+//            {
+//                // something went wrong
+//                return null;
+//            }
+
+//            string className = classSymbol.ToString();
+//            string name = classSymbol.Name.ToString();
+
+//            // Get all the members in the enum
+//            ImmutableArray<ISymbol> members = classSymbol.GetMembers();
+//            var properties = new List<PropertyToGenerateMapperFor>(members.Length);
+
+//            // Get all the props from the class, and add their name to the list
+//            foreach (ISymbol member in members)
+//            {
+//                if (member is IPropertySymbol p)
+//                {
+//                    var t = p.Type;
+//                    var isOptions = t.Name == "Option";
+//                    var tName = !isOptions
+//                        ? p.Type.FullTypeName()
+//                        : ((INamedTypeSymbol)p.Type).TypeArguments.First().FullTypeName();
+
+//                    var isNullable = t.IsNullable();
+//                    if (t.IsNullableValueType())
+//                    {
+//                        tName = ((INamedTypeSymbol)p.Type).TypeArguments.First().FullTypeName();
+//                    }
+//                    properties.Add(new PropertyToGenerateMapperFor(p.Name, tName, isOptions, isNullable));
+//                }
+//            }
+
+//            return new ClassToGenerateMapperFor(className, name, properties);
+//        }
+//    }
+//}
+//public readonly record struct PropertyToGenerateMapperFor
+//{
+//    public readonly string Name;
+//    public readonly string Type;
+//    public readonly bool IsOption;
+//    public readonly bool IsNullable;
+//    public PropertyToGenerateMapperFor(string name, string type, bool isOption, bool isNullable)
+//    {
+//        Name = name;
+//        Type = type;
+//        IsOption = isOption;
+//        IsNullable = isNullable;
+//    }
+
+//}
+//public readonly record struct ClassToGenerateMapperFor
+//{
+//    public readonly string FullName;
+//    public readonly string Name;
+//    public readonly EquatableArray<PropertyToGenerateMapperFor> Properties;
+
+//    public ClassToGenerateMapperFor(string fullName, string name, List<PropertyToGenerateMapperFor> properties)
+//    {
+//        FullName = fullName;
+//        Name = name;
+//        Properties = new(properties.ToArray());
+//    }
+//}
