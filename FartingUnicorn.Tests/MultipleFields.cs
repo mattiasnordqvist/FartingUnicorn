@@ -1,4 +1,7 @@
-﻿using FluentAssertions;
+﻿using DotNetThoughts.FartingUnicorn;
+using DotNetThoughts.Results;
+
+using FluentAssertions;
 
 using System.Text.Json;
 
@@ -13,36 +16,45 @@ public class MultipleFields
 
         public class PUT
         {
+            [CreateMapper]
             public class BlogPost
             {
                 public string Title { get; set; }
                 public bool IsDraft { get; set; }
             }
 
-            [Fact]
-            public void BothValid()
+            public static IEnumerable<object[]> GetMappers =>
+            [
+                [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
+                [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_MultipleFields_WithoutOptions_PUT_BlogPost(x))]
+            ];
+
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void BothValid(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-        {
-          "Title": "Farting Unicorns",
-          "IsDraft": true
-        }
-        """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                {
+                  "Title": "Farting Unicorns",
+                  "IsDraft": true
+                }
+                """);
+                var blogPost = map(jsonElement);
 
                 blogPost.Should().BeSuccessful();
                 blogPost.Value.Title.Should().Be("Farting Unicorns");
                 blogPost.Value.IsDraft.Should().BeTrue();
             }
 
-            [Fact]
-            public void BothMissing()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void BothMissing(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-        {
-        }
-        """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                {
+                }
+                """);
+                var blogPost = map(jsonElement);
 
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().HaveCount(2);
@@ -50,74 +62,79 @@ public class MultipleFields
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "$.IsDraft is required");
             }
 
-            [Fact]
-            public void TitleMissing()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void TitleMissing(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-        {
-          "IsDraft": true
-        }
-        """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                {
+                  "IsDraft": true
+                }
+                """);
+                var blogPost = map(jsonElement);
 
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Title is required");
             }
 
-            [Fact]
-            public void IsDraftMissing()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void IsDraftMissing(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-        {
-          "Title": "Farting Unicorns"
-        }
-        """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                {
+                  "Title": "Farting Unicorns"
+                }
+                """);
+                var blogPost = map(jsonElement);
 
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "$.IsDraft is required");
             }
 
-            [Fact]
-            public void TitleNulled()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void TitleNulled(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-        {
-          "Title": null,
-          "IsDraft": true
-        }
-        """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                {
+                  "Title": null,
+                  "IsDraft": true
+                }
+                """);
+                var blogPost = map(jsonElement);
 
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Title must have a value");
             }
 
-            [Fact]
-            public void IsDraftNulled()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void IsDraftNulled(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-        {
-          "Title": "Farting Unicorns",
-          "IsDraft": null
-        }
-        """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                {
+                  "Title": "Farting Unicorns",
+                  "IsDraft": null
+                }
+                """);
+                var blogPost = map(jsonElement);
 
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "$.IsDraft must have a value");
             }
 
-            [Fact]
-            public void BothNulled()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void BothNulled(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-        {
-          "Title": null,
-          "IsDraft": null
-        }
-        """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                {
+                  "Title": null,
+                  "IsDraft": null
+                }
+                """);
+                var blogPost = map(jsonElement);
 
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().HaveCount(2);
@@ -125,46 +142,49 @@ public class MultipleFields
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "$.IsDraft must have a value");
             }
 
-            [Fact]
-            public void TitleInvalidType()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void TitleInvalidType(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-        {
-          "Title": 123456,
-          "IsDraft": true
-        }
-        """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                {
+                  "Title": 123456,
+                  "IsDraft": true
+                }
+                """);
+                var blogPost = map(jsonElement);
 
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Title has the wrong type. Expected String, got Number");
             }
 
-            [Fact]
-            public void IsDraftInvalidType()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void IsDraftInvalidType(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-        {
-          "Title": "Farting Unicorns",
-          "IsDraft": "true"
-        }
-        """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                {
+                  "Title": "Farting Unicorns",
+                  "IsDraft": "true"
+                }
+                """);
+                var blogPost = map(jsonElement);
 
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.IsDraft has the wrong type. Expected Boolean, got String");
             }
 
-            [Fact]
-            public void BothInvalidType()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void BothInvalidType(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-        {
-          "Title": 123456,
-          "IsDraft": "true"
-        }
-        """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                {
+                  "Title": 123456,
+                  "IsDraft": "true"
+                }
+                """);
+                var blogPost = map(jsonElement);
 
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().HaveCount(2);
@@ -175,14 +195,22 @@ public class MultipleFields
 
         public class PATCH
         {
+            [CreateMapper]
             public class BlogPost
             {
                 public string? Title { get; set; }
                 public bool? IsDraft { get; set; }
             }
 
-            [Fact]
-            public void BothValidWithValue()
+            public static IEnumerable<object[]> GetMappers =>
+            [
+                [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
+                [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_MultipleFields_WithoutOptions_PATCH_BlogPost(x))]
+            ];
+
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void BothValidWithValue(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
@@ -190,44 +218,47 @@ public class MultipleFields
                     "IsDraft": true
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
 
                 blogPost.Should().BeSuccessful();
                 blogPost.Value.Title.Should().Be("Farting Unicorns");
                 blogPost.Value.IsDraft.Should().BeTrue();
             }
 
-            [Fact]
-            public void BothMissing_AndThatsOk()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void BothMissing_AndThatsOk(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
 
                 blogPost.Should().BeSuccessful();
                 blogPost.Value.Title.Should().BeNull();
                 blogPost.Value.IsDraft.Should().BeNull();
             }
 
-            [Fact]
-            public void TitleMissing()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void TitleMissing(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
                     "IsDraft": true
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
 
                 blogPost.Should().BeSuccessful();
                 blogPost.Value.Title.Should().BeNull();
                 blogPost.Value.IsDraft.Should().BeTrue();
             }
 
-            [Fact]
-            public void BothNulled_ValuesMustExist()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void BothNulled_ValuesMustExist(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
@@ -235,7 +266,7 @@ public class MultipleFields
                     "IsDraft": null
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
 
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().HaveCount(2);
@@ -250,14 +281,23 @@ public class MultipleFields
     {
         public class PUT
         {
+            [CreateMapper]
             public class BlogPost
             {
                 public Option<string> Category { get; set; } // not all blog posts are categorized
                 public Option<int> Rating { get; set; } // rating is None before it has been rated first time.
             }
 
-            [Fact]
-            public void BothValid_WithValues()
+            public static IEnumerable<object[]> GetMappers =>
+            [
+                [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
+                [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_MultipleFields_WithOptions_PUT_BlogPost(x))]
+            ];
+
+
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void BothValid_WithValues(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
@@ -265,7 +305,7 @@ public class MultipleFields
                     "Rating": 5
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
 
                 blogPost.Should().BeSuccessful();
                 blogPost.Value.Category.Should().BeOfType<Some<string>>();
@@ -276,22 +316,24 @@ public class MultipleFields
                 someRating.Value.Should().Be(5);
             }
 
-            [Fact]
-            public void BothMissing_NotOK_BothAreRequiredInPUT()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void BothMissing_NotOK_BothAreRequiredInPUT(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().HaveCount(2);
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Category is required");
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Rating is required");
             }
 
-            [Fact]
-            public void BothNulled_OK_BothAreOptional()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void BothNulled_OK_BothAreOptional(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
@@ -299,40 +341,43 @@ public class MultipleFields
                     "Rating": null
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
                 blogPost.Should().BeSuccessful();
                 blogPost.Value.Category.Should().BeOfType<None<string>>();
                 blogPost.Value.Rating.Should().BeOfType<None<int>>();
             }
 
-            [Fact]
-            public void CategoryMissing_NotOK()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void CategoryMissing_NotOK(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
                     "Rating": 5
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Category is required");
             }
 
-            [Fact]
-            public void RatingMissing_NotOK()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void RatingMissing_NotOK(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
                     "Category": "Farting Unicorns"
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Rating is required");
             }
 
-            [Fact]
-            public void CategoryNulled_OK()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void CategoryNulled_OK(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
@@ -340,7 +385,7 @@ public class MultipleFields
                     "Rating": 5
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
                 blogPost.Should().BeSuccessful();
                 blogPost.Value.Category.Should().BeOfType<None<string>>();
                 blogPost.Value.Rating.Should().BeOfType<Some<int>>();
@@ -348,8 +393,9 @@ public class MultipleFields
                 someRating.Value.Should().Be(5);
             }
 
-            [Fact]
-            public void RatingNulled_OK()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void RatingNulled_OK(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
@@ -357,7 +403,7 @@ public class MultipleFields
                     "Rating": null
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
                 blogPost.Should().BeSuccessful();
                 blogPost.Value.Category.Should().BeOfType<Some<string>>();
                 var someCategory = (blogPost.Value.Category as Some<string>)!;
@@ -365,8 +411,9 @@ public class MultipleFields
                 blogPost.Value.Rating.Should().BeOfType<None<int>>();
             }
 
-            [Fact]
-            public void CategoryInvalidType()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void CategoryInvalidType(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
@@ -374,13 +421,14 @@ public class MultipleFields
                     "Rating": 5
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Category has the wrong type. Expected String, got Number");
             }
 
-            [Fact]
-            public void RatingInvalidType()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void RatingInvalidType(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
@@ -388,13 +436,14 @@ public class MultipleFields
                     "Rating": "5"
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Rating has the wrong type. Expected Number, got String");
             }
 
-            [Fact]
-            public void BothInvalidType()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void BothInvalidType(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
@@ -402,15 +451,16 @@ public class MultipleFields
                     "Rating": "5"
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().HaveCount(2);
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Category has the wrong type. Expected String, got Number");
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Rating has the wrong type. Expected Number, got String");
             }
 
-            [Fact]
-            public void CategoryNulledRatingInvalidType()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void CategoryNulledRatingInvalidType(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
@@ -418,20 +468,21 @@ public class MultipleFields
                     "Rating": "5"
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Rating has the wrong type. Expected Number, got String");
             }
 
-            [Fact]
-            public void CategoryMissingRatingInvalidType()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void CategoryMissingRatingInvalidType(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
                     "Rating": "5"
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().HaveCount(2);
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Category is required");
@@ -441,14 +492,22 @@ public class MultipleFields
 
         public class PATCH
         {
+            [CreateMapper]
             public class BlogPost
             {
                 public Option<string>? Category { get; set; } // not all blog posts are categorized
                 public Option<int>? Rating { get; set; } // rating is None before it has been rated first time.
             }
 
-            [Fact]
-            public void BothValid_WithValues()
+            public static IEnumerable<object[]> GetMappers =>
+            [
+                [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
+                [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_MultipleFields_WithOptions_PATCH_BlogPost(x))]
+            ];
+
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void BothValid_WithValues(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
@@ -456,7 +515,7 @@ public class MultipleFields
                     "Rating": 5
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
 
                 blogPost.Should().BeSuccessful();
                 blogPost.Value.Category.Should().BeOfType<Some<string>>();
@@ -467,29 +526,31 @@ public class MultipleFields
                 someRating.Value.Should().Be(5);
             }
 
-            [Fact]
-            public void BothMissing_AndThatsOK()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void BothMissing_AndThatsOK(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
 
                 blogPost.Should().BeSuccessful();
                 blogPost.Value.Category.Should().BeNull();
                 blogPost.Value.Rating.Should().BeNull();
             }
 
-            [Fact]
-            public void CategoryMissing_OK_ThatMeansDontTouchIt()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void CategoryMissing_OK_ThatMeansDontTouchIt(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
                     "Rating": 5
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
 
                 blogPost.Should().BeSuccessful();
                 blogPost.Value.Category.Should().BeNull();
@@ -498,15 +559,16 @@ public class MultipleFields
                 someRating.Value.Should().Be(5);
             }
 
-            [Fact]
-            public void RatingMissing_OK_ThatMeansDontTouchIt()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void RatingMissing_OK_ThatMeansDontTouchIt(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
                     "Category": "Farting Unicorns"
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
 
                 blogPost.Should().BeSuccessful();
                 blogPost.Value.Category.Should().BeOfType<Some<string>>();
@@ -515,8 +577,9 @@ public class MultipleFields
                 blogPost.Value.Rating.Should().BeNull();
             }
 
-            [Fact]
-            public void BothNulled_OK_ThatMeansTheyShouldBeNulled()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void BothNulled_OK_ThatMeansTheyShouldBeNulled(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
@@ -524,15 +587,16 @@ public class MultipleFields
                     "Rating": null
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
 
                 blogPost.Should().BeSuccessful();
                 blogPost.Value.Category.Should().BeOfType<None<string>>();
                 blogPost.Value.Rating.Should().BeOfType<None<int>>();
             }
 
-            [Fact]
-            public void CategoryNulledRatingInvalidType()
+            [Theory]
+            [MemberData(nameof(GetMappers))]
+            public void CategoryNulledRatingInvalidType(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
                 {
@@ -540,7 +604,7 @@ public class MultipleFields
                     "Rating": "5"
                 }
                 """);
-                var blogPost = Mapper.Map<BlogPost>(jsonElement);
+                var blogPost = map(jsonElement);
                 blogPost.Success.Should().BeFalse();
                 blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Rating has the wrong type. Expected Number, got String");
             }
