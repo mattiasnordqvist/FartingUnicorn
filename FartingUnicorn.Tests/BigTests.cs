@@ -1,4 +1,7 @@
-﻿using FluentAssertions;
+﻿using DotNetThoughts.FartingUnicorn;
+using DotNetThoughts.Results;
+
+using FluentAssertions;
 
 using System.Text.Json;
 
@@ -6,11 +9,12 @@ using Xunit;
 
 namespace FartingUnicorn.Tests;
 
-public class BigTests
+public partial class BigTests
 {
-    public class Put
+    public partial class Put
     {
-        public class BlogPost
+        [CreateMapper]
+        public partial class BlogPost
         {
             public string Title { get; set; }
             public bool IsDraft { get; set; }
@@ -20,20 +24,26 @@ public class BigTests
             public Comment[] Comments { get; set; }
         }
 
-        public class Author
+        public partial class Author
         {
             public string Name { get; set; }
             public Option<int> Age { get; set; }
         }
-        public class Comment
+        public partial class Comment
         {
             public string Text { get; set; }
             public int Upvotes { get; set; }
             public Option<string> Contact { get; set; }
         }
 
-        [Fact]
-        public void AllAtOnce_EverythingIsValid()
+        public static IEnumerable<object[]> GetMappers =>
+        [
+            [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
+            [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x))]
+        ];
+
+        [Theory, MemberData(nameof(GetMappers))]
+        public void AllAtOnce_EverythingIsValid(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -59,12 +69,12 @@ public class BigTests
                 ]
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Should().BeSuccessful();
         }
 
-        [Fact]
-        public void AllAtOnce_EverythingIsValid_ExceptOneComment()
+        [Theory, MemberData(nameof(GetMappers))]
+        public void AllAtOnce_EverythingIsValid_ExceptOneComment(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -89,13 +99,13 @@ public class BigTests
                 ]
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Success.Should().BeFalse();
             blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Comments.1.Contact is required");
         }
 
-        [Fact]
-        public void AllAtOnce_AboutHalfIsInvalid()
+        [Theory, MemberData(nameof(GetMappers))]
+        public void AllAtOnce_AboutHalfIsInvalid(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -123,7 +133,7 @@ public class BigTests
                 ]
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Success.Should().BeFalse();
             blogPost.Errors.Should().HaveCount(5);
             blogPost.Errors.Should().ContainSingle(e => e.Message == "$.IsDraft must have a value");

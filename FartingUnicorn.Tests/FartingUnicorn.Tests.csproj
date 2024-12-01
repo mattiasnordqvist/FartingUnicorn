@@ -28,10 +28,6 @@
 		<EmbeddedResource Remove="Generated\**" />
 		<None Remove="Generated\**" />
 	</ItemGroup>
-	<ItemGroup>
-	  <Compile Remove="BigTests.cs" />
-	  <Compile Remove="ElementTests.cs" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\FartingUnicorn\FartingUnicorn.csproj" />
