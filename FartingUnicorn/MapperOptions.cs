@@ -5,16 +5,18 @@ using System.Text.Json;
 
 namespace FartingUnicorn;
 
+public interface IConverter
+{
+    bool CanConvert(Type clrType);
+
+    JsonValueKind ExpectedJsonValueKind { get; }
+
+    Result<object> Convert(Type clrType, JsonElement jsonElement, MapperOptions mapperOptions, string[] path);
+}
+
 public class MapperOptions
 {
-    public interface IConverter
-    {
-        bool CanConvert(Type clrType);
-
-        JsonValueKind ExpectedJsonValueKind { get; }
-
-        Result<object> Convert(Type clrType, JsonElement jsonElement, MapperOptions mapperOptions, string[] path);
-    }
+    
 
     public List<IConverter> _converters = [];
 
