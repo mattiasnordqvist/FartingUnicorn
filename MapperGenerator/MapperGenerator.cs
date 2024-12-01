@@ -442,7 +442,7 @@ public class MapperGenerator : IIncrementalGenerator
                                     sb.AppendLine($"if (json{p.Name}Property.ValueKind == JsonValueKind.Object)");
                                     using (var _5 = sb.CodeBlock())
                                     {
-                                        sb.AppendLine($"var result = {p.EffectiveType}.MapFromJson(json{p.Name}Property);");
+                                        sb.AppendLine($"var result = {p.EffectiveType}.MapFromJson(json{p.Name}Property, mapperOptions, [.. path, \"{p.Name}\"]);");
                                         sb.AppendLine("if (result.Success)");
                                         using (var _6 = sb.CodeBlock())
                                         {
@@ -459,7 +459,7 @@ public class MapperGenerator : IIncrementalGenerator
                                         sb.AppendLine("else");
                                         using (var _6 = sb.CodeBlock())
                                         {
-                                            sb.AppendLine($"errors.AddRange(result.Errors.Select(x => new MappingError([.. path, \"{p.Name}\"], x.Message)).ToArray());");
+                                            sb.AppendLine($"errors.AddRange(result.Errors.ToArray());");
                                         }
                                     }
                                     sb.AppendLine("else");

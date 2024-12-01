@@ -197,14 +197,14 @@ public partial class Objects
                     {
                         if (jsonAuthorProperty.ValueKind == JsonValueKind.Object)
                         {
-                            var result = FartingUnicorn.Tests.Objects.NotOptional.Author.MapFromJson(jsonAuthorProperty);
+                            var result = FartingUnicorn.Tests.Objects.NotOptional.Author.MapFromJson(jsonAuthorProperty, mapperOptions, [.. path, "Author"]);
                             if (result.Success)
                             {
                                 obj.Author = result.Value;
                             }
                             else
                             {
-                                errors.AddRange(result.Errors.Select(x => new MappingError([.. path, "Author"], x.Message)).ToArray());
+                                errors.AddRange(result.Errors.ToArray());
                             }
                         }
                         else

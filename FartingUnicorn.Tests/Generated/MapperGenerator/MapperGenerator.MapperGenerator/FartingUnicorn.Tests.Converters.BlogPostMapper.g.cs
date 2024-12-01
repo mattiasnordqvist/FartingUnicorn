@@ -84,14 +84,14 @@ public partial class Converters
                 {
                     if (jsonIdProperty.ValueKind == JsonValueKind.Object)
                     {
-                        var result = FartingUnicorn.Tests.Converters.Id.MapFromJson(jsonIdProperty);
+                        var result = FartingUnicorn.Tests.Converters.Id.MapFromJson(jsonIdProperty, mapperOptions, [.. path, "Id"]);
                         if (result.Success)
                         {
                             obj.Id = result.Value;
                         }
                         else
                         {
-                            errors.AddRange(result.Errors.Select(x => new MappingError([.. path, "Id"], x.Message)).ToArray());
+                            errors.AddRange(result.Errors.ToArray());
                         }
                     }
                     else
