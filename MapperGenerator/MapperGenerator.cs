@@ -137,6 +137,16 @@ public class MapperGenerator : IIncrementalGenerator
                         CollectReferencedTypes(propertyType, referencedTypes, compilation);
                     }
                 }
+
+                // If its an Options<T> type, get the T type
+                if (propertyType.FullTypeName().StartsWith("FartingUnicorn.Option<"))
+                {
+                    var optionType = ((INamedTypeSymbol)propertyType).TypeArguments.First();
+                    if (referencedTypes.Add(optionType))
+                    {
+                        CollectReferencedTypes(optionType, referencedTypes, compilation);
+                    }
+                }
             }
         }
     }
@@ -170,15 +180,24 @@ public class MapperGenerator : IIncrementalGenerator
                 if (propertySymbol == null) continue;
 
                 var propertyType = propertySymbol.Type;
-                var isReferenceType = propertyType.TypeKind == TypeKind.Class;
                 var isNullable = propertyType.NullableAnnotation == NullableAnnotation.Annotated;
+                var isNullableValueType = isNullable && propertyType.IsNullableValueType();
                 var isOption = propertyType.FullTypeName().StartsWith("FartingUnicorn.Option<");
 
+                var isObject =
+                    !isNullable && !isOption ? propertyType.TypeKind == TypeKind.Class && propertyType.SpecialType == SpecialType.None
+                    : isNullable && isNullableValueType && !isOption ? false
+                    : isNullable && !isNullableValueType && !isOption ? true
+                    : isNullable && isNullableValueType && isOption ? ((INamedTypeSymbol)((INamedTypeSymbol)propertyType).TypeArguments.First()).TypeArguments.First().TypeKind == TypeKind.Class && propertyType.SpecialType == SpecialType.None
+                    : isNullable && !isNullableValueType && isOption ? ((INamedTypeSymbol)propertyType).TypeArguments.First().TypeKind == TypeKind.Class && propertyType.SpecialType == SpecialType.None
+                    : !isNullable && isOption ? ((INamedTypeSymbol)propertyType).TypeArguments.First().TypeKind == TypeKind.Class && propertyType.SpecialType == SpecialType.None
+                    : throw new Exception("Invalid combination of nullable, option, and reference type");
+
                 var effectiveType = isOption
-                    ? (isNullable && !isReferenceType
+                    ? (isNullable && !isObject
                         ? (((INamedTypeSymbol)propertyType).TypeArguments.First().FullTypeName())
                         : (((INamedTypeSymbol)propertyType).TypeArguments.First().FullTypeName()))
-                    : (isNullable && !isReferenceType
+                    : (isNullable && !isObject
                         ? (((INamedTypeSymbol)propertyType).TypeArguments.First().FullTypeName())
                         : propertyType.FullTypeName());
                 var propertyModel = new PropertyModel
@@ -186,8 +205,9 @@ public class MapperGenerator : IIncrementalGenerator
                     Name = property.Identifier.Text,
                     TypeName = propertyType.ToDisplayString(),
                     IsArray = propertyType.TypeKind == TypeKind.Array,
-                    IsReferenceType = isReferenceType,
+                    IsObject = isObject,
                     IsNullable = isNullable,
+                    IsNullableValueType = isNullableValueType,
                     IsOption = isOption,
                     EffectiveType = effectiveType
                 };
@@ -243,8 +263,9 @@ public class MapperGenerator : IIncrementalGenerator
         public string Name { get; set; }
         public string TypeName { get; set; }
         public bool IsArray { get; set; }
-        public bool IsReferenceType { get; set; }
+        public bool IsObject { get; set; }
         public bool IsNullable { get; set; }
+        public bool IsNullableValueType { get; set; }
         public bool IsOption { get; set; }
         public string EffectiveType { get; set; }
     }
@@ -275,8 +296,9 @@ public class MapperGenerator : IIncrementalGenerator
             sb.AppendLine($"// Name: {p.Name}");
             sb.AppendLine($"// TypeName: {p.TypeName}");
             sb.AppendLine($"// IsArray: {p.IsArray}");
-            sb.AppendLine($"// IsReferenceType: {p.IsReferenceType}");
+            sb.AppendLine($"// IsObject: {p.IsObject}");
             sb.AppendLine($"// IsNullable: {p.IsNullable}");
+            sb.AppendLine($"// IsNullableValueType: {p.IsNullableValueType}");
             sb.AppendLine($"// IsOption: {p.IsOption}");
             sb.AppendLine($"// EffectiveType: {p.EffectiveType}");
             sb.AppendLine();
@@ -434,7 +456,7 @@ public class MapperGenerator : IIncrementalGenerator
                                     }
                                 }
                             }
-                            if (p.IsReferenceType)
+                            if (p.IsObject)
                             {
                                 sb.AppendLine("else");
                                 using (var _4 = sb.CodeBlock())

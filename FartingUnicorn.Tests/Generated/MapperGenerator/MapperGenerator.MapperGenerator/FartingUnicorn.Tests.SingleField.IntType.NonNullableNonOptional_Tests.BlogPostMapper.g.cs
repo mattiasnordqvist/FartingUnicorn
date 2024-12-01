@@ -16,8 +16,9 @@ namespace FartingUnicorn.Tests;
 // Name: Rating
 // TypeName: int
 // IsArray: False
-// IsReferenceType: False
+// IsObject: False
 // IsNullable: False
+// IsNullableValueType: False
 // IsOption: False
 // EffectiveType: System.Int32
 

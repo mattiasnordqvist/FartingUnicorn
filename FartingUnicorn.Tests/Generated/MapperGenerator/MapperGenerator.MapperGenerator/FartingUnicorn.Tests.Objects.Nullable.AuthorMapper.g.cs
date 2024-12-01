@@ -16,8 +16,9 @@ namespace FartingUnicorn.Tests;
 // Name: Name
 // TypeName: string
 // IsArray: False
-// IsReferenceType: True
+// IsObject: False
 // IsNullable: False
+// IsNullableValueType: False
 // IsOption: False
 // EffectiveType: System.String
 
@@ -25,8 +26,9 @@ namespace FartingUnicorn.Tests;
 // Name: Age
 // TypeName: FartingUnicorn.Option<int>
 // IsArray: False
-// IsReferenceType: False
+// IsObject: False
 // IsNullable: False
+// IsNullableValueType: False
 // IsOption: True
 // EffectiveType: System.Int32
 

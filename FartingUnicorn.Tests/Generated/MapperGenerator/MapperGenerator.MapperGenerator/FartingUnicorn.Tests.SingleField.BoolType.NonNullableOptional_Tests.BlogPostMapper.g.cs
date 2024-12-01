@@ -16,8 +16,9 @@ namespace FartingUnicorn.Tests;
 // Name: IsDraft
 // TypeName: FartingUnicorn.Option<bool>
 // IsArray: False
-// IsReferenceType: False
+// IsObject: False
 // IsNullable: False
+// IsNullableValueType: False
 // IsOption: True
 // EffectiveType: System.Boolean
 

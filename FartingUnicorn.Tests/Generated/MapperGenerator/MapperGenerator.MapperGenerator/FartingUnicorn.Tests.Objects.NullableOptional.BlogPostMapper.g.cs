@@ -16,8 +16,9 @@ namespace FartingUnicorn.Tests;
 // Name: Author
 // TypeName: FartingUnicorn.Option<FartingUnicorn.Tests.Objects.NullableOptional.Author>?
 // IsArray: False
-// IsReferenceType: False
+// IsObject: True
 // IsNullable: True
+// IsNullableValueType: False
 // IsOption: True
 // EffectiveType: FartingUnicorn.Tests.Objects.NullableOptional.Author
 
@@ -71,6 +72,25 @@ public partial class Objects
                             {
                                 errors.AddRange(result.Errors.Select(x => new MappingError([.. path, "Author"], x.Message)).ToArray());
                             }
+                        }
+                    }
+                    else
+                    {
+                        if (jsonAuthorProperty.ValueKind == JsonValueKind.Object)
+                        {
+                            var result = FartingUnicorn.Tests.Objects.NullableOptional.Author.MapFromJson(jsonAuthorProperty, mapperOptions, [.. path, "Author"]);
+                            if (result.Success)
+                            {
+                                obj.Author = new Some<FartingUnicorn.Tests.Objects.NullableOptional.Author>(result.Value!);
+                            }
+                            else
+                            {
+                                errors.AddRange(result.Errors.ToArray());
+                            }
+                        }
+                        else
+                        {
+                            errors.Add(new ValueHasWrongTypeError([.. path, "Author"], "Object", jsonAuthorProperty.ValueKind.ToString()));
                         }
                     }
                 }

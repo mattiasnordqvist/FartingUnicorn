@@ -16,8 +16,9 @@ namespace FartingUnicorn.Tests;
 // Name: Author
 // TypeName: FartingUnicorn.Tests.Objects.Nullable.Author?
 // IsArray: False
-// IsReferenceType: True
+// IsObject: True
 // IsNullable: True
+// IsNullableValueType: False
 // IsOption: False
 // EffectiveType: FartingUnicorn.Tests.Objects.Nullable.Author
 

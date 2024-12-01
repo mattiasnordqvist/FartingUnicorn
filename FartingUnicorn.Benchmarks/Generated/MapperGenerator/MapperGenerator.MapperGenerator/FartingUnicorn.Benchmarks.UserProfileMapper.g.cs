@@ -16,8 +16,9 @@ namespace FartingUnicorn.Benchmarks;
 // Name: Name
 // TypeName: string
 // IsArray: False
-// IsReferenceType: True
+// IsObject: False
 // IsNullable: False
+// IsNullableValueType: False
 // IsOption: False
 // EffectiveType: System.String
 

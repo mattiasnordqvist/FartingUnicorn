@@ -16,8 +16,9 @@ namespace FartingUnicorn.Tests;
 // Name: Id
 // TypeName: FartingUnicorn.Tests.Converters.Id
 // IsArray: False
-// IsReferenceType: True
+// IsObject: True
 // IsNullable: False
+// IsNullableValueType: False
 // IsOption: False
 // EffectiveType: FartingUnicorn.Tests.Converters.Id
 
@@ -25,8 +26,9 @@ namespace FartingUnicorn.Tests;
 // Name: Title
 // TypeName: string
 // IsArray: False
-// IsReferenceType: True
+// IsObject: False
 // IsNullable: False
+// IsNullableValueType: False
 // IsOption: False
 // EffectiveType: System.String
 

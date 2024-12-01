@@ -16,8 +16,9 @@ namespace FartingUnicorn.Tests;
 // Name: Title
 // TypeName: string
 // IsArray: False
-// IsReferenceType: True
+// IsObject: False
 // IsNullable: False
+// IsNullableValueType: False
 // IsOption: False
 // EffectiveType: System.String
 
@@ -25,8 +26,9 @@ namespace FartingUnicorn.Tests;
 // Name: IsDraft
 // TypeName: bool
 // IsArray: False
-// IsReferenceType: False
+// IsObject: False
 // IsNullable: False
+// IsNullableValueType: False
 // IsOption: False
 // EffectiveType: System.Boolean
 
@@ -34,8 +36,9 @@ namespace FartingUnicorn.Tests;
 // Name: Category
 // TypeName: FartingUnicorn.Option<string>
 // IsArray: False
-// IsReferenceType: False
+// IsObject: True
 // IsNullable: False
+// IsNullableValueType: False
 // IsOption: True
 // EffectiveType: System.String
 
@@ -43,8 +46,9 @@ namespace FartingUnicorn.Tests;
 // Name: Rating
 // TypeName: FartingUnicorn.Option<int>
 // IsArray: False
-// IsReferenceType: False
+// IsObject: False
 // IsNullable: False
+// IsNullableValueType: False
 // IsOption: True
 // EffectiveType: System.Int32
 
@@ -52,8 +56,9 @@ namespace FartingUnicorn.Tests;
 // Name: Author
 // TypeName: FartingUnicorn.Option<FartingUnicorn.Tests.Objects.Optional.Author>
 // IsArray: False
-// IsReferenceType: False
+// IsObject: True
 // IsNullable: False
+// IsNullableValueType: False
 // IsOption: True
 // EffectiveType: FartingUnicorn.Tests.Objects.Optional.Author
 
@@ -191,6 +196,25 @@ public partial class Objects
                             {
                                 errors.AddRange(result.Errors.Select(x => new MappingError([.. path, "Author"], x.Message)).ToArray());
                             }
+                        }
+                    }
+                    else
+                    {
+                        if (jsonAuthorProperty.ValueKind == JsonValueKind.Object)
+                        {
+                            var result = FartingUnicorn.Tests.Objects.Optional.Author.MapFromJson(jsonAuthorProperty, mapperOptions, [.. path, "Author"]);
+                            if (result.Success)
+                            {
+                                obj.Author = new Some<FartingUnicorn.Tests.Objects.Optional.Author>(result.Value!);
+                            }
+                            else
+                            {
+                                errors.AddRange(result.Errors.ToArray());
+                            }
+                        }
+                        else
+                        {
+                            errors.Add(new ValueHasWrongTypeError([.. path, "Author"], "Object", jsonAuthorProperty.ValueKind.ToString()));
                         }
                     }
                 }

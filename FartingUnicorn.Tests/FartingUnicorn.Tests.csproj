@@ -24,6 +24,9 @@
 	<ItemGroup>
 		<!-- https://andrewlock.net/creating-a-source-generator-part-6-saving-source-generator-output-in-source-control/ -->
 		<Compile Remove="$(CompilerGeneratedFilesOutputPath)\**\*.cs"></Compile>
+		<Compile Remove="Generated\**" />
+		<EmbeddedResource Remove="Generated\**" />
+		<None Remove="Generated\**" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Compile Remove="Arrays.cs" />

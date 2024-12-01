@@ -16,8 +16,9 @@ namespace FartingUnicorn.Tests;
 // Name: Status
 // TypeName: FartingUnicorn.Option<FartingUnicorn.Tests.SingleField.EnumType.NullableOptional_Tests.BlogPost.BlogPostStatus>?
 // IsArray: False
-// IsReferenceType: False
+// IsObject: False
 // IsNullable: True
+// IsNullableValueType: False
 // IsOption: True
 // EffectiveType: FartingUnicorn.Tests.SingleField.EnumType.NullableOptional_Tests.BlogPost.BlogPostStatus
 

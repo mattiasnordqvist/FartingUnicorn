@@ -6,11 +6,11 @@ using static FartingUnicorn.MapperOptions;
 namespace FartingUnicorn.Tests;
 
 // ClassName: Author
-// FullName: FartingUnicorn.Tests.Objects.NotOptional.Author
+// FullName: FartingUnicorn.Tests.Objects.Optional.Author
 // Namespace: FartingUnicorn.Tests
 // Properties: 2
 // HasCreateMapperAttribute: False
-// ClassPath: Objects, NotOptional
+// ClassPath: Objects, Optional
 
 // Property 0
 // Name: Name
@@ -35,7 +35,7 @@ namespace FartingUnicorn.Tests;
 
 public partial class Objects
 {
-    public partial class NotOptional
+    public partial class Optional
     {
         public partial class Author
         {

@@ -16,8 +16,9 @@ namespace FartingUnicorn.Tests;
 // Name: Value
 // TypeName: long
 // IsArray: False
-// IsReferenceType: False
+// IsObject: False
 // IsNullable: False
+// IsNullableValueType: False
 // IsOption: False
 // EffectiveType: System.Int64
 
