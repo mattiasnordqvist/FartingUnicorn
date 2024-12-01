@@ -14,23 +14,21 @@ namespace FartingUnicorn.Tests;
 
 // Property 0
 // Name: Category
-// TypeName: FartingUnicorn.Option<string>
-// IsArray: False
-// IsObject: True
-// IsNullable: False
-// IsNullableValueType: False
-// IsOption: True
-// EffectiveType: System.String
-
-// Property 1
-// Name: Rating
-// TypeName: FartingUnicorn.Option<int>
+// CompleteType: FartingUnicorn.Option<string>
 // IsArray: False
 // IsObject: False
 // IsNullable: False
-// IsNullableValueType: False
 // IsOption: True
-// EffectiveType: System.Int32
+// RawType: System.String
+
+// Property 1
+// Name: Rating
+// CompleteType: FartingUnicorn.Option<int>
+// IsArray: False
+// IsObject: False
+// IsNullable: False
+// IsOption: True
+// RawType: System.Int32
 
 
 public partial class MultipleFields
@@ -41,7 +39,6 @@ public partial class MultipleFields
         {
             public partial class BlogPost
             {
-                // hello
                 public static Result<BlogPost> MapFromJson(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
                 {
                     if (mapperOptions is null)
@@ -62,7 +59,6 @@ public partial class MultipleFields
                     var isCategoryPropertyDefined = jsonElement.TryGetProperty("Category", out var jsonCategoryProperty);
                     if (isCategoryPropertyDefined)
                     {
-                        // type = FartingUnicorn.Option<string>, isOption = True, isNullable = False
                         if (jsonCategoryProperty.ValueKind == JsonValueKind.Null)
                         {
                             obj.Category = new None<System.String>();
@@ -83,7 +79,6 @@ public partial class MultipleFields
                     var isRatingPropertyDefined = jsonElement.TryGetProperty("Rating", out var jsonRatingProperty);
                     if (isRatingPropertyDefined)
                     {
-                        // type = FartingUnicorn.Option<int>, isOption = True, isNullable = False
                         if (jsonRatingProperty.ValueKind == JsonValueKind.Null)
                         {
                             obj.Rating = new None<System.Int32>();

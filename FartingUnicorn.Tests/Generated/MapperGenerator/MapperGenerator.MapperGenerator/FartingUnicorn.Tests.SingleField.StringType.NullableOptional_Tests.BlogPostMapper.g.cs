@@ -14,13 +14,12 @@ namespace FartingUnicorn.Tests;
 
 // Property 0
 // Name: Title
-// TypeName: FartingUnicorn.Option<string>?
+// CompleteType: FartingUnicorn.Option<string>?
 // IsArray: False
-// IsObject: True
+// IsObject: False
 // IsNullable: True
-// IsNullableValueType: False
 // IsOption: True
-// EffectiveType: System.String
+// RawType: System.String
 
 
 public partial class SingleField
@@ -31,7 +30,6 @@ public partial class SingleField
         {
             public partial class BlogPost
             {
-                // hello
                 public static Result<BlogPost> MapFromJson(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
                 {
                     if (mapperOptions is null)
@@ -52,7 +50,6 @@ public partial class SingleField
                     var isTitlePropertyDefined = jsonElement.TryGetProperty("Title", out var jsonTitleProperty);
                     if (isTitlePropertyDefined)
                     {
-                        // type = FartingUnicorn.Option<string>?, isOption = True, isNullable = True
                         if (jsonTitleProperty.ValueKind == JsonValueKind.Null)
                         {
                             obj.Title = new None<System.String>();

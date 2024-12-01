@@ -14,13 +14,12 @@ namespace FartingUnicorn.Tests;
 
 // Property 0
 // Name: IsDraft
-// TypeName: bool
+// CompleteType: bool
 // IsArray: False
 // IsObject: False
 // IsNullable: False
-// IsNullableValueType: False
 // IsOption: False
-// EffectiveType: System.Boolean
+// RawType: System.Boolean
 
 
 public partial class SingleField
@@ -31,7 +30,6 @@ public partial class SingleField
         {
             public partial class BlogPost
             {
-                // hello
                 public static Result<BlogPost> MapFromJson(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
                 {
                     if (mapperOptions is null)
@@ -52,7 +50,6 @@ public partial class SingleField
                     var isIsDraftPropertyDefined = jsonElement.TryGetProperty("IsDraft", out var jsonIsDraftProperty);
                     if (isIsDraftPropertyDefined)
                     {
-                        // type = bool, isOption = False, isNullable = False
                         if (jsonIsDraftProperty.ValueKind == JsonValueKind.Null)
                         {
                             errors.Add(new RequiredValueMissingError([.. path, "IsDraft"]));

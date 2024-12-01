@@ -14,18 +14,16 @@ namespace FartingUnicorn.Benchmarks;
 
 // Property 0
 // Name: Name
-// TypeName: string
+// CompleteType: string
 // IsArray: False
 // IsObject: False
 // IsNullable: False
-// IsNullableValueType: False
 // IsOption: False
-// EffectiveType: System.String
+// RawType: System.String
 
 
 public partial class UserProfile
 {
-    // hello
     public static Result<UserProfile> MapFromJson(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
     {
         if (mapperOptions is null)
@@ -46,7 +44,6 @@ public partial class UserProfile
         var isNamePropertyDefined = jsonElement.TryGetProperty("Name", out var jsonNameProperty);
         if (isNamePropertyDefined)
         {
-            // type = string, isOption = False, isNullable = False
             if (jsonNameProperty.ValueKind == JsonValueKind.Null)
             {
                 errors.Add(new RequiredValueMissingError([.. path, "Name"]));

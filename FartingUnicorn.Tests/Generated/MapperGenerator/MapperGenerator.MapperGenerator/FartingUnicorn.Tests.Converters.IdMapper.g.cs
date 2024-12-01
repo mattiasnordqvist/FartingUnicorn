@@ -14,20 +14,18 @@ namespace FartingUnicorn.Tests;
 
 // Property 0
 // Name: Value
-// TypeName: long
+// CompleteType: long
 // IsArray: False
 // IsObject: False
 // IsNullable: False
-// IsNullableValueType: False
 // IsOption: False
-// EffectiveType: System.Int64
+// RawType: System.Int64
 
 
 public partial class Converters
 {
     public partial class Id
     {
-        // hello
         public static Result<Id> MapFromJson(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
         {
             if (mapperOptions is null)
@@ -48,7 +46,6 @@ public partial class Converters
             var isValuePropertyDefined = jsonElement.TryGetProperty("Value", out var jsonValueProperty);
             if (isValuePropertyDefined)
             {
-                // type = long, isOption = False, isNullable = False
                 if (jsonValueProperty.ValueKind == JsonValueKind.Null)
                 {
                     errors.Add(new RequiredValueMissingError([.. path, "Value"]));

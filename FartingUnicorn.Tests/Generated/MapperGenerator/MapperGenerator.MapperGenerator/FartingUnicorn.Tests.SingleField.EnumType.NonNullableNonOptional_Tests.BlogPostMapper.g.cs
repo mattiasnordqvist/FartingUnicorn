@@ -14,13 +14,12 @@ namespace FartingUnicorn.Tests;
 
 // Property 0
 // Name: Status
-// TypeName: FartingUnicorn.Tests.SingleField.EnumType.NonNullableNonOptional_Tests.BlogPost.BlogPostStatus
+// CompleteType: FartingUnicorn.Tests.SingleField.EnumType.NonNullableNonOptional_Tests.BlogPost.BlogPostStatus
 // IsArray: False
 // IsObject: False
 // IsNullable: False
-// IsNullableValueType: False
 // IsOption: False
-// EffectiveType: FartingUnicorn.Tests.SingleField.EnumType.NonNullableNonOptional_Tests.BlogPost.BlogPostStatus
+// RawType: FartingUnicorn.Tests.SingleField.EnumType.NonNullableNonOptional_Tests.BlogPost.BlogPostStatus
 
 
 public partial class SingleField
@@ -31,7 +30,6 @@ public partial class SingleField
         {
             public partial class BlogPost
             {
-                // hello
                 public static Result<BlogPost> MapFromJson(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
                 {
                     if (mapperOptions is null)
@@ -52,7 +50,6 @@ public partial class SingleField
                     var isStatusPropertyDefined = jsonElement.TryGetProperty("Status", out var jsonStatusProperty);
                     if (isStatusPropertyDefined)
                     {
-                        // type = FartingUnicorn.Tests.SingleField.EnumType.NonNullableNonOptional_Tests.BlogPost.BlogPostStatus, isOption = False, isNullable = False
                         if (jsonStatusProperty.ValueKind == JsonValueKind.Null)
                         {
                             errors.Add(new RequiredValueMissingError([.. path, "Status"]));

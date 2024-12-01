@@ -141,10 +141,20 @@ public class MapperGenerator : IIncrementalGenerator
                 // If its an Options<T> type, get the T type
                 if (propertyType.FullTypeName().StartsWith("FartingUnicorn.Option<"))
                 {
-                    var optionType = ((INamedTypeSymbol)propertyType).TypeArguments.First();
-                    if (referencedTypes.Add(optionType))
+                    var typeWithoutOptions = ((INamedTypeSymbol)propertyType).TypeArguments.First();
+                    if (typeWithoutOptions is IArrayTypeSymbol typeWithoutOptionsArrayType)
                     {
-                        CollectReferencedTypes(optionType, referencedTypes, compilation);
+                        typeWithoutOptions = typeWithoutOptionsArrayType.ElementType;
+                    }
+                    if (typeWithoutOptions is INamedTypeSymbol namedType2 &&
+                       namedType2.SpecialType == SpecialType.None &&
+                       namedType2.TypeKind == TypeKind.Class)
+                    {
+                        if (referencedTypes.Add(typeWithoutOptions))
+                        {
+                            // Recursively collect types from the referenced type
+                            CollectReferencedTypes(typeWithoutOptions, referencedTypes, compilation);
+                        }
                     }
                 }
             }
@@ -179,43 +189,34 @@ public class MapperGenerator : IIncrementalGenerator
                 var propertySymbol = semanticModel.GetDeclaredSymbol(property) as IPropertySymbol;
                 if (propertySymbol == null) continue;
 
-                var propertyType = propertySymbol.Type;
-                var isNullable = propertyType.NullableAnnotation == NullableAnnotation.Annotated;
-                var isNullableValueType = isNullable && propertyType.IsNullableValueType();
-                var isOption = propertyType.FullTypeName().StartsWith("FartingUnicorn.Option<");
-                var isArray = propertyType.TypeKind == TypeKind.Array;
-                var isObject =
-                    !isNullable && !isOption ? propertyType.TypeKind == TypeKind.Class && propertyType.SpecialType == SpecialType.None
-                    : isNullable && isNullableValueType && !isOption ? false
-                    : isNullable && !isNullableValueType && !isOption ? true
-                    : isNullable && isNullableValueType && isOption ? ((INamedTypeSymbol)((INamedTypeSymbol)propertyType).TypeArguments.First()).TypeArguments.First().TypeKind == TypeKind.Class && propertyType.SpecialType == SpecialType.None
-                    : isNullable && !isNullableValueType && isOption ? ((INamedTypeSymbol)propertyType).TypeArguments.First().TypeKind == TypeKind.Class && propertyType.SpecialType == SpecialType.None
-                    : !isNullable && isOption ? ((INamedTypeSymbol)propertyType).TypeArguments.First().TypeKind == TypeKind.Class && propertyType.SpecialType == SpecialType.None
-                    : throw new Exception("Invalid combination of nullable, option, and reference type");
+                var completeType = propertySymbol.Type;
+                var (rawType, isNullable, isOption) = CalculateType(completeType);
 
-                var effectiveType = isOption
-                    ? (isNullable && !isObject
-                        ? (((INamedTypeSymbol)propertyType).TypeArguments.First().FullTypeName())
-                        : (((INamedTypeSymbol)propertyType).TypeArguments.First().FullTypeName()))
-                    : (isNullable && !isObject
-                        ? (((INamedTypeSymbol)propertyType).TypeArguments.First().FullTypeName())
-                        : propertyType.FullTypeName());
-                if (isArray)
-                {
-                    effectiveType = ((IArrayTypeSymbol)propertyType).ElementType.FullTypeName();
-                    isObject = ((IArrayTypeSymbol)propertyType).ElementType.TypeKind == TypeKind.Class && ((IArrayTypeSymbol)propertyType).ElementType.SpecialType == SpecialType.None;
-                }
                 var propertyModel = new PropertyModel
                 {
                     Name = property.Identifier.Text,
-                    TypeName = propertyType.ToDisplayString(),
-                    IsArray = isArray,
-                    IsObject = isObject,
+                    CompleteType = completeType.ToDisplayString(),
+                    IsArray = rawType.TypeKind == TypeKind.Array,
+                    IsObject = rawType.TypeKind == TypeKind.Class && rawType.SpecialType == SpecialType.None,
                     IsNullable = isNullable,
-                    IsNullableValueType = isNullableValueType,
                     IsOption = isOption,
-                    EffectiveType = effectiveType
+                    RawType = rawType.FullTypeName(),
                 };
+
+                if (propertyModel.IsArray)
+                {
+                    var elementCompleteType = ((IArrayTypeSymbol)rawType).ElementType;
+                    var (elementRawType, _, elementIsOption) = CalculateType(elementCompleteType);
+                    var arrayModel = new ArrayElementModel
+                    {
+                        CompleteType = elementCompleteType.ToDisplayString(),
+                        IsArray = elementRawType.TypeKind == TypeKind.Array,
+                        IsObject = elementRawType.TypeKind == TypeKind.Class && elementRawType.SpecialType == SpecialType.None,
+                        IsOption = elementIsOption,
+                        RawType = elementRawType.FullTypeName(),
+                    };
+                    propertyModel.ArrayElementModel = arrayModel;
+                }
 
                 properties.Add(propertyModel);
             }
@@ -228,6 +229,37 @@ public class MapperGenerator : IIncrementalGenerator
             Namespace = GetNamespace(classDeclaration),
             Properties = properties
         };
+    }
+
+    private static (ITypeSymbol rawType, bool isNullable, bool isOption) CalculateType(ITypeSymbol completeType)
+    {
+
+        var (nullabilityStripped, isNullable) = StripNullabilityFromType(completeType);
+        var (optionalityStripped, isOption) = StripOptionalityFromType(nullabilityStripped);
+        return (optionalityStripped, isNullable, isOption);
+    }
+
+    private static (ITypeSymbol, bool) StripNullabilityFromType(ITypeSymbol typeSymbol)
+    {
+        if (!typeSymbol.IsNullable())
+            return (typeSymbol, false);
+        if ((typeSymbol.IsNullableValueType() || typeSymbol.IsNullableEnumType()) && typeSymbol is INamedTypeSymbol namedTypeSymbol)
+        {
+            return (namedTypeSymbol.TypeArguments.First(), true);
+        }
+        if(typeSymbol.IsNullable() && typeSymbol.FullTypeName().StartsWith("FartingUnicorn.Option<") && typeSymbol is INamedTypeSymbol)
+        {
+            return (typeSymbol, true);
+        }
+        // nullable reference types are just annotated, so its ok to just return here
+        return (typeSymbol, true);
+    }
+
+    private static (ITypeSymbol, bool) StripOptionalityFromType(ITypeSymbol typeSymbol)
+    {
+        if (!typeSymbol.FullTypeName().StartsWith("FartingUnicorn.Option<"))
+            return (typeSymbol, false);
+        return (((INamedTypeSymbol)typeSymbol).TypeArguments.First(), true);
     }
 
     private static string GetNamespace(ClassDeclarationSyntax classDeclaration)
@@ -262,17 +294,24 @@ public class MapperGenerator : IIncrementalGenerator
                 FullName.Substring(Namespace.Length + 1, FullName.Length - Namespace.Length - ClassName.Length - 1)
                     .Split('.').Select(x => x.Trim()).Where(x => x != string.Empty).ToArray();
     }
-
+    public class ArrayElementModel
+    {
+        public string CompleteType { get; set; }
+        public bool IsArray { get; set; }
+        public bool IsObject { get; set; }
+        public bool IsOption { get; set; }
+        public string RawType { get; set; }
+    }
     public class PropertyModel
     {
         public string Name { get; set; }
-        public string TypeName { get; set; }
+        public string CompleteType { get; set; }
         public bool IsArray { get; set; }
         public bool IsObject { get; set; }
         public bool IsNullable { get; set; }
-        public bool IsNullableValueType { get; set; }
         public bool IsOption { get; set; }
-        public string EffectiveType { get; set; }
+        public string RawType { get; set; }
+        public ArrayElementModel ArrayElementModel { get; set; }
     }
 
     private static string GenerateMapper(ClassModel classModel)
@@ -299,13 +338,22 @@ public class MapperGenerator : IIncrementalGenerator
         {
             sb.AppendLine($"// Property {i}");
             sb.AppendLine($"// Name: {p.Name}");
-            sb.AppendLine($"// TypeName: {p.TypeName}");
+            sb.AppendLine($"// CompleteType: {p.CompleteType}");
             sb.AppendLine($"// IsArray: {p.IsArray}");
             sb.AppendLine($"// IsObject: {p.IsObject}");
             sb.AppendLine($"// IsNullable: {p.IsNullable}");
-            sb.AppendLine($"// IsNullableValueType: {p.IsNullableValueType}");
             sb.AppendLine($"// IsOption: {p.IsOption}");
-            sb.AppendLine($"// EffectiveType: {p.EffectiveType}");
+            sb.AppendLine($"// RawType: {p.RawType}");
+
+            if (p.IsArray)
+            {
+                sb.AppendLine($"// ArrayElemCompleteType: {p.ArrayElementModel.CompleteType}");
+                sb.AppendLine($"// IsArrayElemArray: {p.ArrayElementModel.IsArray}");
+                sb.AppendLine($"// IsArrayElemObject: {p.ArrayElementModel.IsObject}");
+                sb.AppendLine($"// IsArrayElemOption: {p.ArrayElementModel.IsOption}");
+                sb.AppendLine($"// ArrayElemRawType: {p.ArrayElementModel.RawType}");
+            }
+
             sb.AppendLine();
             i++;
         }
@@ -324,7 +372,6 @@ public class MapperGenerator : IIncrementalGenerator
         sb.AppendLine($"public partial class {classModel.ClassName}");
         using (var _1 = sb.CodeBlock())
         {
-            sb.AppendLine("// hello");
             sb.AppendLine($"public static Result<{classModel.ClassName}> MapFromJson(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)");
             using (var _2 = sb.CodeBlock())
             {
@@ -356,20 +403,19 @@ public class MapperGenerator : IIncrementalGenerator
                     sb.AppendLine($"if (is{p.Name}PropertyDefined)");
                     using (var _3 = sb.CodeBlock())
                     {
-                        sb.AppendLine($"// type = {p.TypeName}, isOption = {p.IsOption}, isNullable = {p.IsNullable}");
                         sb.AppendLine($"if (json{p.Name}Property.ValueKind == JsonValueKind.Null)");
                         using (var _4 = sb.CodeBlock())
                         {
                             if (p.IsOption)
                             {
-                                sb.AppendLine($"obj.{p.Name} = new None<{p.EffectiveType}>();");
+                                sb.AppendLine($"obj.{p.Name} = new None<{p.RawType}>();");
                             }
                             else
                             {
                                 sb.AppendLine($"errors.Add(new RequiredValueMissingError([.. path, \"{p.Name}\"]));");
                             }
                         }
-                        if (p.EffectiveType == "System.String")
+                        if (p.RawType == "System.String")
                         {
                             sb.AppendLine($"else if (json{p.Name}Property.ValueKind == JsonValueKind.String)");
                             using (var _4 = sb.CodeBlock())
@@ -390,7 +436,7 @@ public class MapperGenerator : IIncrementalGenerator
                                 sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"String\", json{p.Name}Property.ValueKind.ToString()));");
                             }
                         }
-                        else if (p.EffectiveType == "System.Boolean")
+                        else if (p.RawType == "System.Boolean")
                         {
                             sb.AppendLine($"else if (json{p.Name}Property.ValueKind == JsonValueKind.True || json{p.Name}Property.ValueKind == JsonValueKind.False)");
                             using (var _4 = sb.CodeBlock())
@@ -411,7 +457,7 @@ public class MapperGenerator : IIncrementalGenerator
                                 sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"Boolean\", json{p.Name}Property.ValueKind.ToString()));");
                             }
                         }
-                        else if (p.EffectiveType == "System.Int32")
+                        else if (p.RawType == "System.Int32")
                         {
                             sb.AppendLine($"else if (json{p.Name}Property.ValueKind == JsonValueKind.Number)");
                             using (var _4 = sb.CodeBlock())
@@ -434,31 +480,48 @@ public class MapperGenerator : IIncrementalGenerator
                         }
                         else if (p.IsArray)
                         {
-                            sb.AppendLine("// ARRAYS");
                             sb.AppendLine($"else if (json{p.Name}Property.ValueKind == JsonValueKind.Array)");
                             using (var _4 = sb.CodeBlock())
                             {
-                                sb.AppendLine($"var array = new {p.EffectiveType}[json{p.Name}Property.GetArrayLength()];");
-                                if (p.IsObject)
+                                sb.AppendLine($"var array = new {p.ArrayElementModel.CompleteType}[json{p.Name}Property.GetArrayLength()];");
+
+                                sb.AppendLine($"for(int i = 0; i < json{p.Name}Property.GetArrayLength(); i++)");
+                                using (var _5 = sb.CodeBlock())
                                 {
-                                    sb.AppendLine($"for(int i = 0; i < json{p.Name}Property.GetArrayLength(); i++)");
-                                    using (var _5 = sb.CodeBlock())
+                                    if (p.ArrayElementModel.RawType == "System.String")
                                     {
-                                        sb.AppendLine($"var result = {p.EffectiveType}.MapFromJson(json{p.Name}Property[i], mapperOptions, [.. path, \"{p.Name}\", i.ToString()]);");
-                                        sb.AppendLine("if (result.Success)");
-                                        using (var _6 = sb.CodeBlock())
-                                        {
-                                            sb.AppendLine($"array.SetValue(result.Value!, i);");
-                                        }
-                                        sb.AppendLine("else");
-                                        using (var _6 = sb.CodeBlock())
-                                        {
-                                            sb.AppendLine($"errors.AddRange(result.Errors.ToArray());");
-                                        }
+
                                     }
+                                    else if (p.ArrayElementModel.RawType == "System.Boolean")
+                                    {
+                                    }
+                                    else if (p.ArrayElementModel.RawType == "System.Int32")
+                                    {
+                                    }
+                                    else if (p.ArrayElementModel.IsObject)
+                                    {
+                                        sb.AppendLine($"var result = {p.ArrayElementModel.RawType}.MapFromJson(json{p.Name}Property[i], mapperOptions, [.. path, \"{p.Name}\", i.ToString()]);");
+                                    }
+
+                                    sb.AppendLine("if (result.Success)");
+                                    using (var _6 = sb.CodeBlock())
+                                    {
+                                        sb.AppendLine($"array.SetValue(result.Value, i);");
+                                    }
+                                    sb.AppendLine("else");
+                                    using (var _6 = sb.CodeBlock())
+                                    {
+                                        sb.AppendLine($"errors.AddRange(result.Errors.ToArray());");
+                                    }
+                                }
+                                if (p.IsOption)
+                                {
+                                    sb.AppendLine($"obj.{p.Name} = new Some<{p.ArrayElementModel.CompleteType}[]>(array);");
+                                }
+                                else
+                                {
                                     sb.AppendLine($"obj.{p.Name} = array;");
                                 }
-                                // other types, like int, strings, booleans... enums... and arrays. :'( 
                             }
                             sb.AppendLine("else");
                             using (var _4 = sb.CodeBlock())
@@ -468,7 +531,7 @@ public class MapperGenerator : IIncrementalGenerator
                         }
                         else
                         {
-                            sb.AppendLine($"else if (mapperOptions.TryGetConverter(typeof({p.EffectiveType}), out IConverter customConverter))");
+                            sb.AppendLine($"else if (mapperOptions.TryGetConverter(typeof({p.RawType}), out IConverter customConverter))");
                             using (var _4 = sb.CodeBlock())
                             {
                                 sb.AppendLine($"if (json{p.Name}Property.ValueKind != customConverter.ExpectedJsonValueKind)");
@@ -479,14 +542,14 @@ public class MapperGenerator : IIncrementalGenerator
                                 sb.AppendLine("else");
                                 using (var _5 = sb.CodeBlock())
                                 {
-                                    sb.AppendLine($"var result = customConverter.Convert(typeof({p.EffectiveType}), json{p.Name}Property, mapperOptions, [.. path, \"{p.Name}\"]);");
+                                    sb.AppendLine($"var result = customConverter.Convert(typeof({p.RawType}), json{p.Name}Property, mapperOptions, [.. path, \"{p.Name}\"]);");
                                     sb.AppendLine("if (result.Success)");
                                     using (var _6 = sb.CodeBlock())
                                     {
                                         if (p.IsOption)
-                                            sb.AppendLine($"obj.{p.Name} = new Some<{p.EffectiveType}>(result.Map(x => ({p.EffectiveType})x).Value);");
+                                            sb.AppendLine($"obj.{p.Name} = new Some<{p.RawType}>(result.Map(x => ({p.RawType})x).Value);");
                                         else
-                                            sb.AppendLine($"obj.{p.Name} = result.Map(x => ({p.EffectiveType})x).Value;");
+                                            sb.AppendLine($"obj.{p.Name} = result.Map(x => ({p.RawType})x).Value;");
                                     }
                                     sb.AppendLine("else");
                                     using (var _6 = sb.CodeBlock())
@@ -503,13 +566,13 @@ public class MapperGenerator : IIncrementalGenerator
                                     sb.AppendLine($"if (json{p.Name}Property.ValueKind == JsonValueKind.Object)");
                                     using (var _5 = sb.CodeBlock())
                                     {
-                                        sb.AppendLine($"var result = {p.EffectiveType}.MapFromJson(json{p.Name}Property, mapperOptions, [.. path, \"{p.Name}\"]);");
+                                        sb.AppendLine($"var result = {p.RawType}.MapFromJson(json{p.Name}Property, mapperOptions, [.. path, \"{p.Name}\"]);");
                                         sb.AppendLine("if (result.Success)");
                                         using (var _6 = sb.CodeBlock())
                                         {
                                             if (p.IsOption)
                                             {
-                                                sb.AppendLine($"obj.{p.Name} = new Some<{p.EffectiveType}>(result.Value!);");
+                                                sb.AppendLine($"obj.{p.Name} = new Some<{p.RawType}>(result.Value!);");
 
                                             }
                                             else

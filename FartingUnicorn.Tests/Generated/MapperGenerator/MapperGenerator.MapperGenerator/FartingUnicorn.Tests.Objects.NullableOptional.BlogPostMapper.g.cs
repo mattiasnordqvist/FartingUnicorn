@@ -14,13 +14,12 @@ namespace FartingUnicorn.Tests;
 
 // Property 0
 // Name: Author
-// TypeName: FartingUnicorn.Option<FartingUnicorn.Tests.Objects.NullableOptional.Author>?
+// CompleteType: FartingUnicorn.Option<FartingUnicorn.Tests.Objects.NullableOptional.Author>?
 // IsArray: False
 // IsObject: True
 // IsNullable: True
-// IsNullableValueType: False
 // IsOption: True
-// EffectiveType: FartingUnicorn.Tests.Objects.NullableOptional.Author
+// RawType: FartingUnicorn.Tests.Objects.NullableOptional.Author
 
 
 public partial class Objects
@@ -29,7 +28,6 @@ public partial class Objects
     {
         public partial class BlogPost
         {
-            // hello
             public static Result<BlogPost> MapFromJson(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
             {
                 if (mapperOptions is null)
@@ -50,7 +48,6 @@ public partial class Objects
                 var isAuthorPropertyDefined = jsonElement.TryGetProperty("Author", out var jsonAuthorProperty);
                 if (isAuthorPropertyDefined)
                 {
-                    // type = FartingUnicorn.Option<FartingUnicorn.Tests.Objects.NullableOptional.Author>?, isOption = True, isNullable = True
                     if (jsonAuthorProperty.ValueKind == JsonValueKind.Null)
                     {
                         obj.Author = new None<FartingUnicorn.Tests.Objects.NullableOptional.Author>();

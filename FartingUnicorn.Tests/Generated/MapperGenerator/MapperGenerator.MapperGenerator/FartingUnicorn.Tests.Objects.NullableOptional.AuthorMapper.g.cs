@@ -14,23 +14,21 @@ namespace FartingUnicorn.Tests;
 
 // Property 0
 // Name: Name
-// TypeName: string
+// CompleteType: string
 // IsArray: False
 // IsObject: False
 // IsNullable: False
-// IsNullableValueType: False
 // IsOption: False
-// EffectiveType: System.String
+// RawType: System.String
 
 // Property 1
 // Name: Age
-// TypeName: FartingUnicorn.Option<int>
+// CompleteType: FartingUnicorn.Option<int>
 // IsArray: False
 // IsObject: False
 // IsNullable: False
-// IsNullableValueType: False
 // IsOption: True
-// EffectiveType: System.Int32
+// RawType: System.Int32
 
 
 public partial class Objects
@@ -39,7 +37,6 @@ public partial class Objects
     {
         public partial class Author
         {
-            // hello
             public static Result<Author> MapFromJson(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
             {
                 if (mapperOptions is null)
@@ -60,7 +57,6 @@ public partial class Objects
                 var isNamePropertyDefined = jsonElement.TryGetProperty("Name", out var jsonNameProperty);
                 if (isNamePropertyDefined)
                 {
-                    // type = string, isOption = False, isNullable = False
                     if (jsonNameProperty.ValueKind == JsonValueKind.Null)
                     {
                         errors.Add(new RequiredValueMissingError([.. path, "Name"]));
@@ -81,7 +77,6 @@ public partial class Objects
                 var isAgePropertyDefined = jsonElement.TryGetProperty("Age", out var jsonAgeProperty);
                 if (isAgePropertyDefined)
                 {
-                    // type = FartingUnicorn.Option<int>, isOption = True, isNullable = False
                     if (jsonAgeProperty.ValueKind == JsonValueKind.Null)
                     {
                         obj.Age = new None<System.Int32>();

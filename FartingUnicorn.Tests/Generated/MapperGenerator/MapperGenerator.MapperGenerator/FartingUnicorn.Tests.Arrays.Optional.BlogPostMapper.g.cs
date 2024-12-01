@@ -6,30 +6,30 @@ using static FartingUnicorn.MapperOptions;
 namespace FartingUnicorn.Tests;
 
 // ClassName: BlogPost
-// FullName: FartingUnicorn.Tests.Arrays.NotOptional.BlogPost
+// FullName: FartingUnicorn.Tests.Arrays.Optional.BlogPost
 // Namespace: FartingUnicorn.Tests
 // Properties: 1
 // HasCreateMapperAttribute: False
-// ClassPath: Arrays, NotOptional
+// ClassPath: Arrays, Optional
 
 // Property 0
 // Name: Comments
-// CompleteType: FartingUnicorn.Tests.Arrays.NotOptional.Comment[]
+// CompleteType: FartingUnicorn.Option<FartingUnicorn.Tests.Arrays.Optional.Comment[]>
 // IsArray: True
 // IsObject: False
 // IsNullable: False
-// IsOption: False
-// RawType: FartingUnicorn.Tests.Arrays.NotOptional.Comment[]
-// ArrayElemCompleteType: FartingUnicorn.Tests.Arrays.NotOptional.Comment
+// IsOption: True
+// RawType: FartingUnicorn.Tests.Arrays.Optional.Comment[]
+// ArrayElemCompleteType: FartingUnicorn.Tests.Arrays.Optional.Comment
 // IsArrayElemArray: False
 // IsArrayElemObject: True
 // IsArrayElemOption: False
-// ArrayElemRawType: FartingUnicorn.Tests.Arrays.NotOptional.Comment
+// ArrayElemRawType: FartingUnicorn.Tests.Arrays.Optional.Comment
 
 
 public partial class Arrays
 {
-    public partial class NotOptional
+    public partial class Optional
     {
         public partial class BlogPost
         {
@@ -55,14 +55,14 @@ public partial class Arrays
                 {
                     if (jsonCommentsProperty.ValueKind == JsonValueKind.Null)
                     {
-                        errors.Add(new RequiredValueMissingError([.. path, "Comments"]));
+                        obj.Comments = new None<FartingUnicorn.Tests.Arrays.Optional.Comment[]>();
                     }
                     else if (jsonCommentsProperty.ValueKind == JsonValueKind.Array)
                     {
-                        var array = new FartingUnicorn.Tests.Arrays.NotOptional.Comment[jsonCommentsProperty.GetArrayLength()];
+                        var array = new FartingUnicorn.Tests.Arrays.Optional.Comment[jsonCommentsProperty.GetArrayLength()];
                         for(int i = 0; i < jsonCommentsProperty.GetArrayLength(); i++)
                         {
-                            var result = FartingUnicorn.Tests.Arrays.NotOptional.Comment.MapFromJson(jsonCommentsProperty[i], mapperOptions, [.. path, "Comments", i.ToString()]);
+                            var result = FartingUnicorn.Tests.Arrays.Optional.Comment.MapFromJson(jsonCommentsProperty[i], mapperOptions, [.. path, "Comments", i.ToString()]);
                             if (result.Success)
                             {
                                 array.SetValue(result.Value, i);
@@ -72,7 +72,7 @@ public partial class Arrays
                                 errors.AddRange(result.Errors.ToArray());
                             }
                         }
-                        obj.Comments = array;
+                        obj.Comments = new Some<FartingUnicorn.Tests.Arrays.Optional.Comment[]>(array);
                     }
                     else
                     {

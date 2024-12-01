@@ -6,11 +6,11 @@ using static FartingUnicorn.MapperOptions;
 namespace FartingUnicorn.Tests;
 
 // ClassName: Comment
-// FullName: FartingUnicorn.Tests.Arrays.NotOptional.Comment
+// FullName: FartingUnicorn.Tests.Arrays.Optional.Comment
 // Namespace: FartingUnicorn.Tests
 // Properties: 3
 // HasCreateMapperAttribute: False
-// ClassPath: Arrays, NotOptional
+// ClassPath: Arrays, Optional
 
 // Property 0
 // Name: Text
@@ -42,7 +42,7 @@ namespace FartingUnicorn.Tests;
 
 public partial class Arrays
 {
-    public partial class NotOptional
+    public partial class Optional
     {
         public partial class Comment
         {

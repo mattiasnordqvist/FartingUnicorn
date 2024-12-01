@@ -14,13 +14,12 @@ namespace FartingUnicorn.Tests;
 
 // Property 0
 // Name: Rating
-// TypeName: int
+// CompleteType: int
 // IsArray: False
 // IsObject: False
 // IsNullable: False
-// IsNullableValueType: False
 // IsOption: False
-// EffectiveType: System.Int32
+// RawType: System.Int32
 
 
 public partial class SingleField
@@ -31,7 +30,6 @@ public partial class SingleField
         {
             public partial class BlogPost
             {
-                // hello
                 public static Result<BlogPost> MapFromJson(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
                 {
                     if (mapperOptions is null)
@@ -52,7 +50,6 @@ public partial class SingleField
                     var isRatingPropertyDefined = jsonElement.TryGetProperty("Rating", out var jsonRatingProperty);
                     if (isRatingPropertyDefined)
                     {
-                        // type = int, isOption = False, isNullable = False
                         if (jsonRatingProperty.ValueKind == JsonValueKind.Null)
                         {
                             errors.Add(new RequiredValueMissingError([.. path, "Rating"]));

@@ -137,9 +137,9 @@ public partial class SingleField
             public void MissingNullableField(Func<JsonElement, Result<BlogPost>> map)
             {
                 var jsonElement = JsonSerializer.Deserialize<JsonElement>("""
-            {
-            }
-            """);
+                    {
+                    }
+                    """);
                 var blogPost = map(jsonElement);
 
                 Assert.True(blogPost.Success);

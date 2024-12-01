@@ -14,23 +14,21 @@ namespace FartingUnicorn.Tests;
 
 // Property 0
 // Name: Title
-// TypeName: string
+// CompleteType: string
 // IsArray: False
 // IsObject: False
 // IsNullable: False
-// IsNullableValueType: False
 // IsOption: False
-// EffectiveType: System.String
+// RawType: System.String
 
 // Property 1
 // Name: Status
-// TypeName: FartingUnicorn.Tests.Enums.NotNullableNotOptionable.BlogPostStatus
+// CompleteType: FartingUnicorn.Tests.Enums.NotNullableNotOptionable.BlogPostStatus
 // IsArray: False
 // IsObject: False
 // IsNullable: False
-// IsNullableValueType: False
 // IsOption: False
-// EffectiveType: FartingUnicorn.Tests.Enums.NotNullableNotOptionable.BlogPostStatus
+// RawType: FartingUnicorn.Tests.Enums.NotNullableNotOptionable.BlogPostStatus
 
 
 public partial class Enums
@@ -39,7 +37,6 @@ public partial class Enums
     {
         public partial class BlogPost
         {
-            // hello
             public static Result<BlogPost> MapFromJson(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
             {
                 if (mapperOptions is null)
@@ -60,7 +57,6 @@ public partial class Enums
                 var isTitlePropertyDefined = jsonElement.TryGetProperty("Title", out var jsonTitleProperty);
                 if (isTitlePropertyDefined)
                 {
-                    // type = string, isOption = False, isNullable = False
                     if (jsonTitleProperty.ValueKind == JsonValueKind.Null)
                     {
                         errors.Add(new RequiredValueMissingError([.. path, "Title"]));
@@ -81,7 +77,6 @@ public partial class Enums
                 var isStatusPropertyDefined = jsonElement.TryGetProperty("Status", out var jsonStatusProperty);
                 if (isStatusPropertyDefined)
                 {
-                    // type = FartingUnicorn.Tests.Enums.NotNullableNotOptionable.BlogPostStatus, isOption = False, isNullable = False
                     if (jsonStatusProperty.ValueKind == JsonValueKind.Null)
                     {
                         errors.Add(new RequiredValueMissingError([.. path, "Status"]));

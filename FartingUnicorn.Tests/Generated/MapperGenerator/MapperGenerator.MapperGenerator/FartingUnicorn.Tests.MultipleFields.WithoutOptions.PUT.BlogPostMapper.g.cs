@@ -14,23 +14,21 @@ namespace FartingUnicorn.Tests;
 
 // Property 0
 // Name: Title
-// TypeName: string
+// CompleteType: string
 // IsArray: False
 // IsObject: False
 // IsNullable: False
-// IsNullableValueType: False
 // IsOption: False
-// EffectiveType: System.String
+// RawType: System.String
 
 // Property 1
 // Name: IsDraft
-// TypeName: bool
+// CompleteType: bool
 // IsArray: False
 // IsObject: False
 // IsNullable: False
-// IsNullableValueType: False
 // IsOption: False
-// EffectiveType: System.Boolean
+// RawType: System.Boolean
 
 
 public partial class MultipleFields
@@ -41,7 +39,6 @@ public partial class MultipleFields
         {
             public partial class BlogPost
             {
-                // hello
                 public static Result<BlogPost> MapFromJson(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
                 {
                     if (mapperOptions is null)
@@ -62,7 +59,6 @@ public partial class MultipleFields
                     var isTitlePropertyDefined = jsonElement.TryGetProperty("Title", out var jsonTitleProperty);
                     if (isTitlePropertyDefined)
                     {
-                        // type = string, isOption = False, isNullable = False
                         if (jsonTitleProperty.ValueKind == JsonValueKind.Null)
                         {
                             errors.Add(new RequiredValueMissingError([.. path, "Title"]));
@@ -83,7 +79,6 @@ public partial class MultipleFields
                     var isIsDraftPropertyDefined = jsonElement.TryGetProperty("IsDraft", out var jsonIsDraftProperty);
                     if (isIsDraftPropertyDefined)
                     {
-                        // type = bool, isOption = False, isNullable = False
                         if (jsonIsDraftProperty.ValueKind == JsonValueKind.Null)
                         {
                             errors.Add(new RequiredValueMissingError([.. path, "IsDraft"]));
