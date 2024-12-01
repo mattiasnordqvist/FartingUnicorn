@@ -80,6 +80,25 @@ public partial class Converters
                         }
                     }
                 }
+                else
+                {
+                    if (jsonIdProperty.ValueKind == JsonValueKind.Object)
+                    {
+                        var result = FartingUnicorn.Tests.Converters.Id.MapFromJson(jsonIdProperty);
+                        if (result.Success)
+                        {
+                            obj.Id = result.Value;
+                        }
+                        else
+                        {
+                            errors.AddRange(result.Errors.Select(x => new MappingError([.. path, "Id"], x.Message)).ToArray());
+                        }
+                    }
+                    else
+                    {
+                        errors.Add(new ValueHasWrongTypeError([.. path, "Id"], "Object", jsonIdProperty.ValueKind.ToString()));
+                    }
+                }
             }
             else
             {

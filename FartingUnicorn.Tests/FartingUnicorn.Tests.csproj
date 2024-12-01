@@ -29,7 +29,6 @@
 	  <Compile Remove="Arrays.cs" />
 	  <Compile Remove="BigTests.cs" />
 	  <Compile Remove="ElementTests.cs" />
-	  <Compile Remove="Objects.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

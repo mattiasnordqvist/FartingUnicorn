@@ -1,4 +1,6 @@
-﻿using FluentAssertions;
+﻿using DotNetThoughts.FartingUnicorn;
+
+using FluentAssertions;
 
 using System.Text.Json;
 
@@ -6,16 +8,17 @@ using Xunit;
 
 namespace FartingUnicorn.Tests;
 
-public class Arrays
+public partial class Arrays
 {
-    public class NotOptional
+    public partial class NotOptional
     {
-        public class BlogPost
+        [CreateMapper]
+        public partial class BlogPost
         {
             public Comment[] Comments { get; set; }
         }
 
-        public class Comment
+        public partial class Comment
         {
             public string Text { get; set; }
             public int Upvotes { get; set; }

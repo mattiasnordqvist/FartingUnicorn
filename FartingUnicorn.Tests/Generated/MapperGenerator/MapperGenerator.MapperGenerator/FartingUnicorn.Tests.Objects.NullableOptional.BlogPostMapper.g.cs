@@ -6,25 +6,25 @@ using static FartingUnicorn.MapperOptions;
 namespace FartingUnicorn.Tests;
 
 // ClassName: BlogPost
-// FullName: FartingUnicorn.Tests.Objects.Nullable.BlogPost
+// FullName: FartingUnicorn.Tests.Objects.NullableOptional.BlogPost
 // Namespace: FartingUnicorn.Tests
 // Properties: 1
 // HasCreateMapperAttribute: False
-// ClassPath: Objects, Nullable
+// ClassPath: Objects, NullableOptional
 
 // Property 0
 // Name: Author
-// TypeName: FartingUnicorn.Tests.Objects.Nullable.Author?
+// TypeName: FartingUnicorn.Option<FartingUnicorn.Tests.Objects.NullableOptional.Author>?
 // IsArray: False
-// IsReferenceType: True
+// IsReferenceType: False
 // IsNullable: True
-// IsOption: False
-// EffectiveType: FartingUnicorn.Tests.Objects.Nullable.Author
+// IsOption: True
+// EffectiveType: FartingUnicorn.Tests.Objects.NullableOptional.Author
 
 
 public partial class Objects
 {
-    public partial class Nullable
+    public partial class NullableOptional
     {
         public partial class BlogPost
         {
@@ -49,12 +49,12 @@ public partial class Objects
                 var isAuthorPropertyDefined = jsonElement.TryGetProperty("Author", out var jsonAuthorProperty);
                 if (isAuthorPropertyDefined)
                 {
-                    // type = FartingUnicorn.Tests.Objects.Nullable.Author?, isOption = False, isNullable = True
+                    // type = FartingUnicorn.Option<FartingUnicorn.Tests.Objects.NullableOptional.Author>?, isOption = True, isNullable = True
                     if (jsonAuthorProperty.ValueKind == JsonValueKind.Null)
                     {
-                        errors.Add(new RequiredValueMissingError([.. path, "Author"]));
+                        obj.Author = new None<FartingUnicorn.Tests.Objects.NullableOptional.Author>();
                     }
-                    else if (mapperOptions.TryGetConverter(typeof(FartingUnicorn.Tests.Objects.Nullable.Author), out IConverter customConverter))
+                    else if (mapperOptions.TryGetConverter(typeof(FartingUnicorn.Tests.Objects.NullableOptional.Author), out IConverter customConverter))
                     {
                         if (jsonAuthorProperty.ValueKind != customConverter.ExpectedJsonValueKind)
                         {
@@ -62,34 +62,15 @@ public partial class Objects
                         }
                         else
                         {
-                            var result = customConverter.Convert(typeof(FartingUnicorn.Tests.Objects.Nullable.Author), jsonAuthorProperty, mapperOptions, [.. path, "Author"]);
+                            var result = customConverter.Convert(typeof(FartingUnicorn.Tests.Objects.NullableOptional.Author), jsonAuthorProperty, mapperOptions, [.. path, "Author"]);
                             if (result.Success)
                             {
-                                obj.Author = result.Map(x => (FartingUnicorn.Tests.Objects.Nullable.Author)x).Value;
+                                obj.Author = new Some<FartingUnicorn.Tests.Objects.NullableOptional.Author>(result.Map(x => (FartingUnicorn.Tests.Objects.NullableOptional.Author)x).Value);
                             }
                             else
                             {
                                 errors.AddRange(result.Errors.Select(x => new MappingError([.. path, "Author"], x.Message)).ToArray());
                             }
-                        }
-                    }
-                    else
-                    {
-                        if (jsonAuthorProperty.ValueKind == JsonValueKind.Object)
-                        {
-                            var result = FartingUnicorn.Tests.Objects.Nullable.Author.MapFromJson(jsonAuthorProperty);
-                            if (result.Success)
-                            {
-                                obj.Author = result.Value;
-                            }
-                            else
-                            {
-                                errors.AddRange(result.Errors.Select(x => new MappingError([.. path, "Author"], x.Message)).ToArray());
-                            }
-                        }
-                        else
-                        {
-                            errors.Add(new ValueHasWrongTypeError([.. path, "Author"], "Object", jsonAuthorProperty.ValueKind.ToString()));
                         }
                     }
                 }

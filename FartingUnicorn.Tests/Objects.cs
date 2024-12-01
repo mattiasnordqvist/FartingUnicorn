@@ -10,9 +10,11 @@ using Xunit;
 namespace FartingUnicorn.Tests;
 public partial class Objects
 {
-    public class NotOptional
+    public partial class NotOptional
     {
-        public class BlogPost
+
+        [CreateMapper]
+        public partial class BlogPost
         {
             public string Title { get; set; }
             public bool IsDraft { get; set; }
@@ -20,14 +22,21 @@ public partial class Objects
             public Option<int> Rating { get; set; }
             public Author Author { get; set; }
         }
-        public class Author
+
+        public partial class Author
         {
             public string Name { get; set; }
             public Option<int> Age { get; set; }
         }
 
-        [Fact]
-        public void Valid()
+        public static IEnumerable<object[]> GetMappers =>
+        [
+            [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
+            [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x))]
+        ];
+
+        [Theory, MemberData(nameof(GetMappers))]
+        public void Valid(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -41,7 +50,7 @@ public partial class Objects
                 }
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Should().BeSuccessful();
             blogPost.Value.Title.Should().Be("Farting Unicorns");
             blogPost.Value.IsDraft.Should().BeTrue();
@@ -57,8 +66,8 @@ public partial class Objects
             someAge.Value.Should().Be(42);
         }
 
-        [Fact]
-        public void AgeIsOptional_ButIsNotAllowedToBeMissing()
+        [Theory, MemberData(nameof(GetMappers))]
+        public void AgeIsOptional_ButIsNotAllowedToBeMissing(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -71,13 +80,13 @@ public partial class Objects
                 }
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Success.Should().BeFalse();
             blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Author.Age is required");
         }
 
-        [Fact]
-        public void AgeIsOptional()
+        [Theory, MemberData(nameof(GetMappers))]
+        public void AgeIsOptional(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -91,13 +100,13 @@ public partial class Objects
                 }
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Should().BeSuccessful();
             blogPost.Value.Author.Age.Should().BeOfType<None<int>>();
         }
 
-        [Fact]
-        public void AuthorIsRequired()
+        [Theory, MemberData(nameof(GetMappers))]
+        public void AuthorIsRequired(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -107,13 +116,13 @@ public partial class Objects
                 "Rating": 5
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Success.Should().BeFalse();
             blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Author is required");
         }
 
-        [Fact]
-        public void AuthorCannotBeNull()
+        [Theory, MemberData(nameof(GetMappers))]
+        public void AuthorCannotBeNull(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -124,13 +133,13 @@ public partial class Objects
                 "Author": null
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Success.Should().BeFalse();
             blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Author must have a value");
         }
 
-        [Fact]
-        public void AuthorIsWrongType()
+        [Theory, MemberData(nameof(GetMappers))]
+        public void AuthorIsWrongType(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -141,16 +150,17 @@ public partial class Objects
                 "Author": 123456
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Success.Should().BeFalse();
             blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Author has the wrong type. Expected Object, got Number");
 
         }
     }
 
-    public class Optional
+    public partial class Optional
     {
-        public class BlogPost
+        [CreateMapper]
+        public partial class BlogPost
         {
             public string Title { get; set; }
             public bool IsDraft { get; set; }
@@ -158,13 +168,19 @@ public partial class Objects
             public Option<int> Rating { get; set; }
             public Option<Author> Author { get; set; }
         }
-        public class Author
+        public partial class Author
         {
             public string Name { get; set; }
             public Option<int> Age { get; set; }
         }
-        [Fact]
-        public void Valid()
+        public static IEnumerable<object[]> GetMappers =>
+        [
+            [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
+            [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x))]
+        ];
+
+        [Theory, MemberData(nameof(GetMappers))]
+        public void Valid(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -178,7 +194,7 @@ public partial class Objects
                 }
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Should().BeSuccessful();
             blogPost.Value.Title.Should().Be("Farting Unicorns");
             blogPost.Value.IsDraft.Should().BeTrue();
@@ -196,8 +212,8 @@ public partial class Objects
             someAge.Value.Should().Be(42);
         }
 
-        [Fact]
-        public void AgeIsOptional_ButIsNotAllowedToBeMissing()
+        [Theory, MemberData(nameof(GetMappers))]
+        public void AgeIsOptional_ButIsNotAllowedToBeMissing(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -210,13 +226,13 @@ public partial class Objects
                 }
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Success.Should().BeFalse();
             blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Author.Age is required");
         }
 
-        [Fact]
-        public void AuthorCannotBeMissing()
+        [Theory, MemberData(nameof(GetMappers))]
+        public void AuthorCannotBeMissing(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -226,13 +242,13 @@ public partial class Objects
                 "Rating": 5
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Success.Should().BeFalse();
             blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Author is required");
         }
 
-        [Fact]
-        public void AuthorIsOptional()
+        [Theory, MemberData(nameof(GetMappers))]
+        public void AuthorIsOptional(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -243,13 +259,13 @@ public partial class Objects
                 "Author": null
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Should().BeSuccessful();
             blogPost.Value.Author.Should().BeOfType<None<Author>>();
         }
 
-        [Fact]
-        public void AuthorIsWrongType()
+        [Theory, MemberData(nameof(GetMappers))]
+        public void AuthorIsWrongType(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -260,7 +276,7 @@ public partial class Objects
                 "Author": 123456
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Success.Should().BeFalse();
             blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Author has the wrong type. Expected Object, got Number");
 
@@ -283,7 +299,7 @@ public partial class Objects
         public static IEnumerable<object[]> GetMappers =>
         [
             [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
-            [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_Objects_Nullable_BlogPost(x))]
+            [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x))]
         ];
 
         [Theory]
@@ -319,20 +335,29 @@ public partial class Objects
         }
     }
 
-    public class NullableOptional
+    public partial class NullableOptional
     {
-        public class BlogPost
+        [CreateMapper]
+        public partial class BlogPost
         {
             public Option<Author>? Author { get; set; }
         }
-        public class Author
+        
+        public partial class Author
         {
             public string Name { get; set; }
             public Option<int> Age { get; set; }
         }
+        
+        public static IEnumerable<object[]> GetMappers =>
+        [
+            [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
+            [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x))]
+        ];
 
-        [Fact]
-        public void Valid()
+        [Theory]
+        [MemberData(nameof(GetMappers))]
+        public void Valid(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -342,7 +367,7 @@ public partial class Objects
                 }
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Should().BeSuccessful();
             blogPost.Value.Author.Should().NotBeNull();
             blogPost.Value.Author!.Should().BeOfType<Some<Author>>();
@@ -351,27 +376,29 @@ public partial class Objects
             someAuthor.Value.Age.Should().BeOfType<Some<int>>();
         }
 
-        [Fact]
-        public void Missing()
+        [Theory]
+        [MemberData(nameof(GetMappers))]
+        public void Missing(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Should().BeSuccessful();
             blogPost.Value.Author.Should().BeNull();
         }
 
-        [Fact]
-        public void Nulled()
+        [Theory]
+        [MemberData(nameof(GetMappers))]
+        public void Nulled(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
                 "Author": null
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Should().BeSuccessful();
             blogPost.Value.Author.Should().BeOfType<None<Author>>();
         }

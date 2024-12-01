@@ -176,7 +176,7 @@ public class MapperGenerator : IIncrementalGenerator
 
                 var effectiveType = isOption
                     ? (isNullable && !isReferenceType
-                        ? (((INamedTypeSymbol)propertyType).TypeArguments.First().FullTypeName()) 
+                        ? (((INamedTypeSymbol)propertyType).TypeArguments.First().FullTypeName())
                         : (((INamedTypeSymbol)propertyType).TypeArguments.First().FullTypeName()))
                     : (isNullable && !isReferenceType
                         ? (((INamedTypeSymbol)propertyType).TypeArguments.First().FullTypeName())
@@ -190,27 +190,6 @@ public class MapperGenerator : IIncrementalGenerator
                     IsNullable = isNullable,
                     IsOption = isOption,
                     EffectiveType = effectiveType
-
-                    //foreach (ISymbol member in members)
-                    //            {
-                    //                if (member is IPropertySymbol p)
-                    //                {
-                    //                    var t = p.Type;
-                    //                    var isOptions = t.Name == "Option";
-                    //                    var tName = !isOptions
-                    //                        ? p.Type.FullTypeName()
-                    //                        : ((INamedTypeSymbol)p.Type).TypeArguments.First().FullTypeName();
-
-                    //                    var isNullable = t.IsNullable();
-                    //                    if (t.IsNullableValueType())
-                    //                    {
-                    //                        tName = ((INamedTypeSymbol)p.Type).TypeArguments.First().FullTypeName();
-                    //                    }
-                    //                    properties.Add(new PropertyToGenerateMapperFor(p.Name, tName, isOptions, isNullable));
-                    //                }
-                    //            }
-
-
                 };
 
                 properties.Add(propertyModel);
@@ -426,7 +405,7 @@ public class MapperGenerator : IIncrementalGenerator
                                 sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"Number\", json{p.Name}Property.ValueKind.ToString()));");
                             }
                         }
-                        else // custom converter?
+                        else
                         {
                             sb.AppendLine($"else if (mapperOptions.TryGetConverter(typeof({p.EffectiveType}), out IConverter customConverter))");
                             using (var _4 = sb.CodeBlock())
@@ -452,6 +431,41 @@ public class MapperGenerator : IIncrementalGenerator
                                     using (var _6 = sb.CodeBlock())
                                     {
                                         sb.AppendLine($"errors.AddRange(result.Errors.Select(x => new MappingError([.. path, \"{p.Name}\"], x.Message)).ToArray());");
+                                    }
+                                }
+                            }
+                            if (p.IsReferenceType)
+                            {
+                                sb.AppendLine("else");
+                                using (var _4 = sb.CodeBlock())
+                                {
+                                    sb.AppendLine($"if (json{p.Name}Property.ValueKind == JsonValueKind.Object)");
+                                    using (var _5 = sb.CodeBlock())
+                                    {
+                                        sb.AppendLine($"var result = {p.EffectiveType}.MapFromJson(json{p.Name}Property);");
+                                        sb.AppendLine("if (result.Success)");
+                                        using (var _6 = sb.CodeBlock())
+                                        {
+                                            if (p.IsOption)
+                                            {
+                                                sb.AppendLine($"obj.{p.Name} = new Some<{p.EffectiveType}>(result.Value!);");
+
+                                            }
+                                            else
+                                            {
+                                                sb.AppendLine($"obj.{p.Name} = result.Value;");
+                                            }
+                                        }
+                                        sb.AppendLine("else");
+                                        using (var _6 = sb.CodeBlock())
+                                        {
+                                            sb.AppendLine($"errors.AddRange(result.Errors.Select(x => new MappingError([.. path, \"{p.Name}\"], x.Message)).ToArray());");
+                                        }
+                                    }
+                                    sb.AppendLine("else");
+                                    using (var _5 = sb.CodeBlock())
+                                    {
+                                        sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"Object\", json{p.Name}Property.ValueKind.ToString()));");
                                     }
                                 }
                             }
