@@ -369,22 +369,29 @@ public partial class Arrays
         }
     }
 
-    public class PrimitiveArrays
+    public partial class PrimitiveStringArrays
     {
-        public class BlogPost
+        [CreateMapper]
+        public partial class BlogPost
         {
             public string[] Categories { get; set; }
         }
 
-        [Fact]
-        public void Valid()
+        public static IEnumerable<object[]> GetMappers =>
+        [
+            [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
+            [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x))]
+        ];
+
+        [Theory, MemberData(nameof(GetMappers))]
+        public void Valid(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
                 "Categories": ["Farts", "Unicorns", "Horses", "Rainbows"]
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Should().BeSuccessful();
             blogPost.Value.Categories.Should().HaveCount(4);
             blogPost.Value.Categories[0].Should().Be("Farts");
@@ -393,6 +400,87 @@ public partial class Arrays
             blogPost.Value.Categories[3].Should().Be("Rainbows");
         }
     }
+
+    public partial class PrimitiveIntArrays
+    {
+        [CreateMapper]
+        public partial class BlogPost
+        {
+            public int[] Ratings { get; set; }
+        }
+
+        public static IEnumerable<object[]> GetMappers =>
+        [
+            [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
+            [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x))]
+        ];
+
+        [Theory, MemberData(nameof(GetMappers))]
+        public void Valid(Func<JsonElement, Result<BlogPost>> map)
+        {
+            var json = JsonSerializer.Deserialize<JsonElement>("""
+            {
+                "Ratings": [2,4,6,5]
+            }
+            """);
+            var blogPost = map(json);
+            blogPost.Should().BeSuccessful();
+            blogPost.Value.Ratings.Should().HaveCount(4);
+            blogPost.Value.Ratings[0].Should().Be(2);
+            blogPost.Value.Ratings[1].Should().Be(4);
+            blogPost.Value.Ratings[2].Should().Be(6);
+            blogPost.Value.Ratings[3].Should().Be(5);
+        }
+    }
+
+    public partial class PrimitiveBooleanArrays
+    {
+        [CreateMapper]
+        public partial class BlogPost
+        {
+            public bool[] Somethings { get; set; }
+        }
+
+        public static IEnumerable<object[]> GetMappers =>
+        [
+            [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
+            [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x))]
+        ];
+
+        [Theory, MemberData(nameof(GetMappers))]
+        public void Valid(Func<JsonElement, Result<BlogPost>> map)
+        {
+            var json = JsonSerializer.Deserialize<JsonElement>("""
+            {
+                "Somethings": [true,true,false,true]
+            }
+            """);
+            var blogPost = map(json);
+            blogPost.Should().BeSuccessful();
+            blogPost.Value.Somethings.Should().HaveCount(4);
+            blogPost.Value.Somethings[0].Should().Be(true);
+            blogPost.Value.Somethings[1].Should().Be(true);
+            blogPost.Value.Somethings[2].Should().Be(false);
+            blogPost.Value.Somethings[3].Should().Be(true);
+        }
+
+        [Theory, MemberData(nameof(GetMappers))]
+        public void Invalid(Func<JsonElement, Result<BlogPost>> map)
+        {
+            var json = JsonSerializer.Deserialize<JsonElement>("""
+            {
+                "Somethings": [true,1,"string",true]
+            }
+            """);
+            var blogPost = map(json);
+            blogPost.Success.Should().BeFalse();
+            blogPost.Errors.Should().HaveCount(2);
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Somethings.1 has the wrong type. Expected Boolean, got Number");
+            blogPost.Errors.Should().ContainSingle(e => e.Message == "Value of $.Somethings.2 has the wrong type. Expected Boolean, got String");
+
+        }
+    }
+
 
     public class ArrayOfArrayOrArrays
     {

@@ -17,4 +17,17 @@ public static class IErrorCollectionAssertionExt
             @this.Subject!.Single().Message.Should().Be(message);
         }
     }
+
+    public static void BeErrors(this GenericCollectionAssertions<IError> @this, (Type, string)[] messages)
+    {
+        using (new AssertionScope())
+        {
+            @this.Subject!.Should().HaveCount(messages.Length);
+            
+            for (int i = 0; i < messages.Length; i++)
+            {
+                @this.Subject!.Should().ContainSingle(e => e.GetType() == messages[i].Item1 && e.Message == messages[i].Item2);
+            }
+        }
+    }
 }

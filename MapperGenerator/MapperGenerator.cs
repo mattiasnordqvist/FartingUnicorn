@@ -490,29 +490,59 @@ public class MapperGenerator : IIncrementalGenerator
                                 {
                                     if (p.ArrayElementModel.RawType == "System.String")
                                     {
-
+                                        sb.AppendLine($"if(json{p.Name}Property[i].ValueKind != JsonValueKind.String)");
+                                        using (var _6 = sb.CodeBlock()) 
+                                        {
+                                            sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\", i.ToString()], \"String\", json{p.Name}Property[i].ValueKind.ToString()));");
+                                        }
+                                        sb.AppendLine($"else");
+                                        using (var _6 = sb.CodeBlock())
+                                        {
+                                            sb.AppendLine($"array.SetValue(json{p.Name}Property[i].GetString(), i);");
+                                        }
                                     }
                                     else if (p.ArrayElementModel.RawType == "System.Boolean")
                                     {
+                                        sb.AppendLine($"if(json{p.Name}Property[i].ValueKind != JsonValueKind.True && json{p.Name}Property[i].ValueKind != JsonValueKind.False)");
+                                        using (var _6 = sb.CodeBlock())
+                                        {
+                                            sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\", i.ToString()], \"Boolean\", json{p.Name}Property[i].ValueKind.ToString()));");
+                                        }
+                                        sb.AppendLine($"else");
+                                        using (var _6 = sb.CodeBlock())
+                                        {
+                                            sb.AppendLine($"array.SetValue(json{p.Name}Property[i].GetBoolean(), i);");
+                                        }
                                     }
                                     else if (p.ArrayElementModel.RawType == "System.Int32")
                                     {
+                                        sb.AppendLine($"if(json{p.Name}Property[i].ValueKind != JsonValueKind.Number)");
+                                        using (var _6 = sb.CodeBlock())
+                                        {
+                                            sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\", i.ToString()], \"Number\", json{p.Name}Property[i].ValueKind.ToString()));");
+                                        }
+                                        sb.AppendLine($"else");
+                                        using (var _6 = sb.CodeBlock())
+                                        {
+                                            sb.AppendLine($"array.SetValue(json{p.Name}Property[i].GetInt32(), i);");
+                                        }
                                     }
                                     else if (p.ArrayElementModel.IsObject)
                                     {
                                         sb.AppendLine($"var result = {p.ArrayElementModel.RawType}.MapFromJson(json{p.Name}Property[i], mapperOptions, [.. path, \"{p.Name}\", i.ToString()]);");
+                                        sb.AppendLine("if (result.Success)");
+                                        using (var _6 = sb.CodeBlock())
+                                        {
+                                            sb.AppendLine($"array.SetValue(result.Value, i);");
+                                        }
+                                        sb.AppendLine("else");
+                                        using (var _6 = sb.CodeBlock())
+                                        {
+                                            sb.AppendLine($"errors.AddRange(result.Errors.ToArray());");
+                                        }
                                     }
 
-                                    sb.AppendLine("if (result.Success)");
-                                    using (var _6 = sb.CodeBlock())
-                                    {
-                                        sb.AppendLine($"array.SetValue(result.Value, i);");
-                                    }
-                                    sb.AppendLine("else");
-                                    using (var _6 = sb.CodeBlock())
-                                    {
-                                        sb.AppendLine($"errors.AddRange(result.Errors.ToArray());");
-                                    }
+                                    
                                 }
                                 if (p.IsOption)
                                 {
