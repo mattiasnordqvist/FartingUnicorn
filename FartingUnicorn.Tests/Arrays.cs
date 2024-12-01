@@ -287,22 +287,29 @@ public partial class Arrays
         }
     }
 
-    public class NullableOptional
+    public partial class NullableOptional
     {
-        public class BlogPost
+        [CreateMapper]
+        public partial class BlogPost
         {
             public Option<Comment[]>? Comments { get; set; }
         }
 
-        public class Comment
+        public partial class Comment
         {
             public string Text { get; set; }
             public int Upvotes { get; set; }
             public Option<string> Contact { get; set; }
         }
 
-        [Fact]
-        public void Valid()
+        public static IEnumerable<object[]> GetMappers =>
+        [
+            [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
+            [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x))]
+        ];
+
+        [Theory, MemberData(nameof(GetMappers))]
+        public void Valid(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -320,7 +327,7 @@ public partial class Arrays
                 ]
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Should().BeSuccessful();
             blogPost.Value.Comments.Should().BeOfType<Some<Comment[]>>();
             var someComments = (blogPost.Value.Comments as Some<Comment[]>)!;
@@ -336,27 +343,27 @@ public partial class Arrays
             var someAuthor2 = (someComments.Value[1].Contact as None<string>)!;
         }
 
-        [Fact]
-        public void MissingArray_OK()
+        [Theory, MemberData(nameof(GetMappers))]
+        public void MissingArray_OK(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
                     {
                     }
                     """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Should().BeSuccessful();
             blogPost.Value.Comments.Should().BeNull();
         }
 
-        [Fact]
-        public void NulledArray_Ok()
+        [Theory, MemberData(nameof(GetMappers))]
+        public void NulledArray_Ok(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
                     {
                         "Comments": null
                     }
                     """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Should().BeSuccessful();
             blogPost.Value.Comments.Should().BeOfType<None<Comment[]>>();
         }
