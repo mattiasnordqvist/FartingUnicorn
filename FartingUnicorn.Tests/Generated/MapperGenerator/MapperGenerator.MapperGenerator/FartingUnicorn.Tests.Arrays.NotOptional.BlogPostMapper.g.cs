@@ -16,10 +16,11 @@ namespace FartingUnicorn.Tests;
 // Name: Comments
 // TypeName: FartingUnicorn.Tests.Arrays.NotOptional.Comment[]
 // IsArray: True
-// IsReferenceType: False
+// IsObject: True
 // IsNullable: False
+// IsNullableValueType: False
 // IsOption: False
-// EffectiveType: FartingUnicorn.Tests.Arrays.NotOptional.Comment[]
+// EffectiveType: FartingUnicorn.Tests.Arrays.NotOptional.Comment
 
 
 public partial class Arrays
@@ -54,24 +55,27 @@ public partial class Arrays
                     {
                         errors.Add(new RequiredValueMissingError([.. path, "Comments"]));
                     }
-                    else if (mapperOptions.TryGetConverter(typeof(FartingUnicorn.Tests.Arrays.NotOptional.Comment[]), out IConverter customConverter))
+                    // ARRAYS
+                    else if (jsonCommentsProperty.ValueKind == JsonValueKind.Array)
                     {
-                        if (jsonCommentsProperty.ValueKind != customConverter.ExpectedJsonValueKind)
+                        var array = new FartingUnicorn.Tests.Arrays.NotOptional.Comment[jsonCommentsProperty.GetArrayLength()];
+                        for(int i = 0; i < jsonCommentsProperty.GetArrayLength(); i++)
                         {
-                            errors.Add(new ValueHasWrongTypeError([.. path, "Comments"], customConverter.ExpectedJsonValueKind.ToString(), jsonCommentsProperty.ValueKind.ToString()));
-                        }
-                        else
-                        {
-                            var result = customConverter.Convert(typeof(FartingUnicorn.Tests.Arrays.NotOptional.Comment[]), jsonCommentsProperty, mapperOptions, [.. path, "Comments"]);
+                            var result = FartingUnicorn.Tests.Arrays.NotOptional.Comment.MapFromJson(jsonCommentsProperty[i], mapperOptions, [.. path, "Comments", i.ToString()]);
                             if (result.Success)
                             {
-                                obj.Comments = result.Map(x => (FartingUnicorn.Tests.Arrays.NotOptional.Comment[])x).Value;
+                                array.SetValue(result.Value!, i);
                             }
                             else
                             {
-                                errors.AddRange(result.Errors.Select(x => new MappingError([.. path, "Comments"], x.Message)).ToArray());
+                                errors.AddRange(result.Errors.ToArray());
                             }
                         }
+                        obj.Comments = array;
+                    }
+                    else
+                    {
+                        errors.Add(new ValueHasWrongTypeError([.. path, "Comments"], "Array", jsonCommentsProperty.ValueKind.ToString()));
                     }
                 }
                 else

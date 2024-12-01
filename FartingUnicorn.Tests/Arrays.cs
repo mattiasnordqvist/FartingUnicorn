@@ -1,4 +1,5 @@
 ﻿using DotNetThoughts.FartingUnicorn;
+using DotNetThoughts.Results;
 
 using FluentAssertions;
 
@@ -25,8 +26,14 @@ public partial class Arrays
             public Option<string> Contact { get; set; }
         }
 
-        [Fact]
-        public void Valid()
+        public static IEnumerable<object[]> GetMappers =>
+        [
+            [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
+            [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x))]
+        ];
+        
+        [Theory, MemberData(nameof(GetMappers))]
+        public void Valid(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
@@ -44,7 +51,7 @@ public partial class Arrays
                 ]
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Should().BeSuccessful();
             blogPost.Value.Comments.Should().HaveCount(2);
             blogPost.Value.Comments[0].Text.Should().Be("First!");
@@ -57,8 +64,8 @@ public partial class Arrays
             blogPost.Value.Comments[1].Contact.Should().BeOfType<None<string>>();
         }
 
-        [Fact]
-        public void MissingFields()
+        [Theory, MemberData(nameof(GetMappers))]
+        public void MissingFields(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
                     {
@@ -74,21 +81,21 @@ public partial class Arrays
                         ]
                     }
                     """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Success.Should().BeFalse();
             blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Comments.0.Text is required");
             blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Comments.1.Contact is required");
 
         }
 
-        [Fact]
-        public void MissingArray()
+        [Theory, MemberData(nameof(GetMappers))]
+        public void MissingArray(Func<JsonElement, Result<BlogPost>> map)
         {
             var json = JsonSerializer.Deserialize<JsonElement>("""
             {
             }
             """);
-            var blogPost = Mapper.Map<BlogPost>(json);
+            var blogPost = map(json);
             blogPost.Success.Should().BeFalse();
             blogPost.Errors.Should().ContainSingle(e => e.Message == "$.Comments is required");
         }

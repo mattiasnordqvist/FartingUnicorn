@@ -29,7 +29,6 @@
 		<None Remove="Generated\**" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Compile Remove="Arrays.cs" />
 	  <Compile Remove="BigTests.cs" />
 	  <Compile Remove="ElementTests.cs" />
 	</ItemGroup>

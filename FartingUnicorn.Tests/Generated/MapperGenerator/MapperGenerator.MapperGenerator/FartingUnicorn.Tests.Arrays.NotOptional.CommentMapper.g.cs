@@ -16,8 +16,9 @@ namespace FartingUnicorn.Tests;
 // Name: Text
 // TypeName: string
 // IsArray: False
-// IsReferenceType: True
+// IsObject: False
 // IsNullable: False
+// IsNullableValueType: False
 // IsOption: False
 // EffectiveType: System.String
 
@@ -25,8 +26,9 @@ namespace FartingUnicorn.Tests;
 // Name: Upvotes
 // TypeName: int
 // IsArray: False
-// IsReferenceType: False
+// IsObject: False
 // IsNullable: False
+// IsNullableValueType: False
 // IsOption: False
 // EffectiveType: System.Int32
 
@@ -34,8 +36,9 @@ namespace FartingUnicorn.Tests;
 // Name: Contact
 // TypeName: FartingUnicorn.Option<string>
 // IsArray: False
-// IsReferenceType: False
+// IsObject: True
 // IsNullable: False
+// IsNullableValueType: False
 // IsOption: True
 // EffectiveType: System.String
 

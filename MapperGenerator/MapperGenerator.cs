@@ -183,7 +183,7 @@ public class MapperGenerator : IIncrementalGenerator
                 var isNullable = propertyType.NullableAnnotation == NullableAnnotation.Annotated;
                 var isNullableValueType = isNullable && propertyType.IsNullableValueType();
                 var isOption = propertyType.FullTypeName().StartsWith("FartingUnicorn.Option<");
-
+                var isArray = propertyType.TypeKind == TypeKind.Array;
                 var isObject =
                     !isNullable && !isOption ? propertyType.TypeKind == TypeKind.Class && propertyType.SpecialType == SpecialType.None
                     : isNullable && isNullableValueType && !isOption ? false
@@ -200,11 +200,16 @@ public class MapperGenerator : IIncrementalGenerator
                     : (isNullable && !isObject
                         ? (((INamedTypeSymbol)propertyType).TypeArguments.First().FullTypeName())
                         : propertyType.FullTypeName());
+                if (isArray)
+                {
+                    effectiveType = ((IArrayTypeSymbol)propertyType).ElementType.FullTypeName();
+                    isObject = ((IArrayTypeSymbol)propertyType).ElementType.TypeKind == TypeKind.Class && ((IArrayTypeSymbol)propertyType).ElementType.SpecialType == SpecialType.None;
+                }
                 var propertyModel = new PropertyModel
                 {
                     Name = property.Identifier.Text,
                     TypeName = propertyType.ToDisplayString(),
-                    IsArray = propertyType.TypeKind == TypeKind.Array,
+                    IsArray = isArray,
                     IsObject = isObject,
                     IsNullable = isNullable,
                     IsNullableValueType = isNullableValueType,
@@ -425,6 +430,40 @@ public class MapperGenerator : IIncrementalGenerator
                             using (var _4 = sb.CodeBlock())
                             {
                                 sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"Number\", json{p.Name}Property.ValueKind.ToString()));");
+                            }
+                        }
+                        else if (p.IsArray)
+                        {
+                            sb.AppendLine("// ARRAYS");
+                            sb.AppendLine($"else if (json{p.Name}Property.ValueKind == JsonValueKind.Array)");
+                            using (var _4 = sb.CodeBlock())
+                            {
+                                sb.AppendLine($"var array = new {p.EffectiveType}[json{p.Name}Property.GetArrayLength()];");
+                                if (p.IsObject)
+                                {
+                                    sb.AppendLine($"for(int i = 0; i < json{p.Name}Property.GetArrayLength(); i++)");
+                                    using (var _5 = sb.CodeBlock())
+                                    {
+                                        sb.AppendLine($"var result = {p.EffectiveType}.MapFromJson(json{p.Name}Property[i], mapperOptions, [.. path, \"{p.Name}\", i.ToString()]);");
+                                        sb.AppendLine("if (result.Success)");
+                                        using (var _6 = sb.CodeBlock())
+                                        {
+                                            sb.AppendLine($"array.SetValue(result.Value!, i);");
+                                        }
+                                        sb.AppendLine("else");
+                                        using (var _6 = sb.CodeBlock())
+                                        {
+                                            sb.AppendLine($"errors.AddRange(result.Errors.ToArray());");
+                                        }
+                                    }
+                                    sb.AppendLine($"obj.{p.Name} = array;");
+                                }
+                                // other types, like int, strings, booleans... enums... and arrays. :'( 
+                            }
+                            sb.AppendLine("else");
+                            using (var _4 = sb.CodeBlock())
+                            {
+                                sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\"], \"Array\", json{p.Name}Property.ValueKind.ToString()));");
                             }
                         }
                         else
