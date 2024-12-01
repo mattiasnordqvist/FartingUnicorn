@@ -16,7 +16,7 @@ namespace FartingUnicorn.Benchmarks;
 // Name: Name
 // TypeName: string
 // IsArray: False
-// IsReferenceType: False
+// IsReferenceType: True
 // IsNullable: False
 // IsOption: False
 // EffectiveType: System.String
@@ -24,4 +24,56 @@ namespace FartingUnicorn.Benchmarks;
 
 public partial class UserProfile
 {
+    // hello
+    public static Result<UserProfile> MapFromJson(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
+    {
+        if (mapperOptions is null)
+        {
+            mapperOptions = new MapperOptions();
+        }
+        if (path is null)
+        {
+            path = ["$"];
+        }
+        if (jsonElement.ValueKind != JsonValueKind.Object)
+        {
+            return Result<UserProfile>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
+        }
+        var obj = new UserProfile();
+
+        List<IError> errors = new();
+        var isNamePropertyDefined = jsonElement.TryGetProperty("Name", out var jsonNameProperty);
+        if (isNamePropertyDefined)
+        {
+            // type = string, isOption = False, isNullable = False
+            if (jsonNameProperty.ValueKind == JsonValueKind.Null)
+            {
+                errors.Add(new RequiredValueMissingError([.. path, "Name"]));
+            }
+            else if (jsonNameProperty.ValueKind == JsonValueKind.String)
+            {
+                obj.Name = jsonNameProperty.GetString();
+            }
+            else
+            {
+                errors.Add(new ValueHasWrongTypeError([.. path, "Name"], "String", jsonNameProperty.ValueKind.ToString()));
+            }
+        }
+        else
+        {
+            errors.Add(new RequiredPropertyMissingError([.. path, "Name"]));
+        }
+        if(errors.Any())
+        {
+            return Result<UserProfile>.Error(errors);
+        }
+        if(false)/*check if is option*/
+        {
+        }
+        else
+        {
+            return Result<UserProfile>.Ok(obj);
+        }
+        throw new NotImplementedException();
+    }
 }

@@ -19,7 +19,7 @@ namespace FartingUnicorn.Tests;
 // IsReferenceType: False
 // IsNullable: True
 // IsOption: False
-// EffectiveType: System.Nullable<System.Boolean>
+// EffectiveType: System.Boolean
 
 
 public partial class SingleField
@@ -30,6 +30,58 @@ public partial class SingleField
         {
             public partial class BlogPost
             {
+                // hello
+                public static Result<BlogPost> MapFromJson(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
+                {
+                    if (mapperOptions is null)
+                    {
+                        mapperOptions = new MapperOptions();
+                    }
+                    if (path is null)
+                    {
+                        path = ["$"];
+                    }
+                    if (jsonElement.ValueKind != JsonValueKind.Object)
+                    {
+                        return Result<BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
+                    }
+                    var obj = new BlogPost();
+
+                    List<IError> errors = new();
+                    var isIsDraftPropertyDefined = jsonElement.TryGetProperty("IsDraft", out var jsonIsDraftProperty);
+                    if (isIsDraftPropertyDefined)
+                    {
+                        // type = bool?, isOption = False, isNullable = True
+                        if (jsonIsDraftProperty.ValueKind == JsonValueKind.Null)
+                        {
+                            errors.Add(new RequiredValueMissingError([.. path, "IsDraft"]));
+                        }
+                        else if (jsonIsDraftProperty.ValueKind == JsonValueKind.True || jsonIsDraftProperty.ValueKind == JsonValueKind.False)
+                        {
+                            obj.IsDraft = jsonIsDraftProperty.GetBoolean();
+                        }
+                        else
+                        {
+                            errors.Add(new ValueHasWrongTypeError([.. path, "IsDraft"], "Boolean", jsonIsDraftProperty.ValueKind.ToString()));
+                        }
+                    }
+                    else
+                    {
+                        obj.IsDraft = null;
+                    }
+                    if(errors.Any())
+                    {
+                        return Result<BlogPost>.Error(errors);
+                    }
+                    if(false)/*check if is option*/
+                    {
+                    }
+                    else
+                    {
+                        return Result<BlogPost>.Ok(obj);
+                    }
+                    throw new NotImplementedException();
+                }
             }
         }
     }

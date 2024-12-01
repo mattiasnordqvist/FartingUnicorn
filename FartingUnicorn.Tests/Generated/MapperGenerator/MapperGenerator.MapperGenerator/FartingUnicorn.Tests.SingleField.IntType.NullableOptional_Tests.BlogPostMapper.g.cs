@@ -30,6 +30,58 @@ public partial class SingleField
         {
             public partial class BlogPost
             {
+                // hello
+                public static Result<BlogPost> MapFromJson(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
+                {
+                    if (mapperOptions is null)
+                    {
+                        mapperOptions = new MapperOptions();
+                    }
+                    if (path is null)
+                    {
+                        path = ["$"];
+                    }
+                    if (jsonElement.ValueKind != JsonValueKind.Object)
+                    {
+                        return Result<BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
+                    }
+                    var obj = new BlogPost();
+
+                    List<IError> errors = new();
+                    var isRatingPropertyDefined = jsonElement.TryGetProperty("Rating", out var jsonRatingProperty);
+                    if (isRatingPropertyDefined)
+                    {
+                        // type = FartingUnicorn.Option<int>?, isOption = True, isNullable = True
+                        if (jsonRatingProperty.ValueKind == JsonValueKind.Null)
+                        {
+                            obj.Rating = new None<System.Int32>();
+                        }
+                        else if (jsonRatingProperty.ValueKind == JsonValueKind.Number)
+                        {
+                            obj.Rating = new Some<int>(jsonRatingProperty.GetInt32());
+                        }
+                        else
+                        {
+                            errors.Add(new ValueHasWrongTypeError([.. path, "Rating"], "Number", jsonRatingProperty.ValueKind.ToString()));
+                        }
+                    }
+                    else
+                    {
+                        obj.Rating = null;
+                    }
+                    if(errors.Any())
+                    {
+                        return Result<BlogPost>.Error(errors);
+                    }
+                    if(false)/*check if is option*/
+                    {
+                    }
+                    else
+                    {
+                        return Result<BlogPost>.Ok(obj);
+                    }
+                    throw new NotImplementedException();
+                }
             }
         }
     }

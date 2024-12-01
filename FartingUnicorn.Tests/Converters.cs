@@ -11,9 +11,9 @@ using static FartingUnicorn.MapperOptions;
 
 namespace FartingUnicorn.Tests;
 
-public class Converters
+public partial class Converters
 {
-    public class Id
+    public partial class Id
     {
         public long Value { get; set; }
 
@@ -48,7 +48,7 @@ public class Converters
     }
 
     [CreateMapper]
-    public class BlogPost
+    public partial class BlogPost
     {
         public Id Id { get; set; }
         public string Title { get; set; }
@@ -57,7 +57,7 @@ public class Converters
     public static IEnumerable<object[]> GetMappers =>
     [
         [(Func<JsonElement, MapperOptions, Result<BlogPost>>)((x, m) => Mapper.Map<BlogPost>(x, m, null))],
-        [(Func<JsonElement, MapperOptions, Result<BlogPost>>)((x, m) => Generated.Mappers.MapToFartingUnicorn_Tests_Converters_BlogPost(x, m, null))]
+        [(Func<JsonElement, MapperOptions, Result<BlogPost>>)((x, m) => BlogPost.MapFromJson(x, m, null))]
     ];
 
     [Theory]

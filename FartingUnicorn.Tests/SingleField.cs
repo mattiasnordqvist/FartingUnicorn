@@ -10,21 +10,21 @@ using Xunit;
 using static FartingUnicorn.Mapper;
 namespace FartingUnicorn.Tests;
 
-public class SingleField
+public partial class SingleField
 {
-    public class StringType
+    public partial class StringType
     {
-        public class NonNullableNonOptional_Tests
+        public partial class NonNullableNonOptional_Tests
         {
             public static IEnumerable<object[]> GetMappers =>
                 [
                     [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
-                    [(Func<JsonElement, Result<BlogPost>>)(x => FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_StringType_NonNullableNonOptional_Tests_BlogPost(x, null))]
+                    [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x, null, null))]
 
                 ];
 
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 /// <summary>
                 /// Field must exist
@@ -99,16 +99,16 @@ public class SingleField
             }
         }
 
-        public class NullableNonOptional_Tests
+        public partial class NullableNonOptional_Tests
         {
             public static IEnumerable<object[]> GetMappers =>
             [
                 [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
-                [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_StringType_NullableNonOptional_Tests_BlogPost(x, null))]
+                [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x, null))]
             ];
 
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 /// <summary>
                 /// Field can be missing
@@ -169,16 +169,16 @@ public class SingleField
             }
         }
 
-        public class NonNullableOptional_Tests
+        public partial class NonNullableOptional_Tests
         {
             public static IEnumerable<object[]> GetMappers =>
                 [
                     [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
-                    [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_StringType_NonNullableOptional_Tests_BlogPost(x, null))]
+                    [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x, null))]
                 ];
 
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 /// <summary>
                 /// Field must exist
@@ -237,15 +237,16 @@ public class SingleField
             }
         }
 
-        public class NullableOptional_Tests
+        public partial class NullableOptional_Tests
         {
             public static IEnumerable<object[]> GetMappers =>
             [
                 [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
-                [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_StringType_NullableOptional_Tests_BlogPost(x, null))]
+                [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x, null))]
             ];
+
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 /// <summary>
                 /// Field can be missing
@@ -303,18 +304,18 @@ public class SingleField
         }
     }
 
-    public class BoolType
+    public partial class BoolType
     {
-        public class NonNullableNonOptional_Tests
+        public partial class NonNullableNonOptional_Tests
         {
             public static IEnumerable<object[]> GetMappers =>
             [
                 [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
-                [(Func<JsonElement, Result<BlogPost>>)(x => FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_BoolType_NonNullableNonOptional_Tests_BlogPost(x, null))]
+                [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x, null, null))]
             ];
 
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 /// <summary>
                 /// Field must exist
@@ -389,16 +390,16 @@ public class SingleField
             }
         }
 
-        public class NullableNonOptional_Tests
+        public partial class NullableNonOptional_Tests
         {
             public static IEnumerable<object[]> GetMappers =>
             [
                 [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
-                [(Func<JsonElement, Result<BlogPost>>)(x => FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_BoolType_NullableNonOptional_Tests_BlogPost(x, null))]
+                [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x, null, null))]
             ];
 
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 /// <summary>
                 /// Field can be missing
@@ -459,15 +460,15 @@ public class SingleField
             }
         }
 
-        public class NonNullableOptional_Tests
+        public partial class NonNullableOptional_Tests
         {
             public static IEnumerable<object[]> GetMappers =>
             [
                 [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
-                [(Func<JsonElement, Result<BlogPost>>)(x => FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_BoolType_NonNullableOptional_Tests_BlogPost(x, null))]
+                [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x, null))]
             ];
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 /// <summary>
                 /// Field must exist
@@ -525,16 +526,16 @@ public class SingleField
             }
         }
 
-        public class NullableOptional_Tests
+        public partial class NullableOptional_Tests
         {
             public static IEnumerable<object[]> GetMappers =>
             [
                 [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
-                [(Func<JsonElement, Result<BlogPost>>)(x => FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_BoolType_NullableOptional_Tests_BlogPost(x, null))]
+                [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x, null))]
             ];
 
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 /// <summary>
                 /// Field can be missing
@@ -591,18 +592,18 @@ public class SingleField
         }
     }
 
-    public class IntType
+    public partial class IntType
     {
-        public class NonNullableNonOptional_Tests
+        public partial class NonNullableNonOptional_Tests
         {
             public static IEnumerable<object[]> GetMappers =>
             [
                 [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
-                [(Func<JsonElement, Result<BlogPost>>)(x => FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_IntType_NonNullableNonOptional_Tests_BlogPost(x, null))]
+                [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x, null))]
             ];
 
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 /// <summary>
                 /// Field must exist
@@ -677,16 +678,16 @@ public class SingleField
             }
         }
 
-        public class NullableNonOptional_Tests
+        public partial class NullableNonOptional_Tests
         {
             public static IEnumerable<object[]> GetMappers =>
             [
                 [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
-                [(Func<JsonElement, Result<BlogPost>>)(x => FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_IntType_NullableNonOptional_Tests_BlogPost(x, null))]
+                [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x, null))]
             ];
 
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 /// <summary>
                 /// Field can be missing
@@ -747,15 +748,15 @@ public class SingleField
             }
         }
 
-        public class NonNullableOptional_Tests
+        public partial class NonNullableOptional_Tests
         {
             public static IEnumerable<object[]> GetMappers =>
             [
                 [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
-                [(Func<JsonElement, Result<BlogPost>>)(x => FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_IntType_NonNullableOptional_Tests_BlogPost(x, null))]
+                [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x, null))]
             ];
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 /// <summary>
                 /// Field must exist
@@ -813,16 +814,16 @@ public class SingleField
             }
         }
 
-        public class NullableOptional_Tests
+        public partial class NullableOptional_Tests
         {
             public static IEnumerable<object[]> GetMappers =>
             [
                 [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, null, null))],
-                [(Func<JsonElement, Result<BlogPost>>)(x => FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_IntType_NullableOptional_Tests_BlogPost(x, null))]
+                [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x, null))]
             ];
 
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 /// <summary>
                 /// Field can be missing
@@ -879,10 +880,10 @@ public class SingleField
         }
     }
 
-    public class EnumType
+    public partial class EnumType
     {
 
-        public class NonNullableNonOptional_Tests
+        public partial class NonNullableNonOptional_Tests
         {
 
             public static IEnumerable<object[]> GetMappers
@@ -893,13 +894,13 @@ public class SingleField
                     mapperOptions.AddConverter(new EnumAsStringConverter());
                     return [
                         [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, mapperOptions, null))],
-                        [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_EnumType_NonNullableNonOptional_Tests_BlogPost(x, mapperOptions, null))]
+                        [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x, mapperOptions, null))]
                     ];
                 }
             }
 
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 public enum BlogPostStatus { Draft, Published }
 
@@ -976,7 +977,7 @@ public class SingleField
             }
         }
 
-        public class NullableNonOptional_Tests
+        public partial class NullableNonOptional_Tests
         {
             public static IEnumerable<object[]> GetMappers
             {
@@ -986,13 +987,13 @@ public class SingleField
                     mapperOptions.AddConverter(new EnumAsStringConverter());
                     return [
                         [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, mapperOptions, null))],
-                        [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_EnumType_NullableNonOptional_Tests_BlogPost(x, mapperOptions, null))]
+                        [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x, mapperOptions, null))]
                     ];
                 }
             }
 
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 public enum BlogPostStatus { Draft, Published }
 
@@ -1055,7 +1056,7 @@ public class SingleField
             }
         }
 
-        public class NonNullableOptional_Tests
+        public partial class NonNullableOptional_Tests
         {
             public static IEnumerable<object[]> GetMappers
             {
@@ -1065,13 +1066,13 @@ public class SingleField
                     mapperOptions.AddConverter(new EnumAsStringConverter());
                     return [
                         [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, mapperOptions, null))],
-                        [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_EnumType_NonNullableOptional_Tests_BlogPost(x, mapperOptions, null))]
+                        [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x, mapperOptions, null))]
                     ];
                 }
             }
 
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 public enum BlogPostStatus { Draft, Published }
                 /// <summary>
@@ -1130,7 +1131,7 @@ public class SingleField
             }
         }
 
-        public class NullableOptional_Tests
+        public partial class NullableOptional_Tests
         {
             public static IEnumerable<object[]> GetMappers
             {
@@ -1140,13 +1141,13 @@ public class SingleField
                     mapperOptions.AddConverter(new EnumAsStringConverter());
                     return [
                         [(Func<JsonElement, Result<BlogPost>>)(x => Map<BlogPost>(x, mapperOptions, null))],
-                        [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_SingleField_EnumType_NullableOptional_Tests_BlogPost(x, mapperOptions, null))]
+                        [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x, mapperOptions, null))]
                     ];
                 }
             }
 
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 public enum BlogPostStatus { Draft, Published }
                 /// <summary>

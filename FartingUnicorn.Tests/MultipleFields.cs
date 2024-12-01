@@ -9,15 +9,15 @@ using Xunit;
 
 namespace FartingUnicorn.Tests;
 
-public class MultipleFields
+public partial class MultipleFields
 {
-    public class WithoutOptions
+    public partial class WithoutOptions
     {
 
-        public class PUT
+        public partial class PUT
         {
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 public string Title { get; set; }
                 public bool IsDraft { get; set; }
@@ -26,7 +26,7 @@ public class MultipleFields
             public static IEnumerable<object[]> GetMappers =>
             [
                 [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
-                [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_MultipleFields_WithoutOptions_PUT_BlogPost(x))]
+                [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x))]
             ];
 
             [Theory]
@@ -193,10 +193,10 @@ public class MultipleFields
             }
         }
 
-        public class PATCH
+        public partial class PATCH
         {
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 public string? Title { get; set; }
                 public bool? IsDraft { get; set; }
@@ -205,7 +205,7 @@ public class MultipleFields
             public static IEnumerable<object[]> GetMappers =>
             [
                 [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
-                [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_MultipleFields_WithoutOptions_PATCH_BlogPost(x))]
+                [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x))]
             ];
 
             [Theory]
@@ -277,12 +277,12 @@ public class MultipleFields
         }
     }
 
-    public class WithOptions
+    public partial class WithOptions
     {
-        public class PUT
+        public partial class PUT
         {
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 public Option<string> Category { get; set; } // not all blog posts are categorized
                 public Option<int> Rating { get; set; } // rating is None before it has been rated first time.
@@ -291,7 +291,7 @@ public class MultipleFields
             public static IEnumerable<object[]> GetMappers =>
             [
                 [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
-                [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_MultipleFields_WithOptions_PUT_BlogPost(x))]
+                [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x))]
             ];
 
 
@@ -490,10 +490,10 @@ public class MultipleFields
             }
         }
 
-        public class PATCH
+        public partial class PATCH
         {
             [CreateMapper]
-            public class BlogPost
+            public partial class BlogPost
             {
                 public Option<string>? Category { get; set; } // not all blog posts are categorized
                 public Option<int>? Rating { get; set; } // rating is None before it has been rated first time.
@@ -502,7 +502,7 @@ public class MultipleFields
             public static IEnumerable<object[]> GetMappers =>
             [
                 [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
-                [(Func<JsonElement, Result<BlogPost>>)(x => Generated.Mappers.MapToFartingUnicorn_Tests_MultipleFields_WithOptions_PATCH_BlogPost(x))]
+                [(Func<JsonElement, Result<BlogPost>>)(x => BlogPost.MapFromJson(x))]
             ];
 
             [Theory]

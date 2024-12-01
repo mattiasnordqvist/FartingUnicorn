@@ -19,7 +19,7 @@ namespace FartingUnicorn.Tests;
 // IsReferenceType: False
 // IsNullable: True
 // IsOption: False
-// EffectiveType: System.Nullable<FartingUnicorn.Tests.SingleField.EnumType.NullableNonOptional_Tests.BlogPost.BlogPostStatus>
+// EffectiveType: FartingUnicorn.Tests.SingleField.EnumType.NullableNonOptional_Tests.BlogPost.BlogPostStatus
 
 
 public partial class SingleField
@@ -30,6 +30,69 @@ public partial class SingleField
         {
             public partial class BlogPost
             {
+                // hello
+                public static Result<BlogPost> MapFromJson(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)
+                {
+                    if (mapperOptions is null)
+                    {
+                        mapperOptions = new MapperOptions();
+                    }
+                    if (path is null)
+                    {
+                        path = ["$"];
+                    }
+                    if (jsonElement.ValueKind != JsonValueKind.Object)
+                    {
+                        return Result<BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
+                    }
+                    var obj = new BlogPost();
+
+                    List<IError> errors = new();
+                    var isStatusPropertyDefined = jsonElement.TryGetProperty("Status", out var jsonStatusProperty);
+                    if (isStatusPropertyDefined)
+                    {
+                        // type = FartingUnicorn.Tests.SingleField.EnumType.NullableNonOptional_Tests.BlogPost.BlogPostStatus?, isOption = False, isNullable = True
+                        if (jsonStatusProperty.ValueKind == JsonValueKind.Null)
+                        {
+                            errors.Add(new RequiredValueMissingError([.. path, "Status"]));
+                        }
+                        else if (mapperOptions.TryGetConverter(typeof(FartingUnicorn.Tests.SingleField.EnumType.NullableNonOptional_Tests.BlogPost.BlogPostStatus), out IConverter customConverter))
+                        {
+                            if (jsonStatusProperty.ValueKind != customConverter.ExpectedJsonValueKind)
+                            {
+                                errors.Add(new ValueHasWrongTypeError([.. path, "Status"], customConverter.ExpectedJsonValueKind.ToString(), jsonStatusProperty.ValueKind.ToString()));
+                            }
+                            else
+                            {
+                                var result = customConverter.Convert(typeof(FartingUnicorn.Tests.SingleField.EnumType.NullableNonOptional_Tests.BlogPost.BlogPostStatus), jsonStatusProperty, mapperOptions, [.. path, "Status"]);
+                                if (result.Success)
+                                {
+                                    obj.Status = result.Map(x => (FartingUnicorn.Tests.SingleField.EnumType.NullableNonOptional_Tests.BlogPost.BlogPostStatus)x).Value;
+                                }
+                                else
+                                {
+                                    errors.AddRange(result.Errors.Select(x => new MappingError([.. path, "Status"], x.Message)).ToArray());
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        obj.Status = null;
+                    }
+                    if(errors.Any())
+                    {
+                        return Result<BlogPost>.Error(errors);
+                    }
+                    if(false)/*check if is option*/
+                    {
+                    }
+                    else
+                    {
+                        return Result<BlogPost>.Ok(obj);
+                    }
+                    throw new NotImplementedException();
+                }
             }
         }
     }

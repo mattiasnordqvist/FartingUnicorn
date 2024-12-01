@@ -8,7 +8,7 @@ using System.Text.Json;
 using Xunit;
 
 namespace FartingUnicorn.Tests;
-public class Objects
+public partial class Objects
 {
     public class NotOptional
     {
@@ -267,14 +267,14 @@ public class Objects
         }
     }
 
-    public class Nullable
+    public partial class Nullable
     {
         [CreateMapper]
-        public class BlogPost
+        public partial class BlogPost
         {
             public Author? Author { get; set; }
         }
-        public class Author
+        public partial class Author
         {
             public string Name { get; set; }
             public Option<int> Age { get; set; }

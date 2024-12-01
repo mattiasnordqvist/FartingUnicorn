@@ -25,6 +25,12 @@
 		<!-- https://andrewlock.net/creating-a-source-generator-part-6-saving-source-generator-output-in-source-control/ -->
 		<Compile Remove="$(CompilerGeneratedFilesOutputPath)\**\*.cs"></Compile>
 	</ItemGroup>
+	<ItemGroup>
+	  <Compile Remove="Arrays.cs" />
+	  <Compile Remove="BigTests.cs" />
+	  <Compile Remove="ElementTests.cs" />
+	  <Compile Remove="Objects.cs" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\FartingUnicorn\FartingUnicorn.csproj" />

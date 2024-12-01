@@ -16,7 +16,7 @@ public class Program
 }
 
 [DotNetThoughts.FartingUnicorn.CreateMapper]
-public class UserProfile
+public partial class UserProfile
 {
     public string Name { get; set; }
     //public int Age { get; set; }
@@ -67,6 +67,6 @@ public class SerializationBenchmarks
     {
         _jsonStream.Seek(0, SeekOrigin.Begin);
         using var json = await JsonDocument.ParseAsync(_jsonStream);
-        return FartingUnicorn.Generated.Mappers.MapToFartingUnicorn_Benchmarks_UserProfile(json.RootElement).ValueOrThrow();
+        return UserProfile.MapFromJson(json.RootElement).ValueOrThrow();
     }
 }
