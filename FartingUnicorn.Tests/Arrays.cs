@@ -481,7 +481,6 @@ public partial class Arrays
         }
     }
 
-
     public class ArrayOfArrayOrArrays
     {
         [Fact]
