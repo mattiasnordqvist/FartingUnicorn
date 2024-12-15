@@ -9,6 +9,10 @@ using Xunit;
 
 namespace FartingUnicorn.Tests;
 
+
+[CreateMapper]
+public partial record MyRecord(string Name, int Age);
+
 public partial class Objects
 {
     public partial class NotOptional

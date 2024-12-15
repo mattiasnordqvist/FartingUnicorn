@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text;
 
 namespace MapperGenerator;
@@ -31,14 +32,24 @@ public class MapperGenerator : IIncrementalGenerator
                 transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx))
             .Where(static m => m is not null);
 
-        IncrementalValueProvider<(Compilation, ImmutableArray<ClassDeclarationSyntax>)> compilationAndClasses
-              = context.CompilationProvider.Combine(classDeclarations.Collect());
+        IncrementalValuesProvider<RecordDeclarationSyntax> recordDeclarations = context.SyntaxProvider
+            .CreateSyntaxProvider(
+                predicate: static (s, _) => IsSyntaxTargetForGeneration2(s),
+                transform: static (ctx, _) => GetSemanticTargetForGeneration2(ctx))
+            .Where(static m => m is not null);
+
+
+        IncrementalValueProvider<((Compilation, ImmutableArray<ClassDeclarationSyntax>), ImmutableArray<RecordDeclarationSyntax>)> compilationAndClasses
+              = context.CompilationProvider.Combine(classDeclarations.Collect()).Combine(recordDeclarations.Collect());
         context.RegisterSourceOutput(compilationAndClasses,
-          static (spc, source) => Execute(source.Item1, source.Item2, spc));
+          static (spc, source) => Execute(source.Item1.Item1, source.Item1.Item2, source.Item2, spc));
     }
 
     private static bool IsSyntaxTargetForGeneration(SyntaxNode node)
            => node is ClassDeclarationSyntax m && m.AttributeLists.Count > 0;
+
+    private static bool IsSyntaxTargetForGeneration2(SyntaxNode node)
+       => node is RecordDeclarationSyntax m && m.AttributeLists.Count > 0;
     private static ClassDeclarationSyntax GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
     {
 
@@ -65,7 +76,33 @@ public class MapperGenerator : IIncrementalGenerator
 
         return null;
     }
-    private static void Execute(Compilation compilation, ImmutableArray<ClassDeclarationSyntax> classes, SourceProductionContext context)
+    private static RecordDeclarationSyntax GetSemanticTargetForGeneration2(GeneratorSyntaxContext context)
+    {
+
+        var classDeclarationSyntaxNode = (RecordDeclarationSyntax)context.Node;
+
+        foreach (AttributeListSyntax attributeListSyntax in classDeclarationSyntaxNode.AttributeLists)
+        {
+            foreach (AttributeSyntax attributeSyntax in attributeListSyntax.Attributes)
+            {
+                if (context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol is not IMethodSymbol attributeSymbol)
+                {
+                    continue;
+                }
+
+                INamedTypeSymbol attributeContainingTypeSymbol = attributeSymbol.ContainingType;
+                string fullName = attributeContainingTypeSymbol.ToDisplayString();
+
+                if (fullName == "DotNetThoughts.FartingUnicorn.CreateMapperAttribute")
+                {
+                    return classDeclarationSyntaxNode;
+                }
+            }
+        }
+
+        return null;
+    }
+    private static void Execute(Compilation compilation, ImmutableArray<ClassDeclarationSyntax> classes, ImmutableArray<RecordDeclarationSyntax> records, SourceProductionContext context)
     {
         if (classes.IsDefaultOrEmpty)
         {
@@ -110,6 +147,17 @@ public class MapperGenerator : IIncrementalGenerator
                 }
             }
         }
+
+        foreach (var recordDeclaration in records)
+        {
+            var model = BuildClassModel(recordDeclaration, compilation);
+            if (model != null)
+            {
+                GenerateMapperForClass(model, context, generatedMappers);
+            }
+        }
+
+
     }
 
     private static void CollectReferencedTypes(ITypeSymbol typeSymbol, HashSet<ITypeSymbol> referencedTypes, Compilation compilation)
@@ -227,7 +275,70 @@ public class MapperGenerator : IIncrementalGenerator
             ClassName = classDeclaration.Identifier.Text,
             FullName = classSymbol.ToDisplayString(),
             Namespace = GetNamespace(classDeclaration),
-            Properties = properties
+            Properties = properties,
+            IsRecord = false,
+        };
+    }
+
+    private static ClassModel? BuildClassModel(RecordDeclarationSyntax recordDeclaration, Compilation compilation)
+    {
+        var semanticModel = compilation.GetSemanticModel(recordDeclaration.SyntaxTree);
+        var recordSymbol = semanticModel.GetDeclaredSymbol(recordDeclaration);
+
+        if (recordSymbol == null) return null;
+
+        var primaryConstructor = recordSymbol.ConstructedFrom.InstanceConstructors
+       .FirstOrDefault(constructor =>
+           constructor.Parameters.Length == recordDeclaration.ParameterList?.Parameters.Count &&
+           constructor.Parameters.Select(p => p.Name)
+               .SequenceEqual(recordDeclaration.ParameterList.Parameters
+                   .Select(p => p.Identifier.Text)));
+
+
+
+        var properties = new List<PropertyModel>();
+        foreach (var param in primaryConstructor.Parameters)
+        {
+            var completeType = param.Type;
+            var (rawType, isNullable, isOption) = CalculateType(completeType);
+            var propertyModel = new PropertyModel
+            {
+                Name = param.Name,
+                CompleteType = completeType.ToDisplayString(),
+                IsArray = rawType.TypeKind == TypeKind.Array,
+                IsObject = rawType.TypeKind == TypeKind.Class && rawType.SpecialType == SpecialType.None,
+                IsNullable = isNullable,
+                IsOption = isOption,
+                RawType = rawType.FullTypeName(),
+            };
+            if (propertyModel.IsArray)
+            {
+                var elementCompleteType = ((IArrayTypeSymbol)rawType).ElementType;
+                var (elementRawType, _, elementIsOption) = CalculateType(elementCompleteType);
+                var arrayModel = new ArrayElementModel
+                {
+                    CompleteType = elementCompleteType.ToDisplayString(),
+                    IsArray = elementRawType.TypeKind == TypeKind.Array,
+                    IsObject = elementRawType.TypeKind == TypeKind.Class && elementRawType.SpecialType == SpecialType.None,
+                    IsOption = elementIsOption,
+                    RawType = elementRawType.FullTypeName(),
+                };
+                propertyModel.ArrayElementModel = arrayModel;
+
+
+            }
+            properties.Add(propertyModel);
+
+        }
+
+        return new ClassModel
+        {
+            ClassName = recordDeclaration.Identifier.Text,
+            FullName = recordSymbol.ToDisplayString(),
+            Namespace = GetNamespace(recordDeclaration),
+            Properties = properties,
+            IsRecord = true,
+
         };
     }
 
@@ -281,6 +392,27 @@ public class MapperGenerator : IIncrementalGenerator
 
         return namespaceName;
     }
+
+    private static string GetNamespace(RecordDeclarationSyntax classDeclaration)
+    {
+        var namespaceName = string.Empty;
+        var potentialNamespaceParent = classDeclaration.Parent;
+
+        while (potentialNamespaceParent != null &&
+               potentialNamespaceParent is not NamespaceDeclarationSyntax &&
+               potentialNamespaceParent is not FileScopedNamespaceDeclarationSyntax)
+        {
+            potentialNamespaceParent = potentialNamespaceParent.Parent;
+        }
+
+        if (potentialNamespaceParent is BaseNamespaceDeclarationSyntax namespaceParent)
+        {
+            namespaceName = namespaceParent.Name.ToString();
+        }
+
+        return namespaceName;
+    }
+
     public class ClassModel
     {
         public string ClassName { get; set; }
@@ -292,6 +424,8 @@ public class MapperGenerator : IIncrementalGenerator
         public string[] ClassPath =>
                 FullName.Substring(Namespace.Length + 1, FullName.Length - Namespace.Length - ClassName.Length - 1)
                     .Split('.').Select(x => x.Trim()).Where(x => x != string.Empty).ToArray();
+
+        public bool IsRecord { get; set; }
     }
     public class ArrayElementModel
     {
@@ -368,7 +502,7 @@ public class MapperGenerator : IIncrementalGenerator
 
         // code
 
-        sb.AppendLine($"public partial class {classModel.ClassName}");
+        sb.AppendLine($"public partial {(classModel.IsRecord ? "record" : "class")} {classModel.ClassName}");
         using (var _1 = sb.CodeBlock())
         {
             sb.AppendLine($"public static Result<{classModel.ClassName}> MapFromJson(JsonElement jsonElement, MapperOptions mapperOptions = null, string[] path = null)");
