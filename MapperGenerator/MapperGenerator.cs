@@ -101,13 +101,13 @@ public class MapperGenerator : IIncrementalGenerator
             var syntaxRef = type.DeclaringSyntaxReferences.FirstOrDefault();
             if (syntaxRef == null) continue;
 
-            var syntax = syntaxRef.GetSyntax() as ClassDeclarationSyntax;
-            if (syntax == null) continue;
-
-            var model = BuildClassModel(syntax, compilation);
-            if (model != null)
+            if (syntaxRef.GetSyntax() is ClassDeclarationSyntax syntax)
             {
-                GenerateMapperForClass(model, context, generatedMappers);
+                var model = BuildClassModel(syntax, compilation);
+                if (model != null)
+                {
+                    GenerateMapperForClass(model, context, generatedMappers);
+                }
             }
         }
     }
@@ -247,7 +247,7 @@ public class MapperGenerator : IIncrementalGenerator
         {
             return (namedTypeSymbol.TypeArguments.First(), true);
         }
-        if(typeSymbol.IsNullable() && typeSymbol.FullTypeName().StartsWith("FartingUnicorn.Option<") && typeSymbol is INamedTypeSymbol)
+        if (typeSymbol.IsNullable() && typeSymbol.FullTypeName().StartsWith("FartingUnicorn.Option<") && typeSymbol is INamedTypeSymbol)
         {
             return (typeSymbol, true);
         }
@@ -281,7 +281,6 @@ public class MapperGenerator : IIncrementalGenerator
 
         return namespaceName;
     }
-
     public class ClassModel
     {
         public string ClassName { get; set; }
@@ -491,7 +490,7 @@ public class MapperGenerator : IIncrementalGenerator
                                     if (p.ArrayElementModel.RawType == "System.String")
                                     {
                                         sb.AppendLine($"if(json{p.Name}Property[i].ValueKind != JsonValueKind.String)");
-                                        using (var _6 = sb.CodeBlock()) 
+                                        using (var _6 = sb.CodeBlock())
                                         {
                                             sb.AppendLine($"errors.Add(new ValueHasWrongTypeError([.. path, \"{p.Name}\", i.ToString()], \"String\", json{p.Name}Property[i].ValueKind.ToString()));");
                                         }
@@ -541,8 +540,6 @@ public class MapperGenerator : IIncrementalGenerator
                                             sb.AppendLine($"errors.AddRange(result.Errors.ToArray());");
                                         }
                                     }
-
-                                    
                                 }
                                 if (p.IsOption)
                                 {

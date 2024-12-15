@@ -8,6 +8,7 @@ using System.Text.Json;
 using Xunit;
 
 namespace FartingUnicorn.Tests;
+
 public partial class Objects
 {
     public partial class NotOptional
@@ -342,13 +343,13 @@ public partial class Objects
         {
             public Option<Author>? Author { get; set; }
         }
-        
+
         public partial class Author
         {
             public string Name { get; set; }
             public Option<int> Age { get; set; }
         }
-        
+
         public static IEnumerable<object[]> GetMappers =>
         [
             [(Func<JsonElement, Result<BlogPost>>)(x => Mapper.Map<BlogPost>(x))],
