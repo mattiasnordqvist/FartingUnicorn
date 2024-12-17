@@ -2,8 +2,6 @@
 
 using System.Text.Json;
 
-using static FartingUnicorn.MapperOptions;
-
 namespace FartingUnicorn;
 
 public class EnumAsStringConverter : IConverter

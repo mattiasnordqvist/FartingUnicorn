@@ -12,15 +12,55 @@ namespace FartingUnicorn.Tests;
 // Just here to make sure the generated code compiles
 public enum Gender { Male, Female, Other }
 
-[CreateMapper]
-public partial record MyRecord(string Name, int Age, Option<Gender> Gender, string? Pet);
+public class MyEnumAsStringConverter : IConverter<Enum>
+{
+    public JsonValueKind ExpectedJsonValueKind => JsonValueKind.String;
+
+    public Result<Enum> Convert(JsonElement jsonElement)
+    {
+        if (Enum.TryParse(typeof(Gender), jsonElement.GetString(), out object? result))
+        {
+            return Result<Enum>.Ok((Enum)result);
+        }
+        else
+        {
+            return Result<Enum>.Error(new EnumValueMustExistError(typeof(Enum), jsonElement.GetString()));
+        }
+    }
+}
+
+public class MyLongAsStringConverter : IConverter<long>
+{
+    public JsonValueKind ExpectedJsonValueKind => JsonValueKind.String;
+
+    public Result<long> Convert(JsonElement jsonElement)
+    {
+        if (long.TryParse(jsonElement.GetString(), out long result))
+        {
+            return Result<long>.Ok(result);
+        }
+        else
+        {
+            return Result<long>.Error(new ParseError());
+        }
+    }
+
+    public record ParseError() : ErrorBase("Failed to parse");
+}
+
+[Converter<MyEnumAsStringConverter, Enum>]
+[Converter<MyLongAsStringConverter, long>]
+public class MyMapperConverters { }
+
+[CreateMapper<MyMapperConverters>]
+public partial record MyRecord(long Id, string Name, int Age, Option<Gender> Gender, string? Pet);
 
 public partial class Objects
 {
     public partial class NotOptional
     {
 
-        [CreateMapper]
+        [CreateMapper<MyMapperConverters>]
         public partial class BlogPost
         {
             public string Title { get; set; }

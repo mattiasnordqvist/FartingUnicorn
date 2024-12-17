@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Text;
 
 namespace MapperGenerator;
@@ -17,10 +16,31 @@ public class MapperGenerator : IIncrementalGenerator
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
             "CreateMapperAttribute.g.cs",
             SourceText.From("""
+                using DotNetThoughts.Results;
+
+                using System.Text.Json;
+
                 namespace DotNetThoughts.FartingUnicorn
                 {
+                    public interface IConverter<T>
+                    {
+                        JsonValueKind ExpectedJsonValueKind { get; }
+
+                        Result<T> Convert(JsonElement jsonElement);
+                    }
+
+                    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+                    public class ConverterAttribute<TConverter, T> : System.Attribute where TConverter : IConverter<T>
+                    {
+                    }
+
                     [System.AttributeUsage(System.AttributeTargets.Class)]
                     public class CreateMapperAttribute : System.Attribute
+                    {
+                    }
+
+                    [System.AttributeUsage(System.AttributeTargets.Class)]
+                    public class CreateMapperAttribute<T> : CreateMapperAttribute
                     {
                     }
                 }
@@ -67,7 +87,7 @@ public class MapperGenerator : IIncrementalGenerator
                 INamedTypeSymbol attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                 string fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                if (fullName == "DotNetThoughts.FartingUnicorn.CreateMapperAttribute")
+                if (fullName.StartsWith("DotNetThoughts.FartingUnicorn.CreateMapperAttribute"))
                 {
                     return classDeclarationSyntaxNode;
                 }

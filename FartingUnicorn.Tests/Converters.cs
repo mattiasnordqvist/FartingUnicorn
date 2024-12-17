@@ -7,8 +7,6 @@ using System.Text.Json;
 
 using Xunit;
 
-using static FartingUnicorn.MapperOptions;
-
 namespace FartingUnicorn.Tests;
 
 public partial class Converters
