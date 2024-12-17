@@ -8,7 +8,7 @@ namespace FartingUnicorn.Tests;
 // ClassName: MyRecord
 // FullName: FartingUnicorn.Tests.MyRecord
 // Namespace: FartingUnicorn.Tests
-// Properties: 2
+// Properties: 4
 // HasCreateMapperAttribute: False
 // ClassPath: 
 
@@ -30,6 +30,24 @@ namespace FartingUnicorn.Tests;
 // IsOption: False
 // RawType: System.Int32
 
+// Property 2
+// Name: Gender
+// CompleteType: FartingUnicorn.Option<FartingUnicorn.Tests.Gender>
+// IsArray: False
+// IsObject: False
+// IsNullable: False
+// IsOption: True
+// RawType: FartingUnicorn.Tests.Gender
+
+// Property 3
+// Name: Pet
+// CompleteType: string?
+// IsArray: False
+// IsObject: False
+// IsNullable: True
+// IsOption: False
+// RawType: System.String
+
 
 public partial record MyRecord
 {
@@ -49,6 +67,8 @@ public partial record MyRecord
         }
         var p_Name = default(string);
         var p_Age = default(int);
+        var p_Gender = default(FartingUnicorn.Option<FartingUnicorn.Tests.Gender>);
+        var p_Pet = default(string?);
 
         List<IError> errors = new();
         var isNamePropertyDefined = jsonElement.TryGetProperty("Name", out var jsonNameProperty);
@@ -91,6 +111,57 @@ public partial record MyRecord
         {
             errors.Add(new RequiredPropertyMissingError([.. path, "Age"]));
         }
+        var isGenderPropertyDefined = jsonElement.TryGetProperty("Gender", out var jsonGenderProperty);
+        if (isGenderPropertyDefined)
+        {
+            if (jsonGenderProperty.ValueKind == JsonValueKind.Null)
+            {
+                p_Gender = new None<FartingUnicorn.Tests.Gender>();
+            }
+            else if (mapperOptions.TryGetConverter(typeof(FartingUnicorn.Tests.Gender), out IConverter customConverter))
+            {
+                if (jsonGenderProperty.ValueKind != customConverter.ExpectedJsonValueKind)
+                {
+                    errors.Add(new ValueHasWrongTypeError([.. path, "Gender"], customConverter.ExpectedJsonValueKind.ToString(), jsonGenderProperty.ValueKind.ToString()));
+                }
+                else
+                {
+                    var result = customConverter.Convert(typeof(FartingUnicorn.Tests.Gender), jsonGenderProperty, mapperOptions, [.. path, "Gender"]);
+                    if (result.Success)
+                    {
+                        p_Gender = new Some<FartingUnicorn.Tests.Gender>(result.Map(x => (FartingUnicorn.Tests.Gender)x).Value);
+                    }
+                    else
+                    {
+                        errors.AddRange(result.Errors.Select(x => new MappingError([.. path, "Gender"], x.Message)).ToArray());
+                    }
+                }
+            }
+        }
+        else
+        {
+            errors.Add(new RequiredPropertyMissingError([.. path, "Gender"]));
+        }
+        var isPetPropertyDefined = jsonElement.TryGetProperty("Pet", out var jsonPetProperty);
+        if (isPetPropertyDefined)
+        {
+            if (jsonPetProperty.ValueKind == JsonValueKind.Null)
+            {
+                errors.Add(new RequiredValueMissingError([.. path, "Pet"]));
+            }
+            else if (jsonPetProperty.ValueKind == JsonValueKind.String)
+            {
+                p_Pet = jsonPetProperty.GetString();
+            }
+            else
+            {
+                errors.Add(new ValueHasWrongTypeError([.. path, "Pet"], "String", jsonPetProperty.ValueKind.ToString()));
+            }
+        }
+        else
+        {
+            p_Pet = null;
+        }
         if(errors.Any())
         {
             return Result<MyRecord>.Error(errors);
@@ -102,7 +173,9 @@ public partial record MyRecord
         {
             return Result<MyRecord>.Ok(new MyRecord(
                 p_Name,
-                p_Age
+                p_Age,
+                p_Gender,
+                p_Pet
             ));
         }
         throw new NotImplementedException();

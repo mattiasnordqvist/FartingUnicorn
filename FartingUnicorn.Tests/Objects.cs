@@ -9,9 +9,11 @@ using Xunit;
 
 namespace FartingUnicorn.Tests;
 
+// Just here to make sure the generated code compiles
+public enum Gender { Male, Female, Other }
 
 [CreateMapper]
-public partial record MyRecord(string Name, int Age);
+public partial record MyRecord(string Name, int Age, Option<Gender> Gender, string? Pet);
 
 public partial class Objects
 {
