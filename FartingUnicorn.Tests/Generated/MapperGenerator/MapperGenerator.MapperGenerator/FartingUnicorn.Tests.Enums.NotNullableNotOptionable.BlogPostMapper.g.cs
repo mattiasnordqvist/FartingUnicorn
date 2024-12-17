@@ -51,7 +51,8 @@ public partial class Enums
                 {
                     return Result<BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
                 }
-                var obj = new BlogPost();
+                var p_Title = default(string);
+                var p_Status = default(FartingUnicorn.Tests.Enums.NotNullableNotOptionable.BlogPostStatus);
 
                 List<IError> errors = new();
                 var isTitlePropertyDefined = jsonElement.TryGetProperty("Title", out var jsonTitleProperty);
@@ -63,7 +64,7 @@ public partial class Enums
                     }
                     else if (jsonTitleProperty.ValueKind == JsonValueKind.String)
                     {
-                        obj.Title = jsonTitleProperty.GetString();
+                        p_Title = jsonTitleProperty.GetString();
                     }
                     else
                     {
@@ -92,7 +93,7 @@ public partial class Enums
                             var result = customConverter.Convert(typeof(FartingUnicorn.Tests.Enums.NotNullableNotOptionable.BlogPostStatus), jsonStatusProperty, mapperOptions, [.. path, "Status"]);
                             if (result.Success)
                             {
-                                obj.Status = result.Map(x => (FartingUnicorn.Tests.Enums.NotNullableNotOptionable.BlogPostStatus)x).Value;
+                                p_Status = result.Map(x => (FartingUnicorn.Tests.Enums.NotNullableNotOptionable.BlogPostStatus)x).Value;
                             }
                             else
                             {
@@ -114,6 +115,9 @@ public partial class Enums
                 }
                 else
                 {
+                    var obj = new BlogPost();
+                    obj.Title = p_Title;
+                    obj.Status = p_Status;
                     return Result<BlogPost>.Ok(obj);
                 }
                 throw new NotImplementedException();

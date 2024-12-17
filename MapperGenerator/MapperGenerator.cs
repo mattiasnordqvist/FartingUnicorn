@@ -525,8 +525,12 @@ public class MapperGenerator : IIncrementalGenerator
                 {
                     sb.AppendLine($"return Result<{classModel.ClassName}>.Error(new ValueHasWrongTypeError(path, \"Object\", jsonElement.ValueKind.ToString()));");
                 }
-
-                sb.AppendLine($"var obj = new {classModel.ClassName}();");
+               
+                foreach (var p in classModel.Properties)
+                {
+                    sb.AppendLine($"var p_{p.Name} = default({p.CompleteType});");
+                }
+               
                 sb.AppendLine();
                 sb.AppendLine("List<IError> errors = new();");
 
@@ -541,7 +545,7 @@ public class MapperGenerator : IIncrementalGenerator
                         {
                             if (p.IsOption)
                             {
-                                sb.AppendLine($"obj.{p.Name} = new None<{p.RawType}>();");
+                                sb.AppendLine($"p_{p.Name} = new None<{p.RawType}>();");
                             }
                             else
                             {
@@ -555,12 +559,12 @@ public class MapperGenerator : IIncrementalGenerator
                             {
                                 if (p.IsOption)
                                 {
-                                    sb.AppendLine($"obj.{p.Name} = new Some<string>(json{p.Name}Property.GetString());");
+                                    sb.AppendLine($"p_{p.Name} = new Some<string>(json{p.Name}Property.GetString());");
 
                                 }
                                 else
                                 {
-                                    sb.AppendLine($"obj.{p.Name} = json{p.Name}Property.GetString();");
+                                    sb.AppendLine($"p_{p.Name} = json{p.Name}Property.GetString();");
                                 }
                             }
                             sb.AppendLine("else");
@@ -576,12 +580,12 @@ public class MapperGenerator : IIncrementalGenerator
                             {
                                 if (p.IsOption)
                                 {
-                                    sb.AppendLine($"obj.{p.Name} = new Some<bool>(json{p.Name}Property.GetBoolean());");
+                                    sb.AppendLine($"p_{p.Name} = new Some<bool>(json{p.Name}Property.GetBoolean());");
 
                                 }
                                 else
                                 {
-                                    sb.AppendLine($"obj.{p.Name} = json{p.Name}Property.GetBoolean();");
+                                    sb.AppendLine($"p_{p.Name} = json{p.Name}Property.GetBoolean();");
                                 }
                             }
                             sb.AppendLine("else");
@@ -597,12 +601,12 @@ public class MapperGenerator : IIncrementalGenerator
                             {
                                 if (p.IsOption)
                                 {
-                                    sb.AppendLine($"obj.{p.Name} = new Some<int>(json{p.Name}Property.GetInt32());");
+                                    sb.AppendLine($"p_{p.Name} = new Some<int>(json{p.Name}Property.GetInt32());");
 
                                 }
                                 else
                                 {
-                                    sb.AppendLine($"obj.{p.Name} = json{p.Name}Property.GetInt32();");
+                                    sb.AppendLine($"p_{p.Name} = json{p.Name}Property.GetInt32();");
                                 }
                             }
                             sb.AppendLine("else");
@@ -677,11 +681,11 @@ public class MapperGenerator : IIncrementalGenerator
                                 }
                                 if (p.IsOption)
                                 {
-                                    sb.AppendLine($"obj.{p.Name} = new Some<{p.ArrayElementModel.CompleteType}[]>(array);");
+                                    sb.AppendLine($"p_{p.Name} = new Some<{p.ArrayElementModel.CompleteType}[]>(array);");
                                 }
                                 else
                                 {
-                                    sb.AppendLine($"obj.{p.Name} = array;");
+                                    sb.AppendLine($"p_{p.Name} = array;");
                                 }
                             }
                             sb.AppendLine("else");
@@ -708,9 +712,9 @@ public class MapperGenerator : IIncrementalGenerator
                                     using (var _6 = sb.CodeBlock())
                                     {
                                         if (p.IsOption)
-                                            sb.AppendLine($"obj.{p.Name} = new Some<{p.RawType}>(result.Map(x => ({p.RawType})x).Value);");
+                                            sb.AppendLine($"p_{p.Name} = new Some<{p.RawType}>(result.Map(x => ({p.RawType})x).Value);");
                                         else
-                                            sb.AppendLine($"obj.{p.Name} = result.Map(x => ({p.RawType})x).Value;");
+                                            sb.AppendLine($"p_{p.Name} = result.Map(x => ({p.RawType})x).Value;");
                                     }
                                     sb.AppendLine("else");
                                     using (var _6 = sb.CodeBlock())
@@ -733,12 +737,12 @@ public class MapperGenerator : IIncrementalGenerator
                                         {
                                             if (p.IsOption)
                                             {
-                                                sb.AppendLine($"obj.{p.Name} = new Some<{p.RawType}>(result.Value!);");
+                                                sb.AppendLine($"p_{p.Name} = new Some<{p.RawType}>(result.Value!);");
 
                                             }
                                             else
                                             {
-                                                sb.AppendLine($"obj.{p.Name} = result.Value;");
+                                                sb.AppendLine($"p_{p.Name} = result.Value;");
                                             }
                                         }
                                         sb.AppendLine("else");
@@ -761,7 +765,7 @@ public class MapperGenerator : IIncrementalGenerator
                     {
                         if (p.IsNullable)
                         {
-                            sb.AppendLine($"obj.{p.Name} = null;");
+                            sb.AppendLine($"p_{p.Name} = null;");
                         }
                         else
                         {
@@ -784,7 +788,35 @@ public class MapperGenerator : IIncrementalGenerator
                 sb.AppendLine("else");
                 using (var _3 = sb.CodeBlock())
                 {
-                    sb.AppendLine($"return Result<{classModel.ClassName}>.Ok(obj);");
+                    if (!classModel.IsRecord)
+                    {
+                        sb.AppendLine($"var obj = new {classModel.ClassName}();");
+                        foreach (var p in classModel.Properties)
+                        {
+                            sb.AppendLine($"obj.{p.Name} = p_{p.Name};");
+                        }
+                        sb.AppendLine($"return Result<{classModel.ClassName}>.Ok(obj);");
+                    }
+                    else
+                    {
+                        sb.AppendLine($"return Result<{classModel.ClassName}>.Ok(new {classModel.ClassName}(");
+                        using (var _4 = sb.Indent())
+                        {
+                            for (int p_i = 0; p_i < classModel.Properties.Count; p_i++)
+                            {
+                                var p = classModel.Properties[p_i];
+                                if (p_i == classModel.Properties.Count - 1)
+                                {
+                                    sb.AppendLine($"p_{p.Name}");
+                                }
+                                else
+                                {
+                                    sb.AppendLine($"p_{p.Name},");
+                                }
+                            }
+                        }
+                        sb.AppendLine("));");
+                    }
                 }
                 sb.AppendLine("throw new NotImplementedException();");
 

@@ -47,7 +47,7 @@ public partial class Arrays
                 {
                     return Result<BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
                 }
-                var obj = new BlogPost();
+                var p_Comments = default(FartingUnicorn.Option<FartingUnicorn.Tests.Arrays.Optional.Comment[]>);
 
                 List<IError> errors = new();
                 var isCommentsPropertyDefined = jsonElement.TryGetProperty("Comments", out var jsonCommentsProperty);
@@ -55,7 +55,7 @@ public partial class Arrays
                 {
                     if (jsonCommentsProperty.ValueKind == JsonValueKind.Null)
                     {
-                        obj.Comments = new None<FartingUnicorn.Tests.Arrays.Optional.Comment[]>();
+                        p_Comments = new None<FartingUnicorn.Tests.Arrays.Optional.Comment[]>();
                     }
                     else if (jsonCommentsProperty.ValueKind == JsonValueKind.Array)
                     {
@@ -72,7 +72,7 @@ public partial class Arrays
                                 errors.AddRange(result.Errors.ToArray());
                             }
                         }
-                        obj.Comments = new Some<FartingUnicorn.Tests.Arrays.Optional.Comment[]>(array);
+                        p_Comments = new Some<FartingUnicorn.Tests.Arrays.Optional.Comment[]>(array);
                     }
                     else
                     {
@@ -92,6 +92,8 @@ public partial class Arrays
                 }
                 else
                 {
+                    var obj = new BlogPost();
+                    obj.Comments = p_Comments;
                     return Result<BlogPost>.Ok(obj);
                 }
                 throw new NotImplementedException();

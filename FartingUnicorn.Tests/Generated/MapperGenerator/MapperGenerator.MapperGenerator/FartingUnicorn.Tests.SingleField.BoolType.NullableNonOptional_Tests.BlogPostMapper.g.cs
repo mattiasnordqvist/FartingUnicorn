@@ -44,7 +44,7 @@ public partial class SingleField
                     {
                         return Result<BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
                     }
-                    var obj = new BlogPost();
+                    var p_IsDraft = default(bool?);
 
                     List<IError> errors = new();
                     var isIsDraftPropertyDefined = jsonElement.TryGetProperty("IsDraft", out var jsonIsDraftProperty);
@@ -56,7 +56,7 @@ public partial class SingleField
                         }
                         else if (jsonIsDraftProperty.ValueKind == JsonValueKind.True || jsonIsDraftProperty.ValueKind == JsonValueKind.False)
                         {
-                            obj.IsDraft = jsonIsDraftProperty.GetBoolean();
+                            p_IsDraft = jsonIsDraftProperty.GetBoolean();
                         }
                         else
                         {
@@ -65,7 +65,7 @@ public partial class SingleField
                     }
                     else
                     {
-                        obj.IsDraft = null;
+                        p_IsDraft = null;
                     }
                     if(errors.Any())
                     {
@@ -76,6 +76,8 @@ public partial class SingleField
                     }
                     else
                     {
+                        var obj = new BlogPost();
+                        obj.IsDraft = p_IsDraft;
                         return Result<BlogPost>.Ok(obj);
                     }
                     throw new NotImplementedException();

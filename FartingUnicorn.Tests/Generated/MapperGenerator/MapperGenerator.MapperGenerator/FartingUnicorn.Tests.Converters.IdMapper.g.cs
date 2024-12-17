@@ -40,7 +40,7 @@ public partial class Converters
             {
                 return Result<Id>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
             }
-            var obj = new Id();
+            var p_Value = default(long);
 
             List<IError> errors = new();
             var isValuePropertyDefined = jsonElement.TryGetProperty("Value", out var jsonValueProperty);
@@ -61,7 +61,7 @@ public partial class Converters
                         var result = customConverter.Convert(typeof(System.Int64), jsonValueProperty, mapperOptions, [.. path, "Value"]);
                         if (result.Success)
                         {
-                            obj.Value = result.Map(x => (System.Int64)x).Value;
+                            p_Value = result.Map(x => (System.Int64)x).Value;
                         }
                         else
                         {
@@ -83,6 +83,8 @@ public partial class Converters
             }
             else
             {
+                var obj = new Id();
+                obj.Value = p_Value;
                 return Result<Id>.Ok(obj);
             }
             throw new NotImplementedException();

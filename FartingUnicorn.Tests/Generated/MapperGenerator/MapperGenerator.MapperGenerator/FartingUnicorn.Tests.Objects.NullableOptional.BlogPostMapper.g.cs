@@ -42,7 +42,7 @@ public partial class Objects
                 {
                     return Result<BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
                 }
-                var obj = new BlogPost();
+                var p_Author = default(FartingUnicorn.Option<FartingUnicorn.Tests.Objects.NullableOptional.Author>?);
 
                 List<IError> errors = new();
                 var isAuthorPropertyDefined = jsonElement.TryGetProperty("Author", out var jsonAuthorProperty);
@@ -50,7 +50,7 @@ public partial class Objects
                 {
                     if (jsonAuthorProperty.ValueKind == JsonValueKind.Null)
                     {
-                        obj.Author = new None<FartingUnicorn.Tests.Objects.NullableOptional.Author>();
+                        p_Author = new None<FartingUnicorn.Tests.Objects.NullableOptional.Author>();
                     }
                     else if (mapperOptions.TryGetConverter(typeof(FartingUnicorn.Tests.Objects.NullableOptional.Author), out IConverter customConverter))
                     {
@@ -63,7 +63,7 @@ public partial class Objects
                             var result = customConverter.Convert(typeof(FartingUnicorn.Tests.Objects.NullableOptional.Author), jsonAuthorProperty, mapperOptions, [.. path, "Author"]);
                             if (result.Success)
                             {
-                                obj.Author = new Some<FartingUnicorn.Tests.Objects.NullableOptional.Author>(result.Map(x => (FartingUnicorn.Tests.Objects.NullableOptional.Author)x).Value);
+                                p_Author = new Some<FartingUnicorn.Tests.Objects.NullableOptional.Author>(result.Map(x => (FartingUnicorn.Tests.Objects.NullableOptional.Author)x).Value);
                             }
                             else
                             {
@@ -78,7 +78,7 @@ public partial class Objects
                             var result = FartingUnicorn.Tests.Objects.NullableOptional.Author.MapFromJson(jsonAuthorProperty, mapperOptions, [.. path, "Author"]);
                             if (result.Success)
                             {
-                                obj.Author = new Some<FartingUnicorn.Tests.Objects.NullableOptional.Author>(result.Value!);
+                                p_Author = new Some<FartingUnicorn.Tests.Objects.NullableOptional.Author>(result.Value!);
                             }
                             else
                             {
@@ -93,7 +93,7 @@ public partial class Objects
                 }
                 else
                 {
-                    obj.Author = null;
+                    p_Author = null;
                 }
                 if(errors.Any())
                 {
@@ -104,6 +104,8 @@ public partial class Objects
                 }
                 else
                 {
+                    var obj = new BlogPost();
+                    obj.Author = p_Author;
                     return Result<BlogPost>.Ok(obj);
                 }
                 throw new NotImplementedException();

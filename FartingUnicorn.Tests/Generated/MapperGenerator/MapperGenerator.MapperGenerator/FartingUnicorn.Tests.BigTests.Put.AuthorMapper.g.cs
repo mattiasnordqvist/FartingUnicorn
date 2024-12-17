@@ -51,7 +51,8 @@ public partial class BigTests
                 {
                     return Result<Author>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
                 }
-                var obj = new Author();
+                var p_Name = default(string);
+                var p_Age = default(FartingUnicorn.Option<int>);
 
                 List<IError> errors = new();
                 var isNamePropertyDefined = jsonElement.TryGetProperty("Name", out var jsonNameProperty);
@@ -63,7 +64,7 @@ public partial class BigTests
                     }
                     else if (jsonNameProperty.ValueKind == JsonValueKind.String)
                     {
-                        obj.Name = jsonNameProperty.GetString();
+                        p_Name = jsonNameProperty.GetString();
                     }
                     else
                     {
@@ -79,11 +80,11 @@ public partial class BigTests
                 {
                     if (jsonAgeProperty.ValueKind == JsonValueKind.Null)
                     {
-                        obj.Age = new None<System.Int32>();
+                        p_Age = new None<System.Int32>();
                     }
                     else if (jsonAgeProperty.ValueKind == JsonValueKind.Number)
                     {
-                        obj.Age = new Some<int>(jsonAgeProperty.GetInt32());
+                        p_Age = new Some<int>(jsonAgeProperty.GetInt32());
                     }
                     else
                     {
@@ -103,6 +104,9 @@ public partial class BigTests
                 }
                 else
                 {
+                    var obj = new Author();
+                    obj.Name = p_Name;
+                    obj.Age = p_Age;
                     return Result<Author>.Ok(obj);
                 }
                 throw new NotImplementedException();

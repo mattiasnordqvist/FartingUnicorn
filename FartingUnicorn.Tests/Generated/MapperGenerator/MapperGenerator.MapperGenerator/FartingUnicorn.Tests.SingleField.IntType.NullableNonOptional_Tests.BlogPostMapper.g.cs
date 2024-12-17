@@ -44,7 +44,7 @@ public partial class SingleField
                     {
                         return Result<BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
                     }
-                    var obj = new BlogPost();
+                    var p_Rating = default(int?);
 
                     List<IError> errors = new();
                     var isRatingPropertyDefined = jsonElement.TryGetProperty("Rating", out var jsonRatingProperty);
@@ -56,7 +56,7 @@ public partial class SingleField
                         }
                         else if (jsonRatingProperty.ValueKind == JsonValueKind.Number)
                         {
-                            obj.Rating = jsonRatingProperty.GetInt32();
+                            p_Rating = jsonRatingProperty.GetInt32();
                         }
                         else
                         {
@@ -65,7 +65,7 @@ public partial class SingleField
                     }
                     else
                     {
-                        obj.Rating = null;
+                        p_Rating = null;
                     }
                     if(errors.Any())
                     {
@@ -76,6 +76,8 @@ public partial class SingleField
                     }
                     else
                     {
+                        var obj = new BlogPost();
+                        obj.Rating = p_Rating;
                         return Result<BlogPost>.Ok(obj);
                     }
                     throw new NotImplementedException();

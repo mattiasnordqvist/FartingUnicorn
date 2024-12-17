@@ -78,7 +78,11 @@ public partial class Objects
                 {
                     return Result<BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
                 }
-                var obj = new BlogPost();
+                var p_Title = default(string);
+                var p_IsDraft = default(bool);
+                var p_Category = default(FartingUnicorn.Option<string>);
+                var p_Rating = default(FartingUnicorn.Option<int>);
+                var p_Author = default(FartingUnicorn.Option<FartingUnicorn.Tests.Objects.Optional.Author>);
 
                 List<IError> errors = new();
                 var isTitlePropertyDefined = jsonElement.TryGetProperty("Title", out var jsonTitleProperty);
@@ -90,7 +94,7 @@ public partial class Objects
                     }
                     else if (jsonTitleProperty.ValueKind == JsonValueKind.String)
                     {
-                        obj.Title = jsonTitleProperty.GetString();
+                        p_Title = jsonTitleProperty.GetString();
                     }
                     else
                     {
@@ -110,7 +114,7 @@ public partial class Objects
                     }
                     else if (jsonIsDraftProperty.ValueKind == JsonValueKind.True || jsonIsDraftProperty.ValueKind == JsonValueKind.False)
                     {
-                        obj.IsDraft = jsonIsDraftProperty.GetBoolean();
+                        p_IsDraft = jsonIsDraftProperty.GetBoolean();
                     }
                     else
                     {
@@ -126,11 +130,11 @@ public partial class Objects
                 {
                     if (jsonCategoryProperty.ValueKind == JsonValueKind.Null)
                     {
-                        obj.Category = new None<System.String>();
+                        p_Category = new None<System.String>();
                     }
                     else if (jsonCategoryProperty.ValueKind == JsonValueKind.String)
                     {
-                        obj.Category = new Some<string>(jsonCategoryProperty.GetString());
+                        p_Category = new Some<string>(jsonCategoryProperty.GetString());
                     }
                     else
                     {
@@ -146,11 +150,11 @@ public partial class Objects
                 {
                     if (jsonRatingProperty.ValueKind == JsonValueKind.Null)
                     {
-                        obj.Rating = new None<System.Int32>();
+                        p_Rating = new None<System.Int32>();
                     }
                     else if (jsonRatingProperty.ValueKind == JsonValueKind.Number)
                     {
-                        obj.Rating = new Some<int>(jsonRatingProperty.GetInt32());
+                        p_Rating = new Some<int>(jsonRatingProperty.GetInt32());
                     }
                     else
                     {
@@ -166,7 +170,7 @@ public partial class Objects
                 {
                     if (jsonAuthorProperty.ValueKind == JsonValueKind.Null)
                     {
-                        obj.Author = new None<FartingUnicorn.Tests.Objects.Optional.Author>();
+                        p_Author = new None<FartingUnicorn.Tests.Objects.Optional.Author>();
                     }
                     else if (mapperOptions.TryGetConverter(typeof(FartingUnicorn.Tests.Objects.Optional.Author), out IConverter customConverter))
                     {
@@ -179,7 +183,7 @@ public partial class Objects
                             var result = customConverter.Convert(typeof(FartingUnicorn.Tests.Objects.Optional.Author), jsonAuthorProperty, mapperOptions, [.. path, "Author"]);
                             if (result.Success)
                             {
-                                obj.Author = new Some<FartingUnicorn.Tests.Objects.Optional.Author>(result.Map(x => (FartingUnicorn.Tests.Objects.Optional.Author)x).Value);
+                                p_Author = new Some<FartingUnicorn.Tests.Objects.Optional.Author>(result.Map(x => (FartingUnicorn.Tests.Objects.Optional.Author)x).Value);
                             }
                             else
                             {
@@ -194,7 +198,7 @@ public partial class Objects
                             var result = FartingUnicorn.Tests.Objects.Optional.Author.MapFromJson(jsonAuthorProperty, mapperOptions, [.. path, "Author"]);
                             if (result.Success)
                             {
-                                obj.Author = new Some<FartingUnicorn.Tests.Objects.Optional.Author>(result.Value!);
+                                p_Author = new Some<FartingUnicorn.Tests.Objects.Optional.Author>(result.Value!);
                             }
                             else
                             {
@@ -220,6 +224,12 @@ public partial class Objects
                 }
                 else
                 {
+                    var obj = new BlogPost();
+                    obj.Title = p_Title;
+                    obj.IsDraft = p_IsDraft;
+                    obj.Category = p_Category;
+                    obj.Rating = p_Rating;
+                    obj.Author = p_Author;
                     return Result<BlogPost>.Ok(obj);
                 }
                 throw new NotImplementedException();

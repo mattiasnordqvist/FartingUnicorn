@@ -47,7 +47,8 @@ public partial record MyRecord
         {
             return Result<MyRecord>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
         }
-        var obj = new MyRecord();
+        var p_Name = default(string);
+        var p_Age = default(int);
 
         List<IError> errors = new();
         var isNamePropertyDefined = jsonElement.TryGetProperty("Name", out var jsonNameProperty);
@@ -59,7 +60,7 @@ public partial record MyRecord
             }
             else if (jsonNameProperty.ValueKind == JsonValueKind.String)
             {
-                obj.Name = jsonNameProperty.GetString();
+                p_Name = jsonNameProperty.GetString();
             }
             else
             {
@@ -79,7 +80,7 @@ public partial record MyRecord
             }
             else if (jsonAgeProperty.ValueKind == JsonValueKind.Number)
             {
-                obj.Age = jsonAgeProperty.GetInt32();
+                p_Age = jsonAgeProperty.GetInt32();
             }
             else
             {
@@ -99,7 +100,10 @@ public partial record MyRecord
         }
         else
         {
-            return Result<MyRecord>.Ok(obj);
+            return Result<MyRecord>.Ok(new MyRecord(
+                p_Name,
+                p_Age
+            ));
         }
         throw new NotImplementedException();
     }

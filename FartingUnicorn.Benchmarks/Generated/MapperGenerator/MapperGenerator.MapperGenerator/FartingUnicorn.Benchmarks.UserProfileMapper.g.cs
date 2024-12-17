@@ -38,7 +38,7 @@ public partial class UserProfile
         {
             return Result<UserProfile>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
         }
-        var obj = new UserProfile();
+        var p_Name = default(string);
 
         List<IError> errors = new();
         var isNamePropertyDefined = jsonElement.TryGetProperty("Name", out var jsonNameProperty);
@@ -50,7 +50,7 @@ public partial class UserProfile
             }
             else if (jsonNameProperty.ValueKind == JsonValueKind.String)
             {
-                obj.Name = jsonNameProperty.GetString();
+                p_Name = jsonNameProperty.GetString();
             }
             else
             {
@@ -70,6 +70,8 @@ public partial class UserProfile
         }
         else
         {
+            var obj = new UserProfile();
+            obj.Name = p_Name;
             return Result<UserProfile>.Ok(obj);
         }
         throw new NotImplementedException();

@@ -47,7 +47,7 @@ public partial class Arrays
                 {
                     return Result<BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
                 }
-                var obj = new BlogPost();
+                var p_Ratings = default(int[]);
 
                 List<IError> errors = new();
                 var isRatingsPropertyDefined = jsonElement.TryGetProperty("Ratings", out var jsonRatingsProperty);
@@ -71,7 +71,7 @@ public partial class Arrays
                                 array.SetValue(jsonRatingsProperty[i].GetInt32(), i);
                             }
                         }
-                        obj.Ratings = array;
+                        p_Ratings = array;
                     }
                     else
                     {
@@ -91,6 +91,8 @@ public partial class Arrays
                 }
                 else
                 {
+                    var obj = new BlogPost();
+                    obj.Ratings = p_Ratings;
                     return Result<BlogPost>.Ok(obj);
                 }
                 throw new NotImplementedException();

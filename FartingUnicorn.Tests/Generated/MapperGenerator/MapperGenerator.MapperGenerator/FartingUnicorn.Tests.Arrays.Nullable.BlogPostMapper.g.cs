@@ -47,7 +47,7 @@ public partial class Arrays
                 {
                     return Result<BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
                 }
-                var obj = new BlogPost();
+                var p_Comments = default(FartingUnicorn.Tests.Arrays.Nullable.Comment[]?);
 
                 List<IError> errors = new();
                 var isCommentsPropertyDefined = jsonElement.TryGetProperty("Comments", out var jsonCommentsProperty);
@@ -72,7 +72,7 @@ public partial class Arrays
                                 errors.AddRange(result.Errors.ToArray());
                             }
                         }
-                        obj.Comments = array;
+                        p_Comments = array;
                     }
                     else
                     {
@@ -81,7 +81,7 @@ public partial class Arrays
                 }
                 else
                 {
-                    obj.Comments = null;
+                    p_Comments = null;
                 }
                 if(errors.Any())
                 {
@@ -92,6 +92,8 @@ public partial class Arrays
                 }
                 else
                 {
+                    var obj = new BlogPost();
+                    obj.Comments = p_Comments;
                     return Result<BlogPost>.Ok(obj);
                 }
                 throw new NotImplementedException();

@@ -44,7 +44,7 @@ public partial class SingleField
                     {
                         return Result<BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
                     }
-                    var obj = new BlogPost();
+                    var p_Title = default(FartingUnicorn.Option<string>);
 
                     List<IError> errors = new();
                     var isTitlePropertyDefined = jsonElement.TryGetProperty("Title", out var jsonTitleProperty);
@@ -52,11 +52,11 @@ public partial class SingleField
                     {
                         if (jsonTitleProperty.ValueKind == JsonValueKind.Null)
                         {
-                            obj.Title = new None<System.String>();
+                            p_Title = new None<System.String>();
                         }
                         else if (jsonTitleProperty.ValueKind == JsonValueKind.String)
                         {
-                            obj.Title = new Some<string>(jsonTitleProperty.GetString());
+                            p_Title = new Some<string>(jsonTitleProperty.GetString());
                         }
                         else
                         {
@@ -76,6 +76,8 @@ public partial class SingleField
                     }
                     else
                     {
+                        var obj = new BlogPost();
+                        obj.Title = p_Title;
                         return Result<BlogPost>.Ok(obj);
                     }
                     throw new NotImplementedException();

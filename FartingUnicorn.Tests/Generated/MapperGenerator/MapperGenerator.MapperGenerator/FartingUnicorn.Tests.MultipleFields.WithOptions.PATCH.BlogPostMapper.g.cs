@@ -53,7 +53,8 @@ public partial class MultipleFields
                     {
                         return Result<BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
                     }
-                    var obj = new BlogPost();
+                    var p_Category = default(FartingUnicorn.Option<string>?);
+                    var p_Rating = default(FartingUnicorn.Option<int>?);
 
                     List<IError> errors = new();
                     var isCategoryPropertyDefined = jsonElement.TryGetProperty("Category", out var jsonCategoryProperty);
@@ -61,11 +62,11 @@ public partial class MultipleFields
                     {
                         if (jsonCategoryProperty.ValueKind == JsonValueKind.Null)
                         {
-                            obj.Category = new None<System.String>();
+                            p_Category = new None<System.String>();
                         }
                         else if (jsonCategoryProperty.ValueKind == JsonValueKind.String)
                         {
-                            obj.Category = new Some<string>(jsonCategoryProperty.GetString());
+                            p_Category = new Some<string>(jsonCategoryProperty.GetString());
                         }
                         else
                         {
@@ -74,18 +75,18 @@ public partial class MultipleFields
                     }
                     else
                     {
-                        obj.Category = null;
+                        p_Category = null;
                     }
                     var isRatingPropertyDefined = jsonElement.TryGetProperty("Rating", out var jsonRatingProperty);
                     if (isRatingPropertyDefined)
                     {
                         if (jsonRatingProperty.ValueKind == JsonValueKind.Null)
                         {
-                            obj.Rating = new None<System.Int32>();
+                            p_Rating = new None<System.Int32>();
                         }
                         else if (jsonRatingProperty.ValueKind == JsonValueKind.Number)
                         {
-                            obj.Rating = new Some<int>(jsonRatingProperty.GetInt32());
+                            p_Rating = new Some<int>(jsonRatingProperty.GetInt32());
                         }
                         else
                         {
@@ -94,7 +95,7 @@ public partial class MultipleFields
                     }
                     else
                     {
-                        obj.Rating = null;
+                        p_Rating = null;
                     }
                     if(errors.Any())
                     {
@@ -105,6 +106,9 @@ public partial class MultipleFields
                     }
                     else
                     {
+                        var obj = new BlogPost();
+                        obj.Category = p_Category;
+                        obj.Rating = p_Rating;
                         return Result<BlogPost>.Ok(obj);
                     }
                     throw new NotImplementedException();

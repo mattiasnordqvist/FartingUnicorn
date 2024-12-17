@@ -49,7 +49,8 @@ public partial class Converters
             {
                 return Result<BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
             }
-            var obj = new BlogPost();
+            var p_Id = default(FartingUnicorn.Tests.Converters.Id);
+            var p_Title = default(string);
 
             List<IError> errors = new();
             var isIdPropertyDefined = jsonElement.TryGetProperty("Id", out var jsonIdProperty);
@@ -70,7 +71,7 @@ public partial class Converters
                         var result = customConverter.Convert(typeof(FartingUnicorn.Tests.Converters.Id), jsonIdProperty, mapperOptions, [.. path, "Id"]);
                         if (result.Success)
                         {
-                            obj.Id = result.Map(x => (FartingUnicorn.Tests.Converters.Id)x).Value;
+                            p_Id = result.Map(x => (FartingUnicorn.Tests.Converters.Id)x).Value;
                         }
                         else
                         {
@@ -85,7 +86,7 @@ public partial class Converters
                         var result = FartingUnicorn.Tests.Converters.Id.MapFromJson(jsonIdProperty, mapperOptions, [.. path, "Id"]);
                         if (result.Success)
                         {
-                            obj.Id = result.Value;
+                            p_Id = result.Value;
                         }
                         else
                         {
@@ -111,7 +112,7 @@ public partial class Converters
                 }
                 else if (jsonTitleProperty.ValueKind == JsonValueKind.String)
                 {
-                    obj.Title = jsonTitleProperty.GetString();
+                    p_Title = jsonTitleProperty.GetString();
                 }
                 else
                 {
@@ -131,6 +132,9 @@ public partial class Converters
             }
             else
             {
+                var obj = new BlogPost();
+                obj.Id = p_Id;
+                obj.Title = p_Title;
                 return Result<BlogPost>.Ok(obj);
             }
             throw new NotImplementedException();

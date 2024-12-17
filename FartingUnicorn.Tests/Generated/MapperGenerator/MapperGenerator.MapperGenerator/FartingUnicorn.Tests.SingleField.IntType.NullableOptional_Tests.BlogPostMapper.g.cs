@@ -44,7 +44,7 @@ public partial class SingleField
                     {
                         return Result<BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
                     }
-                    var obj = new BlogPost();
+                    var p_Rating = default(FartingUnicorn.Option<int>?);
 
                     List<IError> errors = new();
                     var isRatingPropertyDefined = jsonElement.TryGetProperty("Rating", out var jsonRatingProperty);
@@ -52,11 +52,11 @@ public partial class SingleField
                     {
                         if (jsonRatingProperty.ValueKind == JsonValueKind.Null)
                         {
-                            obj.Rating = new None<System.Int32>();
+                            p_Rating = new None<System.Int32>();
                         }
                         else if (jsonRatingProperty.ValueKind == JsonValueKind.Number)
                         {
-                            obj.Rating = new Some<int>(jsonRatingProperty.GetInt32());
+                            p_Rating = new Some<int>(jsonRatingProperty.GetInt32());
                         }
                         else
                         {
@@ -65,7 +65,7 @@ public partial class SingleField
                     }
                     else
                     {
-                        obj.Rating = null;
+                        p_Rating = null;
                     }
                     if(errors.Any())
                     {
@@ -76,6 +76,8 @@ public partial class SingleField
                     }
                     else
                     {
+                        var obj = new BlogPost();
+                        obj.Rating = p_Rating;
                         return Result<BlogPost>.Ok(obj);
                     }
                     throw new NotImplementedException();

@@ -60,7 +60,9 @@ public partial class Arrays
                 {
                     return Result<Comment>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
                 }
-                var obj = new Comment();
+                var p_Text = default(string);
+                var p_Upvotes = default(int);
+                var p_Contact = default(FartingUnicorn.Option<string>);
 
                 List<IError> errors = new();
                 var isTextPropertyDefined = jsonElement.TryGetProperty("Text", out var jsonTextProperty);
@@ -72,7 +74,7 @@ public partial class Arrays
                     }
                     else if (jsonTextProperty.ValueKind == JsonValueKind.String)
                     {
-                        obj.Text = jsonTextProperty.GetString();
+                        p_Text = jsonTextProperty.GetString();
                     }
                     else
                     {
@@ -92,7 +94,7 @@ public partial class Arrays
                     }
                     else if (jsonUpvotesProperty.ValueKind == JsonValueKind.Number)
                     {
-                        obj.Upvotes = jsonUpvotesProperty.GetInt32();
+                        p_Upvotes = jsonUpvotesProperty.GetInt32();
                     }
                     else
                     {
@@ -108,11 +110,11 @@ public partial class Arrays
                 {
                     if (jsonContactProperty.ValueKind == JsonValueKind.Null)
                     {
-                        obj.Contact = new None<System.String>();
+                        p_Contact = new None<System.String>();
                     }
                     else if (jsonContactProperty.ValueKind == JsonValueKind.String)
                     {
-                        obj.Contact = new Some<string>(jsonContactProperty.GetString());
+                        p_Contact = new Some<string>(jsonContactProperty.GetString());
                     }
                     else
                     {
@@ -132,6 +134,10 @@ public partial class Arrays
                 }
                 else
                 {
+                    var obj = new Comment();
+                    obj.Text = p_Text;
+                    obj.Upvotes = p_Upvotes;
+                    obj.Contact = p_Contact;
                     return Result<Comment>.Ok(obj);
                 }
                 throw new NotImplementedException();

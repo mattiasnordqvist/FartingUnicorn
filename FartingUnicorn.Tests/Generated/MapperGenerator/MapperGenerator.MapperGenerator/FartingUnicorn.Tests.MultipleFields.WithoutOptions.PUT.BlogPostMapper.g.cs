@@ -53,7 +53,8 @@ public partial class MultipleFields
                     {
                         return Result<BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
                     }
-                    var obj = new BlogPost();
+                    var p_Title = default(string);
+                    var p_IsDraft = default(bool);
 
                     List<IError> errors = new();
                     var isTitlePropertyDefined = jsonElement.TryGetProperty("Title", out var jsonTitleProperty);
@@ -65,7 +66,7 @@ public partial class MultipleFields
                         }
                         else if (jsonTitleProperty.ValueKind == JsonValueKind.String)
                         {
-                            obj.Title = jsonTitleProperty.GetString();
+                            p_Title = jsonTitleProperty.GetString();
                         }
                         else
                         {
@@ -85,7 +86,7 @@ public partial class MultipleFields
                         }
                         else if (jsonIsDraftProperty.ValueKind == JsonValueKind.True || jsonIsDraftProperty.ValueKind == JsonValueKind.False)
                         {
-                            obj.IsDraft = jsonIsDraftProperty.GetBoolean();
+                            p_IsDraft = jsonIsDraftProperty.GetBoolean();
                         }
                         else
                         {
@@ -105,6 +106,9 @@ public partial class MultipleFields
                     }
                     else
                     {
+                        var obj = new BlogPost();
+                        obj.Title = p_Title;
+                        obj.IsDraft = p_IsDraft;
                         return Result<BlogPost>.Ok(obj);
                     }
                     throw new NotImplementedException();

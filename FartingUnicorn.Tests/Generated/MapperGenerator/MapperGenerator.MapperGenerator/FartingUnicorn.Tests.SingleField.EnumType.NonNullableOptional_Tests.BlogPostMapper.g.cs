@@ -44,7 +44,7 @@ public partial class SingleField
                     {
                         return Result<BlogPost>.Error(new ValueHasWrongTypeError(path, "Object", jsonElement.ValueKind.ToString()));
                     }
-                    var obj = new BlogPost();
+                    var p_Status = default(FartingUnicorn.Option<FartingUnicorn.Tests.SingleField.EnumType.NonNullableOptional_Tests.BlogPost.BlogPostStatus>);
 
                     List<IError> errors = new();
                     var isStatusPropertyDefined = jsonElement.TryGetProperty("Status", out var jsonStatusProperty);
@@ -52,7 +52,7 @@ public partial class SingleField
                     {
                         if (jsonStatusProperty.ValueKind == JsonValueKind.Null)
                         {
-                            obj.Status = new None<FartingUnicorn.Tests.SingleField.EnumType.NonNullableOptional_Tests.BlogPost.BlogPostStatus>();
+                            p_Status = new None<FartingUnicorn.Tests.SingleField.EnumType.NonNullableOptional_Tests.BlogPost.BlogPostStatus>();
                         }
                         else if (mapperOptions.TryGetConverter(typeof(FartingUnicorn.Tests.SingleField.EnumType.NonNullableOptional_Tests.BlogPost.BlogPostStatus), out IConverter customConverter))
                         {
@@ -65,7 +65,7 @@ public partial class SingleField
                                 var result = customConverter.Convert(typeof(FartingUnicorn.Tests.SingleField.EnumType.NonNullableOptional_Tests.BlogPost.BlogPostStatus), jsonStatusProperty, mapperOptions, [.. path, "Status"]);
                                 if (result.Success)
                                 {
-                                    obj.Status = new Some<FartingUnicorn.Tests.SingleField.EnumType.NonNullableOptional_Tests.BlogPost.BlogPostStatus>(result.Map(x => (FartingUnicorn.Tests.SingleField.EnumType.NonNullableOptional_Tests.BlogPost.BlogPostStatus)x).Value);
+                                    p_Status = new Some<FartingUnicorn.Tests.SingleField.EnumType.NonNullableOptional_Tests.BlogPost.BlogPostStatus>(result.Map(x => (FartingUnicorn.Tests.SingleField.EnumType.NonNullableOptional_Tests.BlogPost.BlogPostStatus)x).Value);
                                 }
                                 else
                                 {
@@ -87,6 +87,8 @@ public partial class SingleField
                     }
                     else
                     {
+                        var obj = new BlogPost();
+                        obj.Status = p_Status;
                         return Result<BlogPost>.Ok(obj);
                     }
                     throw new NotImplementedException();
